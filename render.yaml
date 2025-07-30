@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: mickey-water-billing
+    env: node
+    plan: free
+    buildCommand: ''
+    startCommand: 'node server.js'
+    envVars:
+      - key: AC3f8c4028a8ffe4c05f6448bfdb52a6c2
+        sync: true
+      - key: 27ed4809d27dfca891c716e800034540
+        sync: true
+      - key: +17622525044
+        sync: true
