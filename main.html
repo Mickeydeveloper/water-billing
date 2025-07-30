@@ -184,11 +184,21 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ to: phone, message: billMsg })
                     });
-                    const data = await res.json();
-                    if (data.success) {
-                        alert('SMS imetumwa kwa Twilio!');
+                    let data = {};
+                    if (res.ok) {
+                        try {
+                            data = await res.json();
+                        } catch (e) {
+                            data = {};
+                        }
+                        if (data.success) {
+                            alert('SMS imetumwa kwa Twilio!');
+                        } else {
+                            alert('Imeshindikana kutuma SMS: ' + (data.error || 'Tatizo halijulikani.'));
+                        }
                     } else {
-                        alert('Imeshindikana kutuma SMS: ' + (data.error || 'Tatizo halijulikani'));
+                        let text = await res.text();
+                        alert('Imeshindikana kutuma SMS: ' + (text || 'Tatizo la mtandao au server.'));
                     }
                 } catch (err) {
                     alert('Imeshindikana kutuma SMS: ' + err.message);
