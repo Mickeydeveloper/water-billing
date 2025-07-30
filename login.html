@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Portal</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(-45deg, #00c3ff, #ffff1c, #ff4e50, #1cd8d2);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .login-box {
+      background: rgba(255,255,255,0.18);
+      border: 1.5px solid rgba(255,255,255,0.35);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25), 0 0 30px #00ffd5;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      padding: 2.2em 2.7em 2.7em 2.7em;
+      border-radius: 22px;
+      width: 340px;
+      z-index: 1;
+      position: relative;
+      transition: box-shadow 0.3s, border 0.3s;
+    }
+    .login-box:hover {
+      box-shadow: 0 12px 40px 0 #00ffd5, 0 0 40px #fff7;
+      border: 2px solid #00ffd5;
+    }
+    .login-box h2 {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 1.2em;
+      letter-spacing: 1px;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 0.9em;
+      margin-bottom: 1.1em;
+      border: none;
+      border-radius: 7px;
+      font-size: 1em;
+      background: #f1f1f1;
+      box-shadow: 0 2px 8px #0001;
+      transition: box-shadow 0.2s;
+    }
+    .login-box input:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #00ffd5;
+    }
+    .show-pass {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1em;
+      color: #fff;
+      font-size: 0.95em;
+      gap: 6px;
+      user-select: none;
+    }
+    .msg {
+      text-align: center;
+      margin-bottom: 1em;
+      font-size: 1em;
+      color: #ff7675;
+      min-height: 1.5em;
+      transition: color 0.2s;
+    }
+    .msg.success {
+      color: #00ffd5;
+    }
+    .login-btn-3d {
+      width: 100%;
+      padding: 1em;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #00ffd5 0%, #00b894 100%);
+      color: #000;
+      cursor: pointer;
+      font-size: 1.1em;
+      box-shadow: 0 6px 0 #009e8e, 0 0 20px #00ffd5;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+      position: relative;
+      z-index: 2;
+    }
+    .login-btn-3d:active {
+      transform: translateY(6px);
+      box-shadow: 0 0px 0 #009e8e, 0 0 40px #00ffd5;
+      background: linear-gradient(90deg, #00b894 0%, #00ffd5 100%);
+    }
+    .login-btn-3d.move {
+      animation: shakeX 0.5s;
+    }
+    @keyframes shakeX {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-18px); }
+      20%, 40%, 60%, 80% { transform: translateX(18px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Login</h2>
+    <form id="loginForm" autocomplete="off">
+      <div class="msg" id="loginMsg"></div>
+      <input type="text" id="username" placeholder="Username" required autofocus>
+      <input type="password" id="password" placeholder="Password" required>
+      <div class="show-pass"><input type="checkbox" id="showPass"> <label for="showPass">Onyesha Password</label></div>
+      <button type="submit" class="login-btn-3d" id="loginBtn">Log In</button>
+    </form>
+  </div>
+  <script>
+    // Show/hide password
+    document.getElementById('showPass').addEventListener('change', function() {
+      const pw = document.getElementById('password');
+      pw.type = this.checked ? 'text' : 'password';
+    });
+    // Standard login form handling with 3D button effect
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value;
+      const msg = document.getElementById('loginMsg');
+      const btn = document.getElementById('loginBtn');
+      msg.classList.remove('success');
+      if (!user || !pass) {
+        msg.textContent = 'Jaza username na password.';
+        btn.classList.add('move');
+        setTimeout(() => btn.classList.remove('move'), 500);
+        return;
+      }
+      // Demo: use localStorage for user/pass (set once if not set)
+      if (!localStorage.getItem('demoUser')) {
+        localStorage.setItem('demoUser', 'admin');
+        localStorage.setItem('demoPass', 'admin');
+      }
+      const demoUser = localStorage.getItem('demoUser');
+      const demoPass = localStorage.getItem('demoPass');
+      if (user === demoUser && pass === demoPass) {
+        msg.textContent = 'Karibu Admin!';
+        msg.classList.add('success');
+        setTimeout(() => { window.location.href = 'main.html'; }, 1200);
+      } else {
+        msg.textContent = 'Username au password sio sahihi.';
+        btn.classList.add('move');
+        setTimeout(() => btn.classList.remove('move'), 500);
+      }
+    });
+  </script>
+</body>
+</html>

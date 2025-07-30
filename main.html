@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tanzania Water Billing System</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
+    <meta name="description" content="Mickey Water Billing System - Simple, fast, and modern water billing for Tanzania.">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2f0e6 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px #0002;
+        }
+        h2 {
+            text-align: center;
+            color: #0077b6;
+        }
+        .icon-container {
+            text-align:center;
+            margin-bottom:10px;
+        }
+        .icon-container img {
+            width:60px;
+            height:60px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #0077b6;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #0077b633;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #023e8a;
+        }
+        .result {
+            margin-top: 20px;
+            background: #e0f7fa;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .history {
+            margin-top: 30px;
+        }
+        .history h3 {
+            margin-bottom: 10px;
+        }
+        .history-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .history-list div {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        /* Floating help button */
+        .help-btn {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: #00b894;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            box-shadow: 0 4px 16px #00b89455;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .help-btn:hover {
+            background: #019267;
+        }
+    </style>
+</head>
+<body>
+    <button class="help-btn" title="Msaada / Contact" onclick="window.open('mailto:mickidadyhamza@gmail.com?subject=Msaada%20kwa%20Mickey%20Water%20Billing','_blank')">?</button>
+    <audio id="bgmusic" src="https://files.catbox.moe/hdx32b.mp3" autoplay loop hidden></audio>
+    <div class="container">
+        <div class="icon-container">
+            <img src="https://files.catbox.moe/54500v.jpg" alt="Water Icon">
+        </div>
+        <h2>Mickey Water Billing System</h2>
+        <form id="billingForm">
+            <label for="name">Jina la Mteja</label>
+            <input type="text" id="name" required>
+
+            <label for="address">Anwani</label>
+            <input type="text" id="address" required>
+
+            <label for="phone">Namba ya WhatsApp/SMS (mf. 2557XXXXXXXX)</label>
+            <input type="tel" id="phone" pattern="[0-9]{12}" required>
+
+            <label for="prev">Kisoma cha Awali (unit)</label>
+            <input type="number" id="prev" min="0" required>
+
+            <label for="curr">Kisoma cha Sasa (unit)</label>
+            <input type="number" id="curr" min="0" required>
+
+            <label for="rate">Bei kwa unit (TZS)</label>
+            <input type="number" id="rate" min="1" value="2000" required>
+
+            <label for="fixed">Ada ya Kudumu (TZS)</label>
+            <input type="number" id="fixed" min="0" value="0" required>
+
+            <button type="submit">Kokotoa na Tuma Ankara</button>
+        </form>
+        <div style="margin-top:10px; text-align:center;">
+            <button id="sendSMSBtn" style="background:#25a244; color:#fff; display:none;">Tuma Ankara kwa SMS</button>
+        </form>
+        <div class="result" id="result" style="display:none;"></div>
+        <div class="history">
+            <h3>Historia ya Ankara</h3>
+            <div class="history-list" id="historyList"></div>
+        </div>
+    </div>
+    <script>
+        function saveToHistory(record) {
+            let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '[]');
+            history.unshift(record);
+            if (history.length > 20) history = history.slice(0, 20);
+            localStorage.setItem('waterBillingHistory', JSON.stringify(history));
+        }
+        function loadHistory() {
+            let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '[]');
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            if (history.length === 0) {
+                list.innerHTML = '<em>Hakuna rekodi bado.</em>';
+                return;
+            }
+            history.forEach(r => {
+                list.innerHTML += `<div><strong>${r.date}</strong>: ${r.name}, ${r.address}, Ankara: TZS ${r.total} (Imetumwa kwa: ${r.phone})</div>`;
+            });
+        }
+        // Slow random background color change
+        function randomColor() {
+            const h = Math.floor(Math.random() * 360);
+            const s = 60 + Math.floor(Math.random() * 20); // 60-80%
+            const l = 85 + Math.floor(Math.random() * 10); // 85-95%
+            return `hsl(${h},${s}%,${l}%)`;
+        }
+        function animateBg() {
+            document.body.style.transition = 'background 0.5s';
+            setInterval(() => {
+                document.body.style.background = randomColor();
+            }, 1000);
+        }
+        window.addEventListener('DOMContentLoaded', animateBg);
+        document.getElementById('billingForm').onsubmit = function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const prev = parseFloat(document.getElementById('prev').value);
+            const curr = parseFloat(document.getElementById('curr').value);
+            const rate = parseFloat(document.getElementById('rate').value);
+            const fixed = parseFloat(document.getElementById('fixed').value);
+            if (curr < prev) {
+                alert('Kisoma cha sasa lazima kiwe kikubwa au sawa na kisoma cha awali.');
+                return;
+            }
+            const usage = curr - prev;
+            const amount = usage * rate;
+            const total = amount + fixed;
+            const billMsg = `ANKARA YA MAJI\nJina: ${name}\nAnwani: ${address}\nMatumizi: ${usage} unit\nBei: TZS ${rate}/unit\nAda ya Kudumu: TZS ${fixed}\nJumla: TZS ${total}\nAsante.`;
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('result').innerHTML =
+                `<strong>Maelezo ya Ankara:</strong><br>Jina: ${name}<br>Anwani: ${address}<br>Matumizi: ${usage} unit<br>Kiasi: TZS ${amount}<br>Ada ya Kudumu: TZS ${fixed}<br><strong>Jumla: TZS ${total}</strong><br><br>` +
+                `<a href="https://wa.me/${phone}?text=${encodeURIComponent(billMsg)}" target="_blank" style="color:green;font-weight:bold;">Tuma Ankara kwa WhatsApp</a>`;
+            // Onyesha kitufe cha SMS
+            const smsBtn = document.getElementById('sendSMSBtn');
+            smsBtn.style.display = 'inline-block';
+            smsBtn.onclick = function() {
+                const smsText = `ANKARA YA MAJI\nJina: ${name}\nAnwani: ${address}\nMatumizi: ${usage} unit\nBei: TZS ${rate}/unit\nAda ya Kudumu: TZS ${fixed}\nJumla: TZS ${total}\nAsante.`;
+                // Kwa simu nyingi, sms: link inafanya kazi kwenye simu pekee
+                window.open(`sms:${phone}?body=${encodeURIComponent(smsText)}`);
+            };
+            // Hifadhi historia
+            saveToHistory({
+                date: new Date().toLocaleString(),
+                name, address, phone, usage, amount, fixed, total
+            });
+            loadHistory();
+        };
+        loadHistory();
+    </script>
+</body>
+</html>
