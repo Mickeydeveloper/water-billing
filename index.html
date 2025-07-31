@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Water Billing System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #e0f7fa 0%, #b2f0e6 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dashboard {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px #0002;
+      padding: 36px 44px 30px 44px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+    h2 {
+      color: #0077b6;
+      margin-bottom: 18px;
+    }
+    .stat {
+      margin: 18px 0;
+      font-size: 1.1em;
+      color: #333;
+      background: #e0f7fa;
+      border-radius: 8px;
+      padding: 12px 0;
+      box-shadow: 0 2px 8px #0077b622;
+    }
+    .open-login-btn {
+      margin-top: 24px;
+      padding: 12px 0;
+      width: 100%;
+      background: #0077b6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1em;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #0077b633;
+      transition: background 0.2s;
+    }
+    .open-login-btn:hover {
+      background: #023e8a;
+    }
+    .icon {
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h2>Dashboard</h2>
+    <div style="width:100%;height:60px;overflow:hidden;position:relative;margin-bottom:18px;">
+      <svg viewBox="0 0 500 60" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;left:0;top:0;">
+        <path id="wavePath" d="M0,30 Q125,60 250,30 T500,30 V60 H0 Z" fill="#00b894" opacity="0.18">
+          <animate attributeName="d" dur="3s" repeatCount="indefinite"
+            values="M0,30 Q125,60 250,30 T500,30 V60 H0 Z;
+                    M0,35 Q125,20 250,35 T500,35 V60 H0 Z;
+                    M0,30 Q125,60 250,30 T500,30 V60 H0 Z" />
+        </path>
+      </svg>
+    </div>
+    <div class="stat" id="webStat"><span class="icon">🌐</span>Web Status: <span id="webStatus">Checking...</span></div>
+    <div class="stat"><span class="icon">🔋</span>Battery: <span id="battery">Checking...</span></div>
+    <div class="stat"><span class="icon">📡</span>Network: <span id="network">Checking...</span></div>
+    <div class="stat"><span class="icon">💻</span>Your IP: <span id="ip">Loading...</span></div>
+    <button class="open-login-btn" onclick="window.location.href='login.html'">Open Login</button>
+    <div id="waterFact" style="margin-top:22px;font-size:1em;color:#0077b6;background:#e0f7fa;border-radius:8px;padding:12px 10px;box-shadow:0 2px 8px #0077b622;">
+      Loading fun water fact...
+    </div>
+  </div>
+  <script>
+    // Fun water facts
+    const facts = [
+      "About 71% of the Earth's surface is water-covered.",
+      "Water expands when it freezes, unlike most liquids.",
+      "A person can live about a month without food, but only about a week without water.",
+      "The human brain is about 75% water.",
+      "Water regulates the Earth's temperature.",
+      "Freshwater makes up only about 2.5% of all water on Earth.",
+      "Drinking enough water can improve your mood and energy levels.",
+      "Water is the only substance found naturally on Earth in all three states: solid, liquid, and gas.",
+      "Tanzania's Lake Victoria is the largest lake in Africa by area!",
+      "Water can dissolve more substances than any other liquid."
+    ];
+    function showRandomFact() {
+      const fact = facts[Math.floor(Math.random() * facts.length)];
+      document.getElementById('waterFact').textContent = '💧 ' + fact;
+    }
+    showRandomFact();
+    setInterval(showRandomFact, 12000);
+    // Web status
+    document.getElementById('webStatus').textContent = navigator.onLine ? 'Online' : 'Offline';
+    window.addEventListener('online', () => document.getElementById('webStatus').textContent = 'Online');
+    window.addEventListener('offline', () => document.getElementById('webStatus').textContent = 'Offline');
+
+    // Battery status
+    if (navigator.getBattery) {
+      navigator.getBattery().then(function(battery) {
+        function updateBattery() {
+          let level = Math.round(battery.level * 100) + '%';
+          let charging = battery.charging ? ' (Charging)' : '';
+          document.getElementById('battery').textContent = level + charging;
+        }
+        updateBattery();
+        battery.addEventListener('levelchange', updateBattery);
+        battery.addEventListener('chargingchange', updateBattery);
+      });
+    } else {
+      document.getElementById('battery').textContent = 'Not supported';
+    }
+
+    // Network provider
+    function getNetworkProvider() {
+      let connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (connection && connection.type) {
+        return connection.type.charAt(0).toUpperCase() + connection.type.slice(1);
+      }
+      if (connection && connection.effectiveType) {
+        return connection.effectiveType.toUpperCase();
+      }
+      return 'Unknown';
+    }
+    document.getElementById('network').textContent = getNetworkProvider();
+
+    // IP address (fetch from public API)
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('ip').textContent = data.ip;
+      })
+      .catch(() => {
+        document.getElementById('ip').textContent = 'Unavailable';
+      });
+  </script>
+</body>
+</html>

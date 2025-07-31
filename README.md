@@ -1,6 +1,6 @@
 # Render Deployment for Mickey Water Billing System
 
-This project is ready to deploy as a static site on Render or as a simple Node.js Express app for more advanced features (like Twilio SMS integration).
+This project is ready to deploy as a static site on Render or as a simple Node.js Express app for more advanced features.
 
 ## Option 1: Static Site (HTML/CSS/JS only)
 1. Place your `main.html`, `login.html`, and any assets (images, icons, etc.) in the root directory.
@@ -27,7 +27,7 @@ This project is ready to deploy as a static site on Render or as a simple Node.j
   "dependencies": {
     "express": "^4.18.2",
     "body-parser": "^1.20.2",
-    "twilio": "^4.15.0"
+
   }
 }
 
@@ -40,17 +40,13 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Twilio config (set these in Render environment variables)
-const accountSid = process.env.TWILIO_SID;
-const authToken = process.env.TWILIO_AUTH;
-const twilioNumber = process.env.TWILIO_NUMBER;
-const twilio = accountSid && authToken ? require('twilio')(accountSid, authToken) : null;
+
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '/')));
 
 app.post('/send-sms', async (req, res) => {
-  if (!twilio) return res.status(500).json({ error: 'Twilio not configured' });
+
   const { to, message } = req.body;
   try {
     await twilio.messages.create({

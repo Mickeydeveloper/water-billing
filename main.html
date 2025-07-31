@@ -141,7 +141,6 @@
             <input type="number" id="fixed" min="0" value="0" required>
 
             <button type="submit">Kokotoa na Tuma Ankara</button>
-            <button type="button" id="twilioSMSBtn" style="background:#6c47ff; color:#fff; margin-top:10px;">Tuma Ankara kwa SMS (Twilio)</button>
         </form>
         <div style="margin-top:10px; text-align:center;">
             <button id="sendSMSBtn" style="background:#25a244; color:#fff; display:none;">Tuma Ankara kwa SMS</button>
@@ -153,60 +152,7 @@
         </div>
     </div>
     <script>
-        // Twilio SMS send button logic
-        document.addEventListener('DOMContentLoaded', function() {
-            const twilioBtn = document.getElementById('twilioSMSBtn');
-            twilioBtn.onclick = async function() {
-                const name = document.getElementById('name').value.trim();
-                const address = document.getElementById('address').value.trim();
-                const phone = document.getElementById('phone').value.trim();
-                const prev = parseFloat(document.getElementById('prev').value);
-                const curr = parseFloat(document.getElementById('curr').value);
-                const rate = parseFloat(document.getElementById('rate').value);
-                const fixed = parseFloat(document.getElementById('fixed').value);
-                if (!name || !address || !phone || isNaN(prev) || isNaN(curr) || isNaN(rate) || isNaN(fixed)) {
-                    alert('Jaza taarifa zote za mteja na ankara.');
-                    return;
-                }
-                if (curr < prev) {
-                    alert('Kisoma cha sasa lazima kiwe kikubwa au sawa na kisoma cha awali.');
-                    return;
-                }
-                const usage = curr - prev;
-                const amount = usage * rate;
-                const total = amount + fixed;
-                const billMsg = `ANKARA YA MAJI\nJina: ${name}\nAnwani: ${address}\nMatumizi: ${usage} unit\nBei: TZS ${rate}/unit\nAda ya Kudumu: TZS ${fixed}\nJumla: TZS ${total}\nAsante.`;
-                twilioBtn.disabled = true;
-                twilioBtn.textContent = 'Inatuma...';
-                try {
-                    const res = await fetch('/send-sms', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ to: phone, message: billMsg })
-                    });
-                    let data = {};
-                    if (res.ok) {
-                        try {
-                            data = await res.json();
-                        } catch (e) {
-                            data = {};
-                        }
-                        if (data.success) {
-                            alert('SMS imetumwa kwa Twilio!');
-                        } else {
-                            alert('Imeshindikana kutuma SMS: ' + (data.error || 'Tatizo halijulikani.'));
-                        }
-                    } else {
-                        let text = await res.text();
-                        alert('Imeshindikana kutuma SMS: ' + (text || 'Tatizo la mtandao au server.'));
-                    }
-                } catch (err) {
-                    alert('Imeshindikana kutuma SMS: ' + err.message);
-                }
-                twilioBtn.disabled = false;
-                twilioBtn.textContent = 'Tuma Ankara kwa SMS (Twilio)';
-            };
-        });
+        // ...existing code...
         function saveToHistory(record) {
             let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '[]');
             history.unshift(record);
