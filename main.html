@@ -81,11 +81,6 @@
             padding: 10px;
             border-radius: 6px;
         }
-        .history-list div {
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        /* Floating help button */
         .help-btn {
             position: fixed;
             bottom: 28px;
@@ -112,7 +107,10 @@
 </head>
 <body>
     <button class="help-btn" title="Msaada / Contact" onclick="window.open('mailto:mickidadyhamza@gmail.com?subject=Msaada%20kwa%20Mickey%20Water%20Billing','_blank')">?</button>
-    <audio id="bgmusic" src="https://files.catbox.moe/hdx32b.mp3" autoplay loop hidden></audio>
+    
+    <!-- Cash count sound effect -->
+    <audio id="cashCountSound" src="https://example.com/cash-count-sound.mp3" preload="auto"></audio>
+
     <div class="container">
         <div class="icon-container">
             <img src="https://files.catbox.moe/54500v.jpg" alt="Water Icon">
@@ -144,7 +142,7 @@
         </form>
         <div style="margin-top:10px; text-align:center;">
             <button id="sendSMSBtn" style="background:#25a244; color:#fff; display:none;">Tuma Ankara kwa SMS</button>
-        </form>
+        </div>
         <div class="result" id="result" style="display:none;"></div>
         <div class="history">
             <h3>Historia ya Ankara</h3>
@@ -152,39 +150,77 @@
         </div>
     </div>
     <script>
-        // ...existing code...
         function saveToHistory(record) {
-            let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '[]');
-            history.unshift(record);
-            if (history.length > 20) history = history.slice(0, 20);
+            let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '{}');
+            const monthYear = `${record.date.getFullYear()}-${record.date.getMonth() + 1}`; // Format: YYYY-MM
+
+            if (!history[monthYear]) {
+                history[monthYear] = [];
+            }
+            history[monthYear].unshift(record);
             localStorage.setItem('waterBillingHistory', JSON.stringify(history));
         }
+
         function loadHistory() {
-            let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '[]');
+            let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '{}');
             const list = document.getElementById('historyList');
             list.innerHTML = '';
-            if (history.length === 0) {
+
+            if (Object.keys(history).length === 0) {
                 list.innerHTML = '<em>Hakuna rekodi bado.</em>';
                 return;
             }
-            history.forEach(r => {
-                list.innerHTML += `<div><strong>${r.date}</strong>: ${r.name}, ${r.address}, Ankara: TZS ${r.total} (Imetumwa kwa: ${r.phone})</div>`;
+
+            Object.keys(history).forEach(monthYear => {
+                const records = history[monthYear];
+                list.innerHTML += `<strong>${monthYear.replace('-', '/')}</strong><br>`; // Display as YYYY/MM
+                records.forEach(r => {
+                    list.innerHTML += `<div><strong>${r.date.toLocaleString()}</strong>: ${r.name}, ${r.address}, Ankara: TZS ${r.total} (Imetumwa kwa: ${r.phone})</div>`;
+                });
             });
         }
-        // Slow random background color change
+
         function randomColor() {
             const h = Math.floor(Math.random() * 360);
-            const s = 60 + Math.floor(Math.random() * 20); // 60-80%
-            const l = 85 + Math.floor(Math.random() * 10); // 85-95%
+            const s = 60 + Math.floor(Math.random() * 20);
+            const l = 85 + Math.floor(Math.random() * 10);
             return `hsl(${h},${s}%,${l}%)`;
         }
+
         function animateBg() {
             document.body.style.transition = 'background 0.5s';
             setInterval(() => {
                 document.body.style.background = randomColor();
             }, 1000);
         }
-        window.addEventListener('DOMContentLoaded', animateBg);
+
+        function cashCountAnimation(total) {
+            const resultDiv = document.getElementById('result');
+            const cashCountSound = document.getElementById('cashCountSound');
+            let count = 0;
+            const duration = 2000; // Duration of the animation in milliseconds
+            const incrementTime = 50; // Time between increments in milliseconds
+            const totalSteps = duration / incrementTime;
+            const incrementAmount = total / totalSteps;
+
+            cashCountSound.currentTime = 0; // Reset sound to start
+            cashCountSound.play(); // Play cash count sound
+
+            const interval = setInterval(() => {
+                count += incrementAmount;
+                if (count >= total) {
+                    count = total;
+                    clearInterval(interval);
+                }
+                resultDiv.innerHTML = `<strong>Jumla: TZS ${Math.round(count)}</strong>`;
+            }, incrementTime);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            animateBg();
+            loadHistory();
+        });
+
         document.getElementById('billingForm').onsubmit = function(e) {
             e.preventDefault();
             const name = document.getElementById('name').value.trim();
@@ -194,34 +230,33 @@
             const curr = parseFloat(document.getElementById('curr').value);
             const rate = parseFloat(document.getElementById('rate').value);
             const fixed = parseFloat(document.getElementById('fixed').value);
+
             if (curr < prev) {
                 alert('Kisoma cha sasa lazima kiwe kikubwa au sawa na kisoma cha awali.');
                 return;
             }
+
             const usage = curr - prev;
             const amount = usage * rate;
             const total = amount + fixed;
             const billMsg = `ANKARA YA MAJI\nJina: ${name}\nAnwani: ${address}\nMatumizi: ${usage} unit\nBei: TZS ${rate}/unit\nAda ya Kudumu: TZS ${fixed}\nJumla: TZS ${total}\nAsante.`;
+
             document.getElementById('result').style.display = 'block';
-            document.getElementById('result').innerHTML =
-                `<strong>Maelezo ya Ankara:</strong><br>Jina: ${name}<br>Anwani: ${address}<br>Matumizi: ${usage} unit<br>Kiasi: TZS ${amount}<br>Ada ya Kudumu: TZS ${fixed}<br><strong>Jumla: TZS ${total}</strong><br><br>` +
-                `<a href="https://wa.me/${phone}?text=${encodeURIComponent(billMsg)}" target="_blank" style="color:green;font-weight:bold;">Tuma Ankara kwa WhatsApp</a>`;
-            // Onyesha kitufe cha SMS
+            cashCountAnimation(total); // Start cash count animation
+
             const smsBtn = document.getElementById('sendSMSBtn');
             smsBtn.style.display = 'inline-block';
             smsBtn.onclick = function() {
                 const smsText = `ANKARA YA MAJI\nJina: ${name}\nAnwani: ${address}\nMatumizi: ${usage} unit\nBei: TZS ${rate}/unit\nAda ya Kudumu: TZS ${fixed}\nJumla: TZS ${total}\nAsante.`;
-                // Kwa simu nyingi, sms: link inafanya kazi kwenye simu pekee
                 window.open(`sms:${phone}?body=${encodeURIComponent(smsText)}`);
             };
-            // Hifadhi historia
+
             saveToHistory({
-                date: new Date().toLocaleString(),
+                date: new Date(),
                 name, address, phone, usage, amount, fixed, total
             });
             loadHistory();
         };
-        loadHistory();
     </script>
 </body>
 </html>
