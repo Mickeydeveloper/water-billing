@@ -3,115 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login with Google</title>
+    <title>Secure Login</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
+        :root {
+            --primary: #4285F4;
+            --white: #ffffff;
+            --error: #EA4335;
+            --success: #34A853;
+            --border: #dadce0;
+        }
+        
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
             background-color: #f5f5f5;
         }
+        
         .login-container {
-            background-color: white;
-            padding: 2rem;
+            background-color: var(--white);
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
             text-align: center;
-            width: 320px;
         }
+        
         .logo {
-            margin-bottom: 1.5rem;
+            margin-bottom: 24px;
         }
+        
         h1 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: #333;
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #202124;
         }
-        .subtitle {
-            color: #666;
-            margin-bottom: 2rem;
-        }
-        #googleSignInBtn {
-            margin: 1rem 0;
-        }
+        
         .status-message {
-            margin-top: 1rem;
-            padding: 0.5rem;
+            padding: 12px;
             border-radius: 4px;
+            margin: 16px 0;
             display: none;
         }
-        .success {
-            background-color: #e6ffed;
-            color: #2d7734;
-        }
+        
         .error {
-            background-color: #fff0f0;
-            color: #d73a49;
+            background-color: rgba(234, 67, 53, 0.1);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+        
+        .success {
+            background-color: rgba(52, 168, 83, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
         }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="logo">
-            <img src="https://placehold.co/80/4285F4/FFFFFF?text=APP" alt="App Logo" width="80">
+            <img src="https://placehold.co/80/4285F4/FFFFFF?text=LOGO" alt="Application Logo" width="80" height="80">
         </div>
-        <h1>Welcome to Our App</h1>
-        <p class="subtitle">Sign in with Google to continue</p>
         
+        <h1>Secure Login</h1>
+        <p>Sign in with your Google account</p>
+        
+        <!-- Google Sign-In Button -->
         <div id="googleSignInBtn"></div>
         
+        <!-- Status Message -->
         <div id="statusMessage" class="status-message"></div>
     </div>
 
     <script>
-        // Function to handle the Google OAuth response
+        // Handle Google OAuth response
         function handleCredentialResponse(response) {
             const statusElement = document.getElementById('statusMessage');
-            
-            // Show loading state
             statusElement.textContent = "Authenticating...";
             statusElement.className = "status-message";
             statusElement.style.display = "block";
-
-            // Verify the token with your backend (you need to implement this)
-            fetch('/verify-google-token', {
+            
+            // Send the credential to your backend
+            fetch('https://your-backend-api.com/auth/google', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ token: response.credential })
+                body: JSON.stringify({ 
+                    credential: response.credential,
+                    clientId: '315940891938-7ujo1ajsn22pfv8eurai952f6fihmu4u.apps.googleusercontent.com'
+                })
             })
-            .then(response => {
+            .then(async response => {
                 if (!response.ok) {
-                    throw new Error('Authentication failed');
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Authentication failed');
                 }
                 return response.json();
             })
             .then(data => {
-                // On successful authentication, redirect to main.html
-                window.location.href = 'main.html';
+                // Store the authentication token
+                localStorage.setItem('authToken', data.token);
+                
+                // Show success and redirect
+                statusElement.textContent = "Login successful! Redirecting...";
+                statusElement.className = "status-message success";
+                
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = 'main.html';
+                }, 1500);
             })
             .catch(error => {
                 console.error('Authentication error:', error);
-                statusElement.textContent = "Login failed. Please try again.";
+                
+                // Clear any stored credentials
+                google.accounts.id.revoke(localStorage.getItem('email'), done => {
+                    localStorage.removeItem('email');
+                });
+                
+                // Show detailed error message
+                statusElement.textContent = error.message || "Login failed. Please try again.";
                 statusElement.className = "status-message error";
+                
+                // Re-enable the sign-in button
+                document.getElementById('googleSignInBtn').style.opacity = 1;
             });
         }
 
-        // Initialize Google OAuth when the page loads
-        window.onload = function() {
+        // Initialize Google Auth
+        function initializeGoogleAuth() {
             google.accounts.id.initialize({
                 client_id: '315940891938-7ujo1ajsn22pfv8eurai952f6fihmu4u.apps.googleusercontent.com',
                 callback: handleCredentialResponse,
-                auto_select: false, // Set to true if you want automatic login
-                ux_mode: 'popup'
+                auto_select: false,
+                ux_mode: 'popup',
+                prompt_parent_id: 'googleSignInBtn'
             });
-
-            // Render the Google Sign-In button
+            
             google.accounts.id.renderButton(
                 document.getElementById("googleSignInBtn"),
                 {
@@ -123,9 +158,45 @@
                     width: "100%"
                 }
             );
-
-            // Optional: Display the One Tap prompt
-            // google.accounts.id.prompt();
+            
+            // Check for stored authentication
+            if (localStorage.getItem('authToken')) {
+                // Verify token with backend
+                verifyStoredToken();
+            }
+        }
+        
+        // Verify stored token function
+        function verifyStoredToken() {
+            fetch('https://your-backend-api.com/verify-token', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = 'main.html';
+                } else {
+                    localStorage.removeItem('authToken');
+                }
+            })
+            .catch(() => {
+                localStorage.removeItem('authToken');
+            });
+        }
+        
+        // Load Google API
+        window.onload = function() {
+            if (typeof google !== 'undefined') {
+                initializeGoogleAuth();
+            } else {
+                const script = document.createElement('script');
+                script.src = 'https://accounts.google.com/gsi/client';
+                script.onload = initializeGoogleAuth;
+                document.head.appendChild(script);
+            }
         };
     </script>
 </body>
