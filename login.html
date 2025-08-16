@@ -1,223 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Login Portal</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f7f7f7;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .login-box {
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 8px 32px 0 #0077b633, 0 0 30px #00ffd522;
-      padding: 2.2em 2.7em 2.7em 2.7em;
-      width: 370px;
-      z-index: 1;
-      position: relative;
-      border: 2px solid #0077b6;
-      transition: box-shadow 0.3s, border 0.3s;
-    }
-    .login-box h2 {
-      text-align: center;
-      color: #0077b6;
-      margin-bottom: 1.2em;
-      letter-spacing: 1px;
-    }
-    .login-box input {
-      width: 100%;
-      padding: 0.9em;
-      margin-bottom: 1.1em;
-      border: 1px solid #b2f0e6;
-      border-radius: 7px;
-      font-size: 1em;
-      background: #f8fcff;
-      box-shadow: 0 2px 8px #0077b611;
-      transition: box-shadow 0.2s, border 0.2s;
-    }
-    .login-box input:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px #00ffd5;
-      border: 1.5px solid #00ffd5;
-    }
-    .msg {
-      text-align: center;
-      margin-bottom: 1em;
-      font-size: 1em;
-      color: #ff7675;
-      min-height: 1.5em;
-      transition: color 0.2s;
-    }
-    .msg.success {
-      color: #00b894;
-    }
-    .login-btn-3d {
-      width: 100%;
-      padding: 1em;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(90deg, #00ffd5 0%, #0077b6 100%);
-      color: #fff;
-      cursor: pointer;
-      font-size: 1.1em;
-      box-shadow: 0 6px 0 #0077b6, 0 0 20px #00ffd5;
-      transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
-      position: relative;
-      z-index: 2;
-    }
-    .login-btn-3d:active {
-      transform: translateY(6px);
-      box-shadow: 0 0px 0 #0077b6, 0 0 40px #00ffd5;
-      background: linear-gradient(90deg, #0077b6 0%, #00ffd5 100%);
-    }
-    .switch-link {
-      color: #0077b6;
-      cursor: pointer;
-      text-decoration: underline;
-      font-size: 0.98em;
-      margin-top: 8px;
-      display: inline-block;
-    }
-    .form-section {
-      margin-bottom: 10px;
-    }
-    .login-box label {
-      display: block;
-      margin-bottom: 4px;
-      font-weight: 500;
-      color: #0077b6;
-      font-size: 0.98em;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login with Google</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .login-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 320px;
+        }
+        .logo {
+            margin-bottom: 1.5rem;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        #googleSignInBtn {
+            margin: 1rem 0;
+        }
+        .status-message {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #e6ffed;
+            color: #2d7734;
+        }
+        .error {
+            background-color: #fff0f0;
+            color: #d73a49;
+        }
+    </style>
 </head>
 <body>
-  <div class="login-box" id="loginBox">
-    <h2 id="formTitle">Login</h2>
-    <form id="loginForm" autocomplete="off">
-      <div class="msg" id="loginMsg"></div>
-      <div class="form-section">
-        <label for="username">Username</label>
-        <input type="text" id="username" placeholder="Enter your username" required autofocus>
-      </div>
-      <div class="form-section">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter your password" required>
-      </div>
-      <button type="submit" class="login-btn-3d" id="loginBtn">Log In</button>
-      <span class="switch-link" id="toRegister">Create an account</span>
-    </form>
-    <form id="registerForm" autocomplete="off" style="display:none;">
-      <div class="msg" id="registerMsg"></div>
-      <div class="form-section">
-        <label for="regFullName">Full Name</label>
-        <input type="text" id="regFullName" placeholder="Your full name" required>
-      </div>
-      <div class="form-section">
-        <label for="regEmail">Email</label>
-        <input type="email" id="regEmail" placeholder="Your email address" required>
-      </div>
-      <div class="form-section">
-        <label for="regPhone">Phone</label>
-        <input type="tel" id="regPhone" placeholder="Your phone number" required pattern="[0-9]{10,15}">
-      </div>
-      <div class="form-section">
-        <label for="regUsername">Username</label>
-        <input type="text" id="regUsername" placeholder="Choose a username" required>
-      </div>
-      <div class="form-section">
-        <label for="regPassword">Password</label>
-        <input type="password" id="regPassword" placeholder="Choose a password" required>
-      </div>
-      <button type="submit" class="login-btn-3d" id="registerBtn">Register</button>
-      <span class="switch-link" id="toLogin">Already have an account?</span>
-    </form>
-  </div>
-  <script>
-    // Switch between login and register
-    document.getElementById('toRegister').onclick = function() {
-      document.getElementById('loginForm').style.display = 'none';
-      document.getElementById('registerForm').style.display = 'block';
-      document.getElementById('formTitle').textContent = 'Register';
-    };
-    document.getElementById('toLogin').onclick = function() {
-      document.getElementById('registerForm').style.display = 'none';
-      document.getElementById('loginForm').style.display = 'block';
-      document.getElementById('formTitle').textContent = 'Login';
-    };
-    // Registration logic
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const fullName = document.getElementById('regFullName').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
-      const phone = document.getElementById('regPhone').value.trim();
-      const user = document.getElementById('regUsername').value.trim();
-      const pass = document.getElementById('regPassword').value;
-      const msg = document.getElementById('registerMsg');
-      if (!fullName || !email || !phone || !user || !pass) {
-        msg.textContent = 'Fill in all fields.';
-        msg.classList.remove('success');
-        return;
-      }
-      if (!/^\S+@\S+\.\S+$/.test(email)) {
-        msg.textContent = 'Enter a valid email address.';
-        msg.classList.remove('success');
-        return;
-      }
-      if (!/^\d{10,15}$/.test(phone)) {
-        msg.textContent = 'Enter a valid phone number.';
-        msg.classList.remove('success');
-        return;
-      }
-      if (localStorage.getItem('user_' + user)) {
-        msg.textContent = 'Username already exists.';
-        msg.classList.remove('success');
-        return;
-      }
-      // Save all info as JSON string
-      localStorage.setItem('user_' + user, JSON.stringify({pass, fullName, email, phone}));
-      msg.textContent = 'Registration successful! You can now log in.';
-      msg.classList.add('success');
-      setTimeout(() => {
-        document.getElementById('registerForm').style.display = 'none';
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('formTitle').textContent = 'Login';
-        document.getElementById('loginMsg').textContent = '';
-        document.getElementById('username').value = user;
-        document.getElementById('password').value = pass;
-      }, 1200);
-    });
-    // Login logic
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const user = document.getElementById('username').value.trim();
-      const pass = document.getElementById('password').value;
-      const msg = document.getElementById('loginMsg');
-      msg.classList.remove('success');
-      if (!user || !pass) {
-        msg.textContent = 'Fill in all fields.';
-        return;
-      }
-      const storedUser = localStorage.getItem('user_' + user);
-      if (storedUser) {
-        try {
-          const userObj = JSON.parse(storedUser);
-          if (userObj.pass === pass) {
-            msg.textContent = 'Welcome, ' + userObj.fullName + '!';
-            msg.classList.add('success');
-            setTimeout(() => { window.location.href = 'main.html'; }, 1200);
-            return;
-          }
-        } catch {}
-      }
-      msg.textContent = 'Invalid username or password.';
-    });
-  </script>
+    <div class="login-container">
+        <div class="logo">
+            <img src="https://placehold.co/80/4285F4/FFFFFF?text=APP" alt="App Logo" width="80">
+        </div>
+        <h1>Welcome to Our App</h1>
+        <p class="subtitle">Sign in with Google to continue</p>
+        
+        <div id="googleSignInBtn"></div>
+        
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script>
+        // Function to handle the Google OAuth response
+        function handleCredentialResponse(response) {
+            const statusElement = document.getElementById('statusMessage');
+            
+            // Show loading state
+            statusElement.textContent = "Authenticating...";
+            statusElement.className = "status-message";
+            statusElement.style.display = "block";
+
+            // Verify the token with your backend (you need to implement this)
+            fetch('/verify-google-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token: response.credential })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Authentication failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // On successful authentication, redirect to main.html
+                window.location.href = 'main.html';
+            })
+            .catch(error => {
+                console.error('Authentication error:', error);
+                statusElement.textContent = "Login failed. Please try again.";
+                statusElement.className = "status-message error";
+            });
+        }
+
+        // Initialize Google OAuth when the page loads
+        window.onload = function() {
+            google.accounts.id.initialize({
+                client_id: '315940891938-7ujo1ajsn22pfv8eurai952f6fihmu4u.apps.googleusercontent.com',
+                callback: handleCredentialResponse,
+                auto_select: false, // Set to true if you want automatic login
+                ux_mode: 'popup'
+            });
+
+            // Render the Google Sign-In button
+            google.accounts.id.renderButton(
+                document.getElementById("googleSignInBtn"),
+                {
+                    type: "standard",
+                    theme: "outline",
+                    size: "large",
+                    text: "continue_with",
+                    shape: "rectangular",
+                    width: "100%"
+                }
+            );
+
+            // Optional: Display the One Tap prompt
+            // google.accounts.id.prompt();
+        };
+    </script>
 </body>
 </html>
