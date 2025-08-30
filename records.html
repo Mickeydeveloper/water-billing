@@ -115,10 +115,7 @@
     </div>
     <form class="manual-form" id="manualForm">
       <input type="text" id="manualName" placeholder="Customer Name" required>
-      <input type="text" id="manualAddress" placeholder="Address" required>
-      <input type="tel" id="manualPhone" placeholder="Phone" required>
       <input type="number" id="manualUsage" placeholder="Usage (unit)" min="0" required>
-      <input type="number" id="manualTotal" placeholder="Total (TZS)" min="0" required>
       <input type="month" id="manualMonth" required>
       <button type="submit">Add Record</button>
     </form>
@@ -133,14 +130,14 @@
       Object.keys(history).forEach(monthYear => {
         history[monthYear].forEach(r => {
           if (!customers[r.name]) customers[r.name] = [];
-          customers[r.name].push({ ...r, monthYear });
+          customers[r.name].push({ name: r.name, usage: r.usage, monthYear });
         });
       });
       // Add manual records
       let manual = JSON.parse(localStorage.getItem('manualBillingRecords') || '[]');
       manual.forEach(r => {
         if (!customers[r.name]) customers[r.name] = [];
-        customers[r.name].push({ ...r, monthYear: r.monthYear });
+        customers[r.name].push({ name: r.name, usage: r.usage, monthYear: r.monthYear });
       });
       return customers;
     }
@@ -167,12 +164,10 @@
       detailsDiv.innerHTML = `<h3>${name}</h3>`;
       // Calculate summary
       let totalUsage = 0;
-      let totalBilling = 0;
       records.forEach(r => {
         totalUsage += Number(r.usage) || 0;
-        totalBilling += Number(r.total) || 0;
       });
-      detailsDiv.innerHTML += `<div style='margin-bottom:10px;'><strong>Total Usage:</strong> ${totalUsage} unit<br><strong>Total Billing:</strong> TZS ${totalBilling}</div>`;
+      detailsDiv.innerHTML += `<div style='margin-bottom:10px;'><strong>Total Usage:</strong> ${totalUsage} unit</div>`;
       // Group by month
       const grouped = {};
       records.forEach(r => {
@@ -182,7 +177,7 @@
       Object.keys(grouped).sort().reverse().forEach(monthYear => {
         detailsDiv.innerHTML += `<div class='month-title'>${monthYear.replace('-', '/')}</div>`;
         grouped[monthYear].forEach(r => {
-          detailsDiv.innerHTML += `<div>Usage: ${r.usage} unit<br>Total: TZS ${r.total}<br>Address: ${r.address}<br>Phone: ${r.phone}<br>Date: ${r.date ? new Date(r.date).toLocaleString() : 'Manual Entry'}</div><hr>`;
+          detailsDiv.innerHTML += `<div>Usage: ${r.usage} unit</div><hr>`;
         });
       });
     }
@@ -204,13 +199,10 @@
     manualForm.onsubmit = function(e) {
       e.preventDefault();
       const name = document.getElementById('manualName').value.trim();
-      const address = document.getElementById('manualAddress').value.trim();
-      const phone = document.getElementById('manualPhone').value.trim();
       const usage = parseFloat(document.getElementById('manualUsage').value);
-      const total = parseFloat(document.getElementById('manualTotal').value);
       const monthYear = document.getElementById('manualMonth').value.replace('-', '/');
       let manual = JSON.parse(localStorage.getItem('manualBillingRecords') || '[]');
-      manual.push({ name, address, phone, usage, total, monthYear, date: null });
+      manual.push({ name, usage, monthYear });
       localStorage.setItem('manualBillingRecords', JSON.stringify(manual));
       manualForm.reset();
       manualForm.style.display = 'none';
