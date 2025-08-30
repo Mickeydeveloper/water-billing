@@ -1,203 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Login</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-        :root {
-            --primary: #4285F4;
-            --white: #ffffff;
-            --error: #EA4335;
-            --success: #34A853;
-            --border: #dadce0;
-        }
-        
-        body {
-            font-family: 'Roboto', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f5f5f5;
-        }
-        
-        .login-container {
-            background-color: var(--white);
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-        
-        .logo {
-            margin-bottom: 24px;
-        }
-        
-        h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
-            color: #202124;
-        }
-        
-        .status-message {
-            padding: 12px;
-            border-radius: 4px;
-            margin: 16px 0;
-            display: none;
-        }
-        
-        .error {
-            background-color: rgba(234, 67, 53, 0.1);
-            color: var(--error);
-            border: 1px solid var(--error);
-        }
-        
-        .success {
-            background-color: rgba(52, 168, 83, 0.1);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Login</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --primary: #4285F4;
+      --white: #ffffff;
+      --error: #EA4335;
+      --success: #34A853;
+      --border: #dadce0;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f5f5f5;
+    }
+
+    .login-container {
+      background-color: var(--white);
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .logo {
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: #202124;
+    }
+
+    .status-message {
+      padding: 12px;
+      border-radius: 4px;
+      margin: 16px 0;
+      display: none;
+    }
+
+    .error {
+      background-color: rgba(234, 67, 53, 0.1);
+      color: var(--error);
+      border: 1px solid var(--error);
+    }
+
+    .success {
+      background-color: rgba(52, 168, 83, 0.1);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="logo">
-            <img src="https://placehold.co/80/4285F4/FFFFFF?text=LOGO" alt="Application Logo" width="80" height="80">
-        </div>
-        
-        <h1>Secure Login</h1>
-        <p>Sign in with your Google account</p>
-        
-        <!-- Google Sign-In Button -->
-        <div id="googleSignInBtn"></div>
-        
-        <!-- Status Message -->
-        <div id="statusMessage" class="status-message"></div>
+  <div class="login-container">
+    <div class="logo">
+      <img src="https://placehold.co/80/4285F4/FFFFFF?text=LOGO" 
+           alt="Application Logo" width="80" height="80">
     </div>
 
-    <script>
-        // Handle Google OAuth response
-        function handleCredentialResponse(response) {
-            const statusElement = document.getElementById('statusMessage');
-            statusElement.textContent = "Authenticating...";
-            statusElement.className = "status-message";
-            statusElement.style.display = "block";
-            
-            // Send the credential to your backend
-            fetch('https://your-backend-api.com/auth/google', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ 
-                    credential: response.credential,
-                    clientId: '315940891938-7ujo1ajsn22pfv8eurai952f6fihmu4u.apps.googleusercontent.com'
-                })
-            })
-            .then(async response => {
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Authentication failed');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Store the authentication token
-                localStorage.setItem('authToken', data.token);
-                
-                // Show success and redirect
-                statusElement.textContent = "Login successful! Redirecting...";
-                statusElement.className = "status-message success";
-                
-                // Redirect after short delay
-                setTimeout(() => {
-                    window.location.href = 'main.html';
-                }, 1500);
-            })
-            .catch(error => {
-                console.error('Authentication error:', error);
-                
-                // Clear any stored credentials
-                google.accounts.id.revoke(localStorage.getItem('email'), done => {
-                    localStorage.removeItem('email');
-                });
-                
-                // Show detailed error message
-                statusElement.textContent = error.message || "Login failed. Please try again.";
-                statusElement.className = "status-message error";
-                
-                // Re-enable the sign-in button
-                document.getElementById('googleSignInBtn').style.opacity = 1;
-            });
-        }
+    <h1>Secure Login</h1>
+    <p>Sign in with your Google account</p>
 
-        // Initialize Google Auth
-        function initializeGoogleAuth() {
-            google.accounts.id.initialize({
-                client_id: '315940891938-7ujo1ajsn22pfv8eurai952f6fihmu4u.apps.googleusercontent.com',
-                callback: handleCredentialResponse,
-                auto_select: false,
-                ux_mode: 'popup',
-                prompt_parent_id: 'googleSignInBtn'
-            });
-            
-            google.accounts.id.renderButton(
-                document.getElementById("googleSignInBtn"),
-                {
-                    type: "standard",
-                    theme: "outline",
-                    size: "large",
-                    text: "continue_with",
-                    shape: "rectangular",
-                    width: "100%"
-                }
-            );
-            
-            // Check for stored authentication
-            if (localStorage.getItem('authToken')) {
-                // Verify token with backend
-                verifyStoredToken();
-            }
+    <!-- Google Sign-In Button -->
+    <div id="googleSignInBtn"></div>
+
+    <!-- Status Message -->
+    <div id="statusMessage" class="status-message"></div>
+  </div>
+
+  <script>
+    // Handle Google OAuth response (frontend only)
+    function handleCredentialResponse(response) {
+      const statusElement = document.getElementById('statusMessage');
+      statusElement.textContent = "Login successful!";
+      statusElement.className = "status-message success";
+      statusElement.style.display = "block";
+
+      // Save credential in localStorage (not secure for production)
+      localStorage.setItem('googleCredential', response.credential);
+
+      // Redirect to main page
+      setTimeout(() => {
+        window.location.href = 'main.html';
+      }, 1500);
+    }
+
+    // Initialize Google Auth
+    function initializeGoogleAuth() {
+      google.accounts.id.initialize({
+        client_id: '315940891938-7ujo1ajsn22pfv8eurai952f6fihmu4u.apps.googleusercontent.com',
+        callback: handleCredentialResponse,
+        auto_select: false,
+        ux_mode: 'popup',
+        prompt_parent_id: 'googleSignInBtn'
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById("googleSignInBtn"),
+        {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          text: "continue_with",
+          shape: "rectangular",
+          width: "100%"
         }
-        
-        // Verify stored token function
-        function verifyStoredToken() {
-            fetch('https://your-backend-api.com/verify-token', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = 'main.html';
-                } else {
-                    localStorage.removeItem('authToken');
-                }
-            })
-            .catch(() => {
-                localStorage.removeItem('authToken');
-            });
-        }
-        
-        // Load Google API
-        window.onload = function() {
-            if (typeof google !== 'undefined') {
-                initializeGoogleAuth();
-            } else {
-                const script = document.createElement('script');
-                script.src = 'https://accounts.google.com/gsi/client';
-                script.onload = initializeGoogleAuth;
-                document.head.appendChild(script);
-            }
-        };
-    </script>
+      );
+
+      // Auto-login if credential already exists
+      if (localStorage.getItem('googleCredential')) {
+        statusMessage.textContent = "Welcome back! Redirecting...";
+        statusMessage.className = "status-message success";
+        statusMessage.style.display = "block";
+        setTimeout(() => {
+          window.location.href = 'main.html';
+        }, 1000);
+      }
+    }
+
+    // Load Google API
+    window.onload = function() {
+      if (typeof google !== 'undefined') {
+        initializeGoogleAuth();
+      } else {
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.onload = initializeGoogleAuth;
+        document.head.appendChild(script);
+      }
+    };
+  </script>
 </body>
 </html>
