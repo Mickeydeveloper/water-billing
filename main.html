@@ -13,6 +13,15 @@
             margin: 0;
             padding: 0;
             min-height: 100vh;
+            overflow: hidden;
+        }
+        #bubbleCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
         }
         .container {
             max-width: 500px;
@@ -21,6 +30,16 @@
             padding: 30px 40px;
             border-radius: 14px;
             box-shadow: 0 4px 24px #0002;
+            position: relative;
+            z-index: 1;
+            perspective: 800px;
+            transform-style: preserve-3d;
+            animation: rotate3d 6s infinite linear;
+        }
+        @keyframes rotate3d {
+            0% { transform: rotateY(0deg) rotateX(0deg); }
+            50% { transform: rotateY(8deg) rotateX(4deg); }
+            100% { transform: rotateY(0deg) rotateX(0deg); }
         }
         h2 {
             text-align: center;
@@ -103,41 +122,45 @@
         .help-btn:hover {
             background: #019267;
         }
+        .hacker-lead {
+            margin: 20px 0 0 0;
+            padding: 12px 18px;
+            background: #222;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            border-radius: 8px;
+            font-size: 1.1em;
+            box-shadow: 0 2px 8px #0005;
+            text-align: center;
+            letter-spacing: 1px;
+            min-height: 32px;
+        }
     </style>
 </head>
 <body>
+    <canvas id="bubbleCanvas"></canvas>
     <button class="help-btn" title="Msaada / Contact" onclick="window.open('mailto:mickidadyhamza@gmail.com?subject=Msaada%20kwa%20Mickey%20Water%20Billing','_blank')">?</button>
-    
-    <!-- Cash count sound effect -->
-    <audio id="cashCountSound" src="https://example.com/cash-count-sound.mp3" preload="auto"></audio>
-
     <div class="container">
         <div class="icon-container">
             <img src="https://files.catbox.moe/54500v.jpg" alt="Water Icon">
         </div>
         <h2>Mickey Water Billing System</h2>
+        <div class="hacker-lead" id="hackerLead"></div>
         <form id="billingForm">
             <label for="name">Jina la Mteja</label>
             <input type="text" id="name" required>
-
             <label for="address">Anwani</label>
             <input type="text" id="address" required>
-
             <label for="phone">Namba ya WhatsApp/SMS (mf. 2557XXXXXXXX)</label>
             <input type="tel" id="phone" pattern="[0-9]{12}" required>
-
             <label for="prev">Kisoma cha Awali (unit)</label>
             <input type="number" id="prev" min="0" required>
-
             <label for="curr">Kisoma cha Sasa (unit)</label>
             <input type="number" id="curr" min="0" required>
-
             <label for="rate">Bei kwa unit (TZS)</label>
             <input type="number" id="rate" min="1" value="2000" required>
-
             <label for="fixed">Ada ya Kudumu (TZS)</label>
             <input type="number" id="fixed" min="0" value="0" required>
-
             <button type="submit">Kokotoa na Tuma Ankara</button>
         </form>
         <div style="margin-top:10px; text-align:center;">
@@ -149,63 +172,123 @@
             <div class="history-list" id="historyList"></div>
         </div>
     </div>
+    <audio id="cashCountSound" src="https://example.com/cash-count-sound.mp3" preload="auto"></audio>
     <script>
+        // Bubble effect
+        const canvas = document.getElementById('bubbleCanvas');
+        const ctx = canvas.getContext('2d');
+        let bubbles = [];
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        function createBubble() {
+            return {
+                x: Math.random() * canvas.width,
+                y: canvas.height + 20,
+                r: 8 + Math.random() * 22,
+                speed: 1 + Math.random() * 2,
+                color: `rgba(0,${180+Math.random()*75},${255},${0.2+Math.random()*0.3})`
+            };
+        }
+        function drawBubbles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            bubbles.forEach(b => {
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                ctx.fillStyle = b.color;
+                ctx.fill();
+            });
+        }
+        function updateBubbles() {
+            bubbles.forEach(b => b.y -= b.speed);
+            bubbles = bubbles.filter(b => b.y + b.r > 0);
+            while (bubbles.length < 30) {
+                bubbles.push(createBubble());
+            }
+        }
+        function animateBubbles() {
+            updateBubbles();
+            drawBubbles();
+            requestAnimationFrame(animateBubbles);
+        }
+        animateBubbles();
+
+        // Hacker info lead effect
+        const hackerLead = document.getElementById('hackerLead');
+        const hackerTexts = [
+            'System Lead: Mickey "Hacker" Hamza',
+            'Security: 256-bit encryption',
+            'Status: All systems operational',
+            'Tip: Never share your password!',
+            'Fun fact: Hackers love water (and code)!'
+        ];
+        let hackerIndex = 0;
+        let charIndex = 0;
+        function typeHackerLead() {
+            if (charIndex <= hackerTexts[hackerIndex].length) {
+                hackerLead.textContent = hackerTexts[hackerIndex].slice(0, charIndex) + (charIndex % 2 ? '_' : '');
+                charIndex++;
+                setTimeout(typeHackerLead, 60);
+            } else {
+                setTimeout(() => {
+                    hackerIndex = (hackerIndex + 1) % hackerTexts.length;
+                    charIndex = 0;
+                    typeHackerLead();
+                }, 1200);
+            }
+        }
+        typeHackerLead();
+
         function saveToHistory(record) {
             let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '{}');
-            const monthYear = `${record.date.getFullYear()}-${record.date.getMonth() + 1}`; // Format: YYYY-MM
-
+            const monthYear = `${record.date.getFullYear()}-${record.date.getMonth() + 1}`;
             if (!history[monthYear]) {
                 history[monthYear] = [];
             }
             history[monthYear].unshift(record);
             localStorage.setItem('waterBillingHistory', JSON.stringify(history));
         }
-
         function loadHistory() {
             let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '{}');
             const list = document.getElementById('historyList');
             list.innerHTML = '';
-
             if (Object.keys(history).length === 0) {
                 list.innerHTML = '<em>Hakuna rekodi bado.</em>';
                 return;
             }
-
             Object.keys(history).forEach(monthYear => {
                 const records = history[monthYear];
-                list.innerHTML += `<strong>${monthYear.replace('-', '/')}</strong><br>`; // Display as YYYY/MM
+                list.innerHTML += `<strong>${monthYear.replace('-', '/')}</strong><br>`;
                 records.forEach(r => {
-                    list.innerHTML += `<div><strong>${r.date.toLocaleString()}</strong>: ${r.name}, ${r.address}, Ankara: TZS ${r.total} (Imetumwa kwa: ${r.phone})</div>`;
+                    list.innerHTML += `<div><strong>${new Date(r.date).toLocaleString()}</strong>: ${r.name}, ${r.address}, Ankara: TZS ${r.total} (Imetumwa kwa: ${r.phone})</div>`;
                 });
             });
         }
-
         function randomColor() {
             const h = Math.floor(Math.random() * 360);
             const s = 60 + Math.floor(Math.random() * 20);
             const l = 85 + Math.floor(Math.random() * 10);
             return `hsl(${h},${s}%,${l}%)`;
         }
-
         function animateBg() {
             document.body.style.transition = 'background 0.5s';
             setInterval(() => {
                 document.body.style.background = randomColor();
             }, 1000);
         }
-
         function cashCountAnimation(total) {
             const resultDiv = document.getElementById('result');
             const cashCountSound = document.getElementById('cashCountSound');
             let count = 0;
-            const duration = 2000; // Duration of the animation in milliseconds
-            const incrementTime = 50; // Time between increments in milliseconds
+            const duration = 2000;
+            const incrementTime = 50;
             const totalSteps = duration / incrementTime;
             const incrementAmount = total / totalSteps;
-
-            cashCountSound.currentTime = 0; // Reset sound to start
-            cashCountSound.play(); // Play cash count sound
-
+            cashCountSound.currentTime = 0;
+            cashCountSound.play();
             const interval = setInterval(() => {
                 count += incrementAmount;
                 if (count >= total) {
@@ -215,12 +298,10 @@
                 resultDiv.innerHTML = `<strong>Jumla: TZS ${Math.round(count)}</strong>`;
             }, incrementTime);
         }
-
         window.addEventListener('DOMContentLoaded', () => {
             animateBg();
             loadHistory();
         });
-
         document.getElementById('billingForm').onsubmit = function(e) {
             e.preventDefault();
             const name = document.getElementById('name').value.trim();
@@ -230,27 +311,22 @@
             const curr = parseFloat(document.getElementById('curr').value);
             const rate = parseFloat(document.getElementById('rate').value);
             const fixed = parseFloat(document.getElementById('fixed').value);
-
             if (curr < prev) {
                 alert('Kisoma cha sasa lazima kiwe kikubwa au sawa na kisoma cha awali.');
                 return;
             }
-
             const usage = curr - prev;
             const amount = usage * rate;
             const total = amount + fixed;
             const billMsg = `ANKARA YA MAJI\nJina: ${name}\nAnwani: ${address}\nMatumizi: ${usage} unit\nBei: TZS ${rate}/unit\nAda ya Kudumu: TZS ${fixed}\nJumla: TZS ${total}\nAsante.`;
-
             document.getElementById('result').style.display = 'block';
-            cashCountAnimation(total); // Start cash count animation
-
+            cashCountAnimation(total);
             const smsBtn = document.getElementById('sendSMSBtn');
             smsBtn.style.display = 'inline-block';
             smsBtn.onclick = function() {
                 const smsText = `ANKARA YA MAJI\nJina: ${name}\nAnwani: ${address}\nMatumizi: ${usage} unit\nBei: TZS ${rate}/unit\nAda ya Kudumu: TZS ${fixed}\nJumla: TZS ${total}\nAsante.`;
                 window.open(`sms:${phone}?body=${encodeURIComponent(smsText)}`);
             };
-
             saveToHistory({
                 date: new Date(),
                 name, address, phone, usage, amount, fixed, total
