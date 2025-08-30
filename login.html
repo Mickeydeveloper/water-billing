@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Face ID Login</title>
-  <script defer src="https://unpkg.com/face-api.js"></script>
+  <title>Camera Photo Login</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -24,6 +23,10 @@
     video {
       border-radius: 10px;
       margin: 10px 0;
+      max-width: 100%;
+    }
+    canvas {
+      display: none;
     }
     .status {
       margin-top: 10px;
@@ -45,73 +48,37 @@
 </head>
 <body>
   <div class="container">
-    <h1>Face ID Login</h1>
+    <h1>Camera Photo Login</h1>
     <video id="camera" width="320" height="240" autoplay muted></video>
-    <div>
-      <button onclick="registerFace()">➕ Register Face</button>
-      <button onclick="loginFace()">🔑 Login with Face</button>
-    </div>
-    <div class="status" id="status">Loading models...</div>
+    <br>
+    <button id="takePhotoBtn">Take Photo</button>
+    <canvas id="photoCanvas" width="320" height="240"></canvas>
+    <div class="status" id="status"></div>
   </div>
-
   <script>
     const video = document.getElementById('camera');
+    const canvas = document.getElementById('photoCanvas');
+    const takePhotoBtn = document.getElementById('takePhotoBtn');
     const statusText = document.getElementById('status');
-    let labeledDescriptor = null;
 
-    // Load models
-    Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri('https://unpkg.com/face-api.js/models'),
-      faceapi.nets.faceRecognitionNet.loadFromUri('https://unpkg.com/face-api.js/models'),
-      faceapi.nets.faceLandmark68Net.loadFromUri('https://unpkg.com/face-api.js/models')
-    ]).then(startCamera);
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+        statusText.textContent = "Camera ready!";
+      })
+      .catch(err => {
+        statusText.textContent = "Camera access denied.";
+        console.error(err);
+      });
 
-    function startCamera() {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-          video.srcObject = stream;
-          statusText.textContent = "Camera ready!";
-        })
-        .catch(err => {
-          statusText.textContent = "Camera access denied.";
-          console.error(err);
-        });
-    }
-
-    async function registerFace() {
-      statusText.textContent = "Registering face...";
-      const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-        .withFaceLandmarks().withFaceDescriptor();
-
-      if (!detections) {
-        statusText.textContent = "No face detected. Try again!";
-        return;
-      }
-
-      // Save descriptor
-      labeledDescriptor = new faceapi.LabeledFaceDescriptors("user", [detections.descriptor]);
-      localStorage.setItem("faceData", JSON.stringify(Array.from(detections.descriptor)));
-      statusText.textContent = "Face registered successfully!";
-    }
-
-    async function loginFace() {
-      const storedData = localStorage.getItem("faceData");
-      if (!storedData) {
-        statusText.textContent = "No face registered. Please register first!";
-        return;
-      }
-
-      statusText.textContent = "Authenticating...";
-      const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-        .withFaceLandmarks().withFaceDescriptor();
-
-      if (!detections) {
-        statusText.textContent = "No face detected. Try again!";
-        return;
-      }
-
-      // Compare with stored descriptor
-      const storedDescriptor = new Float32Array(JSON.parse(storedData));
-      const distance = faceapi.euclideanDistance(detections.descriptor, storedDescriptor);
-
-      if (distance < 0.5
+    takePhotoBtn.addEventListener('click', function() {
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      statusText.textContent = "Photo taken! Redirecting...";
+      setTimeout(() => {
+        window.location.href = "main.html";
+      }, 1200);
+    });
+  </script>
+</body>
+</html>
