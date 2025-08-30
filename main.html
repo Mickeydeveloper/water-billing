@@ -167,10 +167,6 @@
             <button id="sendSMSBtn" style="background:#25a244; color:#fff; display:none;">Tuma Ankara kwa SMS</button>
         </div>
         <div class="result" id="result" style="display:none;"></div>
-        <div class="history">
-            <h3>Historia ya Ankara</h3>
-            <div class="history-list" id="historyList"></div>
-        </div>
     </div>
     <audio id="cashCountSound" src="https://example.com/cash-count-sound.mp3" preload="auto"></audio>
     <script>
@@ -242,43 +238,6 @@
         }
         typeHackerLead();
 
-        function saveToHistory(record) {
-            let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '{}');
-            const monthYear = `${record.date.getFullYear()}-${record.date.getMonth() + 1}`;
-            if (!history[monthYear]) {
-                history[monthYear] = [];
-            }
-            history[monthYear].unshift(record);
-            localStorage.setItem('waterBillingHistory', JSON.stringify(history));
-        }
-        function loadHistory() {
-            let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '{}');
-            const list = document.getElementById('historyList');
-            list.innerHTML = '';
-            if (Object.keys(history).length === 0) {
-                list.innerHTML = '<em>Hakuna rekodi bado.</em>';
-                return;
-            }
-            Object.keys(history).forEach(monthYear => {
-                const records = history[monthYear];
-                list.innerHTML += `<strong>${monthYear.replace('-', '/')}</strong><br>`;
-                records.forEach(r => {
-                    list.innerHTML += `<div><strong>${new Date(r.date).toLocaleString()}</strong>: ${r.name}, ${r.address}, Ankara: TZS ${r.total} (Imetumwa kwa: ${r.phone})</div>`;
-                });
-            });
-        }
-        function randomColor() {
-            const h = Math.floor(Math.random() * 360);
-            const s = 60 + Math.floor(Math.random() * 20);
-            const l = 85 + Math.floor(Math.random() * 10);
-            return `hsl(${h},${s}%,${l}%)`;
-        }
-        function animateBg() {
-            document.body.style.transition = 'background 0.5s';
-            setInterval(() => {
-                document.body.style.background = randomColor();
-            }, 1000);
-        }
         function cashCountAnimation(total) {
             const resultDiv = document.getElementById('result');
             const cashCountSound = document.getElementById('cashCountSound');
@@ -300,7 +259,6 @@
         }
         window.addEventListener('DOMContentLoaded', () => {
             animateBg();
-            loadHistory();
         });
         document.getElementById('billingForm').onsubmit = function(e) {
             e.preventDefault();
@@ -327,11 +285,18 @@
                 const smsText = `ANKARA YA MAJI\nJina: ${name}\nAnwani: ${address}\nMatumizi: ${usage} unit\nBei: TZS ${rate}/unit\nAda ya Kudumu: TZS ${fixed}\nJumla: TZS ${total}\nAsante.`;
                 window.open(`sms:${phone}?body=${encodeURIComponent(smsText)}`);
             };
-            saveToHistory({
-                date: new Date(),
-                name, address, phone, usage, amount, fixed, total
-            });
-            loadHistory();
+            // Store record in sessionStorage and redirect to records.html
+            const record = {
+                name, address, phone, usage, amount, fixed, total,
+                date: new Date().toISOString(),
+                monthYear: `${new Date().getFullYear()}/${new Date().getMonth() + 1}`
+            };
+            let records = JSON.parse(sessionStorage.getItem('newBillingRecords') || '[]');
+            records.push(record);
+            sessionStorage.setItem('newBillingRecords', JSON.stringify(records));
+            setTimeout(() => {
+                window.location.href = 'records.html';
+            }, 1500);
         };
     </script>
 </body>
