@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Billing Records</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #e0f7fa 0%, #b2f0e6 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .records-container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px #0002;
+      padding: 36px 44px 30px 44px;
+      max-width: 600px;
+      width: 100%;
+      text-align: left;
+    }
+    h2 {
+      color: #0077b6;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .customer-list {
+      margin-bottom: 24px;
+    }
+    .customer-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #e0f7fa;
+      cursor: pointer;
+      color: #0077b6;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    .customer-item:hover {
+      background: #e0f7fa;
+    }
+    .billing-details {
+      background: #e0f7fa;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 10px;
+      box-shadow: 0 2px 8px #0077b622;
+    }
+    .month-title {
+      color: #023e8a;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .option-bar {
+      margin-bottom: 18px;
+      text-align: center;
+      }
+      .search-bar {
+        margin-bottom: 16px;
+        text-align: center;
+      }
+      .search-input {
+        padding: 8px;
+        width: 80%;
+        max-width: 320px;
+        border-radius: 6px;
+        border: 1px solid #0077b6;
+        font-size: 1em;
+        margin-bottom: 8px;
+      }
+      .export-btn {
+        padding: 8px 18px;
+        margin: 0 8px 12px 8px;
+        border: none;
+        border-radius: 6px;
+        background: #00b686;
+        color: #fff;
+        font-size: 1em;
+        cursor: pointer;
+        box-shadow: 0 2px 8px #00b68633;
+        transition: background 0.2s;
+      }
+      .export-btn:hover {
+        background: #009e6e;
+      }
+      .customer-item.selected {
+        background: #b2f0e6;
+        color: #023e8a;
+      }
+    @media (max-width: 700px) {
+      .records-container {
+        padding: 18px 6px 18px 6px;
+        max-width: 98vw;
+      }
+      .search-input {
+        width: 98vw;
+        max-width: 98vw;
+      }
+    }
+    .option-btn {
+      padding: 8px 18px;
+      margin: 0 8px;
+      border: none;
+      border-radius: 6px;
+      background: #0077b6;
+      color: #fff;
+      font-size: 1em;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #0077b633;
+      transition: background 0.2s;
+    }
+    .option-btn.active, .option-btn:hover {
+      background: #023e8a;
+    }
+    .manual-form {
+      background: #f1f1f1;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 18px;
+      display: none;
+    }
+    .manual-form input {
+      margin: 6px 0;
+      padding: 6px;
+      width: 100%;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    .manual-form button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      background: #0077b6;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #0077b633;
+      transition: background 0.2s;
+    }
+    .manual-form button:hover {
+      background: #023e8a;
+    }
+  </style>
+</head>
+<body>
+  <div class="records-container">
+    <h2>Customer Billing Records</h2>
+    <div class="option-bar">
+      <button class="option-btn active" id="autoBtn">Automatic</button>
+      <button class="option-btn" id="manualBtn">Add Manual</button>
+    </div>
+      <div class="search-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="Search customer...">
+        <button class="export-btn" id="exportBtn">Export All to CSV</button>
+      </div>
+    <form class="manual-form" id="manualForm">
+      <input type="text" id="manualName" placeholder="Customer Name" required>
+      <input type="text" id="manualAddress" placeholder="Address" required>
+      <input type="tel" id="manualPhone" placeholder="Phone" required>
+      <input type="number" id="manualUsage" placeholder="Usage (unit)" min="0" required>
+      <input type="number" id="manualTotal" placeholder="Total (TZS)" min="0" required>
+      <input type="month" id="manualMonth" required>
+      <button type="submit">Add Record</button>
+    </form>
+    <div class="customer-list" id="customerList"></div>
+    <div class="billing-details" id="billingDetails" style="display:none;"></div>
+  </div>
+  <script>
+    // Load records from localStorage (same format as main.html)
+    function getAllRecords() {
+      let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '{}');
+      let customers = {};
+      Object.keys(history).forEach(monthYear => {
+        history[monthYear].forEach(r => {
+          if (!customers[r.name]) customers[r.name] = [];
+          customers[r.name].push({ ...r, monthYear });
+        });
+      });
+      // Add manual records
+      let manual = JSON.parse(localStorage.getItem('manualBillingRecords') || '[]');
+      manual.forEach(r => {
+        if (!customers[r.name]) customers[r.name] = [];
+        customers[r.name].push({ ...r, monthYear: r.monthYear });
+      });
+      return customers;
+    }
+    function showCustomerList() {
+        const customers = getAllRecords();
+        const listDiv = document.getElementById('customerList');
+        listDiv.innerHTML = '';
+        const searchValue = (document.getElementById('searchInput')?.value || '').toLowerCase();
+        const names = Object.keys(customers).filter(n => n.toLowerCase().includes(searchValue));
+        if (names.length === 0) {
+          listDiv.innerHTML = '<em>No records found.</em>';
+          return;
+        }
+        names.forEach(name => {
+          const item = document.createElement('div');
+          item.className = 'customer-item';
+          item.textContent = name;
+          item.onclick = () => {
+            showBillingDetails(name, customers[name]);
+            document.querySelectorAll('.customer-item').forEach(el => el.classList.remove('selected'));
+            item.classList.add('selected');
+          };
+          listDiv.appendChild(item);
+        });
+    }
+    function showBillingDetails(name, records) {
+      const detailsDiv = document.getElementById('billingDetails');
+      detailsDiv.style.display = 'block';
+      detailsDiv.innerHTML = `<h3>${name}</h3>`;
+      // Group by month
+      const grouped = {};
+      records.forEach(r => {
+        if (!grouped[r.monthYear]) grouped[r.monthYear] = [];
+        grouped[r.monthYear].push(r);
+      });
+      Object.keys(grouped).sort().reverse().forEach(monthYear => {
+        detailsDiv.innerHTML += `<div class='month-title'>${monthYear.replace('-', '/')}</div>`;
+        grouped[monthYear].forEach(r => {
+          detailsDiv.innerHTML += `<div>Address: ${r.address}<br>Phone: ${r.phone}<br>Usage: ${r.usage} unit<br>Total: TZS ${r.total}<br>Date: ${r.date ? new Date(r.date).toLocaleString() : 'Manual Entry'}</div><hr>`;
+        });
+      });
+    }
+    // Manual/Auto toggle
+    const autoBtn = document.getElementById('autoBtn');
+    const manualBtn = document.getElementById('manualBtn');
+    const manualForm = document.getElementById('manualForm');
+    autoBtn.onclick = () => {
+      autoBtn.classList.add('active');
+      manualBtn.classList.remove('active');
+      manualForm.style.display = 'none';
+      showCustomerList();
+        // Search box event
+        document.getElementById('searchInput').addEventListener('input', showCustomerList);
+
+        // Export to CSV
+        document.getElementById('exportBtn').onclick = function() {
+          const customers = getAllRecords();
+          let csv = 'Name,Address,Phone,Usage,Total,Month,Date\n';
+          Object.keys(customers).forEach(name => {
+            customers[name].forEach(r => {
+              csv += `"${name}","${r.address}","${r.phone}",${r.usage},${r.total},${r.monthYear.replace('/', '-')},"${r.date ? new Date(r.date).toLocaleString() : 'Manual Entry'}"\n`;
+            });
+          });
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'billing_records.csv';
+          a.click();
+        };
+    };
+    manualBtn.onclick = () => {
+      manualBtn.classList.add('active');
+      autoBtn.classList.remove('active');
+      manualForm.style.display = 'block';
+    };
+    manualForm.onsubmit = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('manualName').value.trim();
+      const address = document.getElementById('manualAddress').value.trim();
+      const phone = document.getElementById('manualPhone').value.trim();
+      const usage = parseFloat(document.getElementById('manualUsage').value);
+      const total = parseFloat(document.getElementById('manualTotal').value);
+      const monthYear = document.getElementById('manualMonth').value.replace('-', '/');
+      let manual = JSON.parse(localStorage.getItem('manualBillingRecords') || '[]');
+      manual.push({ name, address, phone, usage, total, monthYear, date: null });
+      localStorage.setItem('manualBillingRecords', JSON.stringify(manual));
+      manualForm.reset();
+      manualForm.style.display = 'none';
+      autoBtn.classList.add('active');
+      manualBtn.classList.remove('active');
+      showCustomerList();
+    };
+    showCustomerList();
+  </script>
+</body>
+</html>
