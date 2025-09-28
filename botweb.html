@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MICKEY-TECH-BOT</title>
+    <meta name="description" content="MICKEY-TECH-BOT: Multi-Device WhatsApp Bot for group management, games, and more. Coded by Mickey.">
+    <meta property="og:title" content="MICKEY-TECH-BOT">
+    <meta property="og:description" content="Multi-Device WhatsApp Bot for group management, games, and more. Coded by Mickey.">
+    <meta property="og:image" content="https://github.com/Mickeymozy/Mickey-Tech/blob/main/assets/bot_image.jpg?raw=true">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="https://github.com/Mickeymozy/Mickey-Tech/blob/main/assets/bot_image.jpg" type="image/x-icon">
+    <style>
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .social-icons a {
+            color: #fff;
+            font-size: 2rem;
+            transition: color 0.2s;
+        }
+        .social-icons a:hover {
+            color: #00ffc0;
+        }
+        @media (max-width: 480px) {
+            .header-content h1 {
+                font-size: 2.2rem;
+            }
+            .header-content h2 {
+                font-size: 1.1rem;
+            }
+            .section-title {
+                font-size: 1.2rem;
+            }
+            .bot-image {
+                height: 160px;
+            }
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Ribeye&display=swap');
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            perspective: 1000px;
+        }
+        .network-provider-box {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            color: #00ffc0;
+            padding: 6px 18px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 9999;
+            letter-spacing: 1px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(30, 30, 30, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.3) inset;
+            transform: translateZ(0);
+        }
+        .header-content {
+            text-align: center;
+            padding-bottom: 2rem;
+            animation: fadeIn 1.5s ease-in-out;
+        }
+        .header-content h1 {
+            font-family: 'Ribeye', cursive;
+            font-size: 3.5rem;
+            color: #33ff00;
+            margin: 0.5rem 0;
+            text-shadow: 0 0 10px #33ff00, 0 0 20px #33ff00;
+        }
+        .header-content h2 {
+            font-size: 1.8rem;
+            color: #bdbdbd;
+            margin: 0;
+        }
+        .bot-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-top: 2rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease-in-out;
+        }
+        .bot-image:hover {
+            transform: scale(1.05) rotateX(5deg) rotateY(5deg);
+        }
+        .section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: rgba(40, 40, 40, 0.8);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease-in-out;
+        }
+        .section:hover {
+            transform: translateZ(20px);
+        }
+        .section-title {
+            color: #00ffc0;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            text-shadow: 0 0 5px #00ffc0;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: #fff;
+            border-radius: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            transform-style: preserve-3d;
+        }
+        .btn:hover {
+            transform: translateZ(10px) translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+        }
+        .btn-blue { background-color: #007bff; }
+        .btn-red { background-color: #dc3545; }
+        .btn-youtube { background-color: #ff4d4d; }
+        .btn-green { background-color: #28a745; }
+        .btn-telegram { background-color: #0088cc; }
+        .btn-whatsapp { background-color: #25D366; }
+        .code-block {
+            background-color: rgba(60, 60, 60, 0.9);
+            border-left: 4px solid #007bff;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) inset;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li::before {
+            content: '• ';
+            color: #00ffc0;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+        .disclaimer {
+            margin-top: 3rem;
+            padding: 2rem;
+            background-color: #ffd700;
+            border: 1px solid #ffaa00;
+            border-radius: 12px;
+            color: #4b4b00;
+            font-weight: bold;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #333;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="network-provider-box" id="networkProviderBox">Detecting network provider...</div>
+    <audio src="https://files.catbox.moe/qe0x2s.mp3" autoplay loop hidden></audio>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>MICKEY-TECH-BOT</h1>
+                <h2>Multi-Device WhatsApp Bot</h2>
+                <h3>Coded by Mickey</h3>
+                <a href="https://youtube.com/@mMickeymozy">
+                    <img src="https://github.com/Mickeymozy/Mickey-Tech/blob/main/assets/bot_image.jpg?raw=true" alt="MICKEY-TECH-BOT" class="bot-image" height="300" loading="lazy">
+                </a>
+                <div class="social-icons">
+                    <a href="https://youtube.com/@mMickeymozy" title="YouTube" target="_blank"><span aria-label="YouTube">&#x1F4FA;</span></a>
+                    <a href="https://t.me/MickeyTechBot" title="Telegram" target="_blank"><span aria-label="Telegram">&#x1F4E7;</span></a>
+                    <a href="https://wa.me/25512130873" title="WhatsApp" target="_blank"><span aria-label="WhatsApp">&#x1F4F1;</span></a>
+                    <a href="mickidadyhamza@gmail.com" title="Email" target="_blank"><span aria-label="Email">&#x2709;&#xFE0F;</span></a>
+                </div>
+                <p>MICKEY-TECH-BOT is a WhatsApp bot built using the Baileys library for group management, including features like tagging all members, muting/unmuting, and many more. It's designed to help admins efficiently manage WhatsApp groups.</p>
+            </div>
+        </header>
+
+        <main>
+            <section class="section">
+                <h2 class="section-title">🚀 Steps to Deploy</h2>
+                <div class="button-group">
+                    <a href="https://mickey-tech-bot-pair.onrender.com/" target="_blank" class="btn btn-red">GET PAIR CODE</a>
+                    <a href="https://youtu.be/your-tutorial-link" class="btn btn-youtube" target="_blank">Deploy Tutorial</a>
+                    <a href="https://katabump.com/deploy" class="btn btn-green" target="_blank">Deploy on Panel</a>
+                </div>
+                <div class="button-group" style="margin-top: 10px;">
+                    <a href="https://katabump.com/deploy" target="_blank" class="btn btn-panel">Deploy on Katabump</a>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">⚙️ Features</h2>
+                <ul>
+                    <li><strong>Tag all group members</strong> with the `.tagall` command</li>
+                    <li><strong>Admin restricted usage</strong> (Only group admins can use certain commands)</li>
+                    <li><strong>Games</strong> like Tic-Tac-Toe for interactive group engagement</li>
+                    <li><strong>Text-to-Speech</strong> with `.tts`</li>
+                    <li><strong>Sticker creation</strong> with `.sticker`</li>
+                    <li><strong>Anti-link detection</strong> for group safety</li>
+                    <li><strong>Warn and manage group members</strong> with admin control</li>
+                </ul>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">🛠️ Setup & Installation</h2>
+                <h3>Prerequisites</h3>
+                <ul>
+                    <li>Node.js installed on your system</li>
+                    <li>Git installed (for cloning the repository)</li>
+                </ul>
+                <h3>Step-by-Step Setup</h3>
+                <p>1. <strong>Clone the repository:</strong></p>
+                <pre class="code-block"><code>git clone &lt;your-repo-url&gt;
+cd MICKEY-TECH-BOT</code></pre>
+                <p>2. <strong>Install the dependencies:</strong></p>
+                <pre class="code-block"><code>npm install</code></pre>
+                <p>3. <strong>Run the bot:</strong></p>
+                <pre class="code-block"><code>node index.js</code></pre>
+                <p>4. <strong>Scan the QR code:</strong></p>
+                <p>Once the bot starts, a QR code will appear in the terminal. Scan this QR code using the Linked Devices feature in WhatsApp to connect your WhatsApp account with the bot.</p>
+            </section>
+        
+            <section class="section">
+                <h2 class="section-title">Join Us</h2>
+                <div class="button-group">
+                    <a href="https://t.me/@nitafutemimi" class="btn btn-telegram" target="_blank">Join Telegram</a>
+                    <a href="https://wa.me/255612130873" class="btn btn-whatsapp" target="_blank">Join WhatsApp</a>
+                </div>
+            </section>
+        
+            <div class="disclaimer">
+                <h3>⚠️ Important Warning</h3>
+                <p><strong>Note:</strong> This bot is created for educational purposes only. This is NOT an official WhatsApp bot. Using this bot may lead to your WhatsApp account being banned. Use it at your own risk. The developers will not be responsible for any consequences or account bans that may occur while using this bot.</p>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer">
+                <p>Copyright &copy; 2025 Mickey. All rights reserved.</p>
+                <p>This project is powered by Mickey-Developer and developed this.</p>
+                <p><a href="#top" style="color:#00ffc0;text-decoration:none;">Back to Top</a></p>
+            </div>
+        </footer>
+    </div>
+<script>
+// Smooth scroll for back to top
+document.querySelectorAll('a[href="#top"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+});
+
+// Detect network provider from IP and show in box
+fetch('https://ipapi.co/json/')
+    .then(response => response.json())
+    .then(data => {
+        const provider = data.org || data.org_name || data.asn_org || data.asn || 'Unknown';
+        document.getElementById('networkProviderBox').textContent = `Network Provider: ${provider}`;
+    })
+    .catch(() => {
+        document.getElementById('networkProviderBox').textContent = 'Network Provider: Unknown';
+    });
+</script>
+</body>
+</html>
