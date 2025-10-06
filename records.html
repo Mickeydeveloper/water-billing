@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mickey Water Billing - Historia</title>
+    <title>Mickey Water Billing - Historia Kamili</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
     <style>
-        /* Re-use variables from index.html */
         :root {
             --color-primary: #0077b6;
             --color-secondary: #023e8a;
-            --color-success: #25a244;
+            --color-delete: #dc3545;
             --color-background-light: #e0f7fa;
             --color-background-dark: #b2f0e6;
             --color-text-dark: #333;
@@ -26,12 +25,12 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1100px;
             margin: 0 auto;
             background: #fff;
             padding: 30px;
             border-radius: 14px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
         }
 
         h1 {
@@ -42,18 +41,55 @@
             padding-bottom: 15px;
         }
 
-        .back-btn {
-            display: inline-block;
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .controls a, .controls select, .controls button {
             padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .back-btn {
             background: #6c757d;
             color: #fff;
-            border-radius: 6px;
             text-decoration: none;
             transition: background 0.2s;
         }
         .back-btn:hover {
             background: #495057;
+        }
+        
+        .clear-btn {
+            background: var(--color-delete);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .clear-btn:hover {
+            background: #c82333;
+        }
+        
+        /* Filter Styles */
+        #monthFilter {
+            padding: 9px 15px;
+            border: 1px solid #ddd;
+            background: #f8f8f8;
+        }
+
+        /* Table Styles */
+        .records-table-wrapper {
+            max-height: 60vh; 
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
         }
         
         .records-table {
@@ -65,7 +101,8 @@
         .records-table th, .records-table td {
             padding: 12px 15px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #eee;
+            background: #fff; /* Ensure cells have white background */
         }
 
         .records-table th {
@@ -74,15 +111,16 @@
             font-weight: 600;
             position: sticky;
             top: 0;
+            cursor: pointer; /* Indicate sortability */
         }
 
         .records-table tr:hover {
             background-color: #f5f5f5;
         }
 
-        .records-table td:nth-child(4), /* usage */
-        .records-table td:nth-child(6) { /* total */
+        .records-table td:last-child {
             font-weight: bold;
+            color: var(--color-secondary);
         }
 
         .empty-message {
@@ -92,59 +130,140 @@
             font-size: 1.2em;
         }
         
-        .clear-btn {
-            float: right;
-            padding: 8px 15px;
-            background: #dc3545;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .clear-btn:hover {
-            background: #c82333;
-        }
-        
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="back-btn">← Rudi kwenye Ankara</a>
-        <button class="clear-btn" id="clearRecordsBtn">Futa Rekodi Zote</button>
         <h1>Historia Kamili ya Ankara za Maji</h1>
+        
+        <div class="controls">
+            <a href="index.html" class="back-btn">← Rudi kwenye Ankara</a>
+            
+            <label for="monthFilter" style="font-weight:normal;">Chuja kwa Mwezi:</label>
+            <select id="monthFilter">
+                <option value="">Rekodi Zote</option>
+                </select>
+            
+            <button class="clear-btn" id="clearRecordsBtn">Futa Rekodi Zote</button>
+        </div>
+
         <div id="recordsView">
-            </div>
+            <p class="empty-message">Inapakia...</p>
+        </div>
     </div>
     
     <script>
         const LOCAL_STORAGE_KEY = 'mickeyBillingRecords';
+        let currentSortColumn = 'date';
+        let sortDirection = 'desc';
+
+        /**
+         * Loads all records from localStorage.
+         * @returns {Array} List of billing records.
+         */
+        function getRecords() {
+            return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+        }
+
+        /**
+         * Clears all records from localStorage.
+         */
+        function clearRecords() {
+            if (confirm('Una uhakika unataka kufuta rekodi zote? Kitendo hiki hakiwezi kurudishwa.')) {
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+                loadRecords(); 
+                populateMonthFilter();
+                alert('Rekodi zote zimefutwa.');
+            }
+        }
         
+        /**
+         * Populates the month filter dropdown with unique month/year values.
+         */
+        function populateMonthFilter() {
+            const records = getRecords();
+            const filter = document.getElementById('monthFilter');
+            
+            // Get unique monthYear strings (e.g., '2025-05')
+            const uniqueMonths = [...new Set(records.map(r => r.monthYear))].sort().reverse();
+            
+            // Preserve the "All Records" option
+            const currentSelectedValue = filter.value;
+            filter.innerHTML = '<option value="">Rekodi Zote</option>'; 
+            
+            uniqueMonths.forEach(monthYear => {
+                const [year, month] = monthYear.split('-');
+                const monthName = new Date(year, month - 1, 1).toLocaleString('sw-TZ', { month: 'long' });
+                const option = document.createElement('option');
+                option.value = monthYear;
+                option.textContent = `${monthName}, ${year}`;
+                filter.appendChild(option);
+            });
+            
+            // Restore selection if value still exists
+            if (currentSelectedValue && uniqueMonths.includes(currentSelectedValue)) {
+                filter.value = currentSelectedValue;
+            }
+        }
+
+        /**
+         * Renders the records table based on current filters and sorting.
+         */
         function loadRecords() {
             const recordsView = document.getElementById('recordsView');
-            const records = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+            let records = getRecords();
+            const filterValue = document.getElementById('monthFilter').value;
             
             if (records.length === 0) {
                 recordsView.innerHTML = '<p class="empty-message">Hakuna rekodi zilizohifadhiwa bado.</p>';
                 return;
             }
-
-            // Sort by date descending (most recent first)
-            records.sort((a, b) => new Date(b.date) - new Date(a.date));
             
+            // 1. FILTERING
+            if (filterValue) {
+                records = records.filter(r => r.monthYear === filterValue);
+            }
+            
+            if (records.length === 0) {
+                 recordsView.innerHTML = `<p class="empty-message">Hakuna rekodi zilizopatikana kwa mwezi uliouchagua.</p>`;
+                 return;
+            }
+
+            // 2. SORTING
+            records.sort((a, b) => {
+                let valA = a[currentSortColumn];
+                let valB = b[currentSortColumn];
+
+                if (currentSortColumn === 'date') {
+                    // Dates are ISO strings, sort them directly
+                    return sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else if (typeof valA === 'number') {
+                    // Numeric sort
+                    return sortDirection === 'asc' ? valA - valB : valB - valA;
+                } else {
+                    // String sort (e.g., name)
+                    return sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+            });
+            
+            // 3. RENDERING
             let tableHTML = `
-                <table class="records-table">
-                    <thead>
-                        <tr>
-                            <th>Tarehe</th>
-                            <th>Jina</th>
-                            <th>Namba</th>
-                            <th>Matumizi (unit)</th>
-                            <th>Rate (TZS)</th>
-                            <th>Jumla (TZS)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div class="records-table-wrapper">
+                    <table class="records-table">
+                        <thead>
+                            <tr>
+                                <th data-column="date">Tarehe ${currentSortColumn === 'date' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+                                <th data-column="name">Jina ${currentSortColumn === 'name' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+                                <th data-column="phone">Namba</th>
+                                <th data-column="prev">Kisoma Awali ${currentSortColumn === 'prev' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+                                <th data-column="curr">Kisoma Sasa ${currentSortColumn === 'curr' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+                                <th data-column="usage">Matumizi (unit) ${currentSortColumn === 'usage' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+                                <th data-column="rate">Rate (TZS) ${currentSortColumn === 'rate' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+                                <th data-column="fixed">Ada Kudumu (TZS) ${currentSortColumn === 'fixed' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+                                <th data-column="total">Jumla (TZS) ${currentSortColumn === 'total' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
             `;
             
             records.forEach(record => {
@@ -154,32 +273,46 @@
                         <td>${dateStr}</td>
                         <td>${record.name}</td>
                         <td>${record.phone}</td>
-                        <td>${record.usage.toFixed(2)}</td>
+                        <td>${record.prev}</td>
+                        <td>${record.curr}</td>
+                        <td>${record.usage.toFixed(1)}</td>
                         <td>${record.rate.toLocaleString('en-US')}</td>
+                        <td>${record.fixed.toLocaleString('en-US')}</td>
                         <td>${record.total.toLocaleString('en-US')}</td>
                     </tr>
                 `;
             });
             
             tableHTML += `
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             `;
             
             recordsView.innerHTML = tableHTML;
-        }
-        
-        function clearRecords() {
-            if (confirm('Una uhakika unataka kufuta rekodi zote? Kitendo hiki hakiwezi kurudishwa.')) {
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-                loadRecords(); // Re-load to show empty message
-                alert('Rekodi zote zimefutwa.');
-            }
+            
+            // Attach event listeners for sorting
+            document.querySelectorAll('.records-table th').forEach(header => {
+                header.addEventListener('click', () => {
+                    const column = header.getAttribute('data-column');
+                    if (column) {
+                        if (currentSortColumn === column) {
+                            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            currentSortColumn = column;
+                            sortDirection = 'desc'; // Default to descending for numbers/dates, ascending for names
+                        }
+                        loadRecords(); // Re-render with new sorting
+                    }
+                });
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            populateMonthFilter();
             loadRecords();
             document.getElementById('clearRecordsBtn').onclick = clearRecords;
+            document.getElementById('monthFilter').addEventListener('change', loadRecords);
         });
     </script>
 </body>
