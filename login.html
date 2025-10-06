@@ -3,15 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Face Auto-Login</title>
+  <title>Passive AI Face Login</title>
   <style>
+    /* ---------------------------------- */
+    /* BASIC STYLING */
+    /* ---------------------------------- */
     body {
       font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #2c3e50; /* Darker background for focus */
+      background: #2c3e50;
       color: #ecf0f1;
     }
     .container {
@@ -20,43 +23,74 @@
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease-in-out; /* For shake/pulse effect */
     }
+    h1 {
+        margin-top: 0;
+    }
+    /* HIDE THE CAMERA VIDEO FEED */
     video {
-      border-radius: 10px;
-      margin: 15px 0;
-      max-width: 100%;
-      border: 3px solid #2ecc71; /* Highlight border for active camera */
+      /* This is the key change: Hide the live feed but keep it running */
+      display: none; 
+      /* Make sure it has dimensions for capture */
+      width: 320px; 
+      height: 240px;
     }
+    /* Show the captured photo */
     #photoCanvas {
-      display: block; /* Show the captured photo */
+      display: none; 
       margin: 15px auto;
       border-radius: 10px;
-      border: 3px dashed #e74c3c;
-    }
-    .status {
-      margin-top: 15px;
-      font-weight: bold;
-      font-size: 1.1em;
-      min-height: 25px;
-      color: #3498db;
+      border: 3px solid #3498db;
     }
     .caption {
       color: #bdc3c7;
       font-size: 0.8em;
     }
-    /* Hide the button since the process is automatic */
-    button { display: none; } 
+    .status {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 1.2em;
+      min-height: 30px;
+      color: #3498db;
+    }
+    /* Hide the button */
+    button { display: none; }
+
+    /* ---------------------------------- */
+    /* EFFECTS/ANIMATIONS (New Features) */
+    /* ---------------------------------- */
+    /* Pulse effect for status during recognition */
+    @keyframes pulse-scan {
+      0% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.4); }
+      50% { box-shadow: 0 0 15px rgba(52, 152, 219, 0.8), 0 0 30px rgba(52, 152, 219, 0.4); }
+      100% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.4); }
+    }
+    .scanning {
+        animation: pulse-scan 1.5s infinite ease-in-out;
+    }
+
+    /* Quick flash effect on the canvas when the photo is taken */
+    @keyframes photo-flash {
+        0% { opacity: 0; }
+        50% { opacity: 1; filter: brightness(2); }
+        100% { opacity: 1; filter: brightness(1); }
+    }
+    .flash {
+        animation: photo-flash 0.3s ease-out;
+    }
+    
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>AI Face Auto-Login</h1>
-    <div class="caption">Please look directly into the camera.</div>
+  <div class="container" id="loginContainer">
+    <h1>Passive AI Login 🕵️</h1>
+    <div class="caption">Looking for an authorized user...</div>
     
     <video id="camera" width="320" height="240" autoplay muted></video>
     
     <canvas id="photoCanvas" width="320" height="240"></canvas>
-    <div class="caption">Captured Image for Login Verification</div>
+    <div class="caption" id="canvasCaption"></div>
     
     <div class="status" id="status">Starting camera...</div>
   </div>
@@ -65,6 +99,8 @@
     const video = document.getElementById('camera');
     const canvas = document.getElementById('photoCanvas');
     const statusText = document.getElementById('status');
+    const container = document.getElementById('loginContainer');
+    const canvasCaption = document.getElementById('canvasCaption');
     const context = canvas.getContext('2d');
     
     let loginAttempted = false;
@@ -73,8 +109,8 @@
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => {
         video.srcObject = stream;
-        statusText.textContent = "Camera ready. Searching for face...";
-        // Start the continuous AI simulation loop
+        statusText.textContent = "Camera active. Awaiting face signal...";
+        
         video.onloadedmetadata = () => {
             video.play();
             // Start the AI simulation loop once the video is playing
@@ -83,35 +119,28 @@
       })
       .catch(err => {
         statusText.style.color = 'red';
-        statusText.textContent = "🚨 Camera access denied. Cannot use face login.";
+        statusText.textContent = "🚨 Camera access failed. Biometric login unavailable.";
         console.error("Camera Error:", err);
       });
 
-    // --- 2. AI Recognition Simulation Loop (The Core Feature) ---
+    // --- 2. AI Recognition Simulation Loop ---
     function simulateAILoop() {
       if (loginAttempted) return;
 
-      // In a real application, this section would run an AI model 
-      // (like a face detector/recognizer) on the current video frame.
-      
-      const isFaceDetected = Math.random() < 0.8; // 80% chance of "detecting" a face
-      
-      if (isFaceDetected) {
+      // Add the visual scanning effect
+      container.classList.add('scanning');
+
+      // Simulate a successful face detection after a short delay
+      setTimeout(() => {
         // --- STEP 1: Face Detected (AI Success) ---
         statusText.style.color = '#2ecc71';
         statusText.textContent = "✅ Face detected! Analyzing biometric profile...";
-
-        // Simulate the AI processing delay
+        container.classList.remove('scanning'); // Stop pulsing
+        
+        // Simulate the AI processing delay before logging in
         setTimeout(performAutoLogin, 1500); 
         
-      } else {
-        // --- STEP 2: No Face Detected (AI Failure) ---
-        statusText.style.color = '#e74c3c';
-        statusText.textContent = "❌ No valid face found. Adjust position.";
-        
-        // Check again after a short delay
-        setTimeout(simulateAILoop, 500); 
-      }
+      }, 2000); // Wait 2 seconds before "detecting" the face
     }
 
     // --- 3. Automatic Photo Capture and Login ---
@@ -119,21 +148,22 @@
         if (loginAttempted) return;
         loginAttempted = true;
 
-        // Take the photo and show it in the canvas
+        // Take the photo
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Show the captured photo and add flash effect
+        canvas.style.display = 'block';
+        canvas.classList.add('flash');
+        canvasCaption.textContent = "Captured Image for Verification";
         
         statusText.style.color = '#3498db';
         statusText.textContent = "📸 Photo Captured. Verifying and Logging in...";
         
-        // Convert the photo to a data URL (what you would send to a server)
-        const photoDataUrl = canvas.toDataURL('image/jpeg');
-        // console.log("Sending photo to server for verification:", photoDataUrl.substring(0, 50) + "...");
-
         // Simulate server login/verification time
         setTimeout(() => {
           // *** Success Redirect ***
           statusText.style.color = '#2ecc71';
-          statusText.textContent = "🔑 Login Successful! Welcome.";
+          statusText.textContent = "🔑 Login Successful! Redirecting...";
           
           // Clean up the camera stream
           if (video.srcObject) {
