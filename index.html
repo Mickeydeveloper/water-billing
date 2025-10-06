@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard - FiberNet ISP System</title>
+  <title>Dashboard - Water Billing System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* New color scheme: Orange/Blue for Network/Fiber */
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); /* Light Orange/Yellow */
+      background: linear-gradient(135deg, #e0f7fa 0%, #b2f0e6 100%);
       margin: 0;
       padding: 0;
       min-height: 100vh;
@@ -16,71 +15,114 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      perspective: 1200px; /* Global perspective for body */
     }
     .dashboard {
       background: #fff;
       border-radius: 16px;
-      box-shadow: 0 4px 24px #0002;
-      padding: 36px 44px 30px 44px;
-      max-width: 420px;
+      box-shadow: 0 10px 40px #0003; /* More pronounced shadow */
+      padding: 30px 40px;
+      max-width: 450px;
       width: 100%;
       text-align: center;
       position: relative;
       z-index: 1;
-      perspective: 800px;
-      /* Animation simplified for less distraction, but kept as requested */
-      animation: rotate3d 6s infinite linear;
+      transform-style: preserve-3d; /* Crucial for 3D children */
+      animation: rotate3d 8s infinite ease-in-out; /* Slower, smoother animation */
+      transition: transform 0.5s ease-out; /* Smooth transitions for potential transforms */
+      border: 1px solid #cceeff; /* Slight border for definition */
     }
     @keyframes rotate3d {
-      0% { transform: rotateY(0deg) rotateX(0deg); }
-      50% { transform: rotateY(8deg) rotateX(4deg); }
-      100% { transform: rotateY(0deg) rotateX(0deg); }
+      0% { transform: rotateY(0deg) rotateX(0deg) translateZ(0px); }
+      25% { transform: rotateY(10deg) rotateX(5deg) translateZ(10px); }
+      50% { transform: rotateY(0deg) rotateX(0deg) translateZ(0px); }
+      75% { transform: rotateY(-10deg) rotateX(-5deg) translateZ(10px); }
+      100% { transform: rotateY(0deg) rotateX(0deg) translateZ(0px); }
     }
     h2 {
-      color: #ff9800; /* Deep Orange */
-      margin-bottom: 18px;
+      color: #0077b6;
+      margin-bottom: 24px;
+      font-size: 1.9em; /* Slightly larger */
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1); /* Text shadow for depth */
+      transform: translateZ(20px); /* Push heading forward */
+      transition: transform 0.3s ease-out;
     }
-    .stat {
-      margin: 14px 0;
-      font-size: 1.1em;
+    .status-box {
+      background: #f0faff;
+      border: 2px solid #0077b6;
+      border-radius: 10px;
+      padding: 18px; /* More padding */
+      margin-bottom: 30px; /* More margin */
+      text-align: left;
+      box-shadow: 0 6px 20px #0077b62a; /* Stronger shadow */
+      transition: all 0.3s ease-out;
+      transform: translateZ(15px); /* Push status box forward */
+      position: relative; /* For pseudo-elements */
+    }
+    .status-box:hover {
+        box-shadow: 0 8px 25px #0077b63a;
+        transform: translateZ(20px) scale(1.02); /* Lift and slightly enlarge on hover */
+    }
+    .status-box p {
+      margin: 8px 0; /* More spacing */
+      font-size: 1.08em; /* Slightly larger text */
       color: #333;
-      background: #fff3e0; /* Lightest Orange */
-      border-radius: 8px;
-      padding: 10px 0;
-      box-shadow: 0 2px 8px #ff980022;
+    }
+    .status-box strong {
+      color: #0077b6;
+      font-weight: 600;
+      min-width: 130px; /* Wider for alignment */
+      display: inline-block;
     }
     .open-login-btn {
-      margin-top: 24px;
-      padding: 12px 0;
+      margin-top: 12px; /* More space between buttons */
+      padding: 14px 0; /* More padding */
       width: 100%;
-      background: #ff9800; /* Deep Orange */
+      background: #0077b6;
       color: #fff;
       border: none;
-      border-radius: 6px;
-      font-size: 1.1em;
+      border-radius: 8px; /* Slightly more rounded */
+      font-size: 1.15em; /* Slightly larger text */
       cursor: pointer;
-      box-shadow: 0 2px 8px #ff980033;
-      transition: background 0.2s;
+      box-shadow: 0 4px 12px #0077b644; /* Stronger shadow */
+      transition: all 0.3s ease-out; /* Smooth transition for 3D effects */
+      transform: translateZ(10px); /* Push buttons forward */
     }
     .open-login-btn:hover {
-      background: #ef6c00; /* Darker Orange */
+      background: #023e8a;
+      transform: translateZ(20px) scale(1.03); /* Lift higher and slightly enlarge */
+      box-shadow: 0 6px 18px #0077b655;
+    }
+    .open-login-btn.records {
+        background: #25a244;
+    }
+    .open-login-btn.records:hover {
+        background: #1e7a33;
+    }
+    .open-login-btn.botweb {
+        background: #ff6f61;
+    }
+    .open-login-btn.botweb:hover {
+        background: #e05e52;
     }
     .icon {
       vertical-align: middle;
-      margin-right: 8px;
+      margin-right: 10px; /* More spacing for icons */
+      font-size: 1.2em; /* Larger icons */
     }
     .hacker-action {
-      margin: 22px 0 0 0;
-      padding: 12px 18px;
+      margin: 30px 0 0 0; /* More margin */
+      padding: 15px 20px; /* More padding */
       background: #222;
-      color: #ffc107; /* Amber for Network Look */
+      color: #0f0;
       font-family: 'Courier New', Courier, monospace;
-      border-radius: 8px;
+      border-radius: 10px; /* More rounded */
       font-size: 1.1em;
-      box-shadow: 0 2px 8px #0005;
+      box-shadow: 0 4px 12px #0006; /* Stronger shadow */
       text-align: center;
       letter-spacing: 1px;
-      min-height: 32px;
+      min-height: 38px; /* Taller */
+      transform: translateZ(5px); /* Slightly forward */
     }
     #bubbleCanvas {
       position: fixed;
@@ -89,16 +131,73 @@
       height: 100vh;
       z-index: 0;
       pointer-events: none;
+      transform: translateZ(-500px); /* Push bubbles far back for perspective */
+      perspective: 1000px; /* Individual perspective for canvas */
+    }
+    #waterFact {
+        margin-top:25px; /* More margin */
+        font-size:1.05em;
+        color:#0077b6;
+        background:#e0f7fa;
+        border-radius:10px; /* More rounded */
+        padding:15px 12px; /* More padding */
+        box-shadow: 0 4px 12px #0077b622;
+        transform: translateZ(8px); /* Slightly forward */
+    }
+
+    /* --- NEW STYLES FOR FLOATING SERVER CYCLE --- */
+    .server-float {
+        position: fixed;
+        bottom: 30px; /* Further from edge */
+        right: 30px; /* Further from edge */
+        width: 110px; /* Slightly larger */
+        height: 110px; /* Slightly larger */
+        background: linear-gradient(45deg, #0077b6, #0099cc); /* Gradient for depth */
+        border-radius: 50%;
+        color: #fff;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 0.9em; /* Slightly larger text */
+        font-weight: 700; /* Bolder text */
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 18px #0006; /* Stronger shadow */
+        z-index: 10;
+        cursor: default;
+        transition: transform 0.4s ease-out, box-shadow 0.4s ease-out;
+        animation: floatCycle 6s infinite ease-in-out; /* Smoother and longer animation */
+        border: 2px solid rgba(255,255,255,0.5); /* Inner white border */
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.4); /* Text shadow for depth */
+    }
+
+    .server-float:hover {
+        transform: translateY(-8px) scale(1.15) rotate(5deg); /* Lift more, enlarge more, slight rotate */
+        box-shadow: 0 10px 25px #0009;
+    }
+
+    @keyframes floatCycle {
+        0% { transform: translateY(0px) rotateY(0deg) rotateX(0deg); }
+        25% { transform: translateY(-10px) rotateY(10deg) rotateX(5deg); }
+        50% { transform: translateY(0px) rotateY(0deg) rotateX(0deg); }
+        75% { transform: translateY(-10px) rotateY(-10deg) rotateX(-5deg); }
+        100% { transform: translateY(0px) rotateY(0deg) rotateX(0deg); }
     }
   </style>
 </head>
 <body>
   <canvas id="bubbleCanvas"></canvas>
+  
+  <div class="server-float">
+    <span style="line-height: 1.3;">Mickey<br>Server</span>
+  </div>
+
   <div class="dashboard">
-    <h2>FiberNet ISP Dashboard</h2>
-    <div style="width:100%;height:60px;overflow:hidden;position:relative;margin-bottom:18px;">
+    <h2>Mickey Water Billing System</h2>
+    
+    <div style="width:100%;height:60px;overflow:hidden;position:relative;margin-bottom:18px; transform: translateZ(12px);">
       <svg viewBox="0 0 500 60" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;left:0;top:0;">
-        <path id="wavePath" d="M0,30 Q125,60 250,30 T500,30 V60 H0 Z" fill="#2196f3" opacity="0.18">
+        <path id="wavePath" d="M0,30 Q125,60 250,30 T500,30 V60 H0 Z" fill="#00b894" opacity="0.18">
           <animate attributeName="d" dur="3s" repeatCount="indefinite"
             values="M0,30 Q125,60 250,30 T500,30 V60 H0 Z;
                     M0,35 Q125,20 250,35 T500,35 V60 H0 Z;
@@ -106,25 +205,27 @@
         </path>
       </svg>
     </div>
-    
-    <div class="stat" id="webStat"><span class="icon">📶</span>Connection Status: <span id="webStatus">Checking...</span></div>
-    
-    <div class="stat" id="dataUsageStat"><span class="icon">📊</span>Monthly Data Usage: <span id="dataUsage">Loading...</span></div>
-    
-    <div class="stat"><span class="icon">⚡</span>Router Power: <span id="battery">Checking...</span></div>
 
-    <button class="open-login-btn" onclick="window.location.href='login.html'">Manage Account</button>
-    <button class="open-login-btn" style="margin-top:10px;background:#2196f3;" onclick="window.location.href='support.html'">Technical Support</button>
+    <div class="status-box">
+        <p><span class="icon">🌐</span><strong>Web Status:</strong> <span id="webStatus">Checking...</span></p>
+        <p><span class="icon">📍</span><strong>Public IP:</strong> <span id="publicIp">Syncing...</span></p>
+        <p><span class="icon">📡</span><strong>Network Provider:</strong> <span id="networkProvider">Syncing...</span></p>
+        <p><span class="icon">🔋</span><strong>Local Battery:</strong> <span id="battery">Checking...</span></p>
+    </div>
+
+    <button class="open-login-btn" onclick="window.location.href='login.html'">Open Login</button>
+    <button class="open-login-btn records" onclick="window.location.href='records.html'">Open Records</button>
+    <button class="open-login-btn botweb" onclick="window.location.href='botweb.html'"><span class="icon">🤖</span>Open BotWeb</button>
     
-    <div id="techFact" style="margin-top:22px;font-size:1em;color:#ff9800;background:#fff3e0;border-radius:8px;padding:12px 10px;box-shadow:0 2px 8px #ff980022;">
-      Loading fun tech fact...
+    <div id="waterFact">
+      Loading fun water fact...
     </div>
     <div class="hacker-action" id="hackerAction"></div>
   </div>
   <script>
     // --- UTILITIES & BUBBLE EFFECT (Kept) ---
 
-    // Bubble effect code - Color changed to light blue for 'data packets'
+    // Bubble effect code 
     const canvas = document.getElementById('bubbleCanvas');
     const ctx = canvas.getContext('2d');
     let bubbles = [];
@@ -135,72 +236,53 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
     function createBubble() { 
-      return { 
-        x: Math.random() * canvas.width, 
-        y: canvas.height + 20, 
-        r: 8 + Math.random() * 22, 
-        speed: 1 + Math.random() * 2, 
-        color: `rgba(${33},${150},${243},${0.2+Math.random()*0.3})` /* Blue Bubble Color */
-      }; 
+      // Add a random Z position for depth in the bubbles themselves
+      return { x: Math.random() * canvas.width, y: canvas.height + 20, r: 8 + Math.random() * 22, speed: 1 + Math.random() * 2, color: `rgba(0,${180+Math.random()*75},${255},${0.2+Math.random()*0.3})`, z: Math.random() * 100 - 50 }; 
     }
     function drawBubbles() { 
       ctx.clearRect(0, 0, canvas.width, canvas.height); 
       bubbles.forEach(b => { 
         ctx.beginPath(); 
-        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); 
+        // Apply a simple perspective effect based on Z
+        const scale = 1 + b.z / 200; // Bubbles further back appear smaller
+        ctx.arc(b.x, b.y, b.r * scale, 0, Math.PI * 2); 
         ctx.fillStyle = b.color; 
+        b.y += Math.sin(b.x / 30) * 0.5; 
         ctx.fill(); 
       }); 
     }
-    function updateBubbles() { 
-      bubbles.forEach(b => b.y -= b.speed); 
-      bubbles = bubbles.filter(b => b.y + b.r > 0); 
-      while (bubbles.length < 30) { 
-        bubbles.push(createBubble()); 
-      } 
-    }
-    function animateBubbles() { 
-      updateBubbles(); 
-      drawBubbles(); 
-      requestAnimationFrame(animateBubbles); 
-    }
+    function updateBubbles() { bubbles.forEach(b => b.y -= b.speed); bubbles = bubbles.filter(b => b.y + b.r > 0); while (bubbles.length < 30) { bubbles.push(createBubble()); } }
+    function animateBubbles() { updateBubbles(); drawBubbles(); requestAnimationFrame(animateBubbles); }
     animateBubbles();
 
-    // Fun tech facts (updated)
+    // Fun water facts (unmodified)
     const facts = [
-      "The first email was sent in 1971 by Ray Tomlinson.",
-      "A typical fiber optic cable can transmit data for miles.",
-      "The 'www' stands for World Wide Web, invented by Tim Berners-Lee.",
-      "Tanzania's connection is largely based on the SEACOM and EASSy fiber optic cables!",
-      "An IP address is like your internet home address."
+      "About 71% of the Earth's surface is water-covered.",
+      "Water expands when it freezes, unlike most liquids.",
+      "The human brain is about 75% water.",
+      "Tanzania's Lake Victoria is the largest lake in Africa by area!",
+      "Water can dissolve more substances than any other liquid."
     ];
     function showRandomFact() {
       const fact = facts[Math.floor(Math.random() * facts.length)];
-      document.getElementById('techFact').textContent = '💡 ' + fact;
+      document.getElementById('waterFact').textContent = '💧 ' + fact;
     }
     showRandomFact();
     setInterval(showRandomFact, 12000);
 
     // --- SYSTEM STATUS CHECKS ---
 
-    // Web status (renamed/repurposed for Connection Status)
-    document.getElementById('webStatus').textContent = navigator.onLine ? 'Excellent' : 'Offline';
-    window.addEventListener('online', () => document.getElementById('webStatus').textContent = 'Excellent');
+    // Web status (unmodified)
+    document.getElementById('webStatus').textContent = navigator.onLine ? 'Online' : 'Offline';
+    window.addEventListener('online', () => document.getElementById('webStatus').textContent = 'Online');
     window.addEventListener('offline', () => document.getElementById('webStatus').textContent = 'Offline');
-    
-    // Placeholder for Monthly Data Usage
-    function setRandomDataUsage() {
-        const usageGB = (200 + Math.random() * 800).toFixed(2); // Random usage between 200GB and 1000GB
-        document.getElementById('dataUsage').textContent = usageGB + ' GB';
-    }
-    setRandomDataUsage();
 
-    // Battery status (repurposed for Router Power)
+    // Battery status (unmodified)
     if (navigator.getBattery) {
       navigator.getBattery().then(function(battery) {
         function updateBattery() {
           let level = Math.round(battery.level * 100) + '%';
-          let charging = battery.charging ? ' (Running)' : ''; // Changed 'Charging' to 'Running'
+          let charging = battery.charging ? ' (Charging)' : '';
           document.getElementById('battery').textContent = level + charging;
         }
         updateBattery();
@@ -208,18 +290,41 @@
         battery.addEventListener('chargingchange', updateBattery);
       });
     } else {
-      document.getElementById('battery').textContent = 'Nominal'; // Default 'power' check
+      document.getElementById('battery').textContent = 'Not supported';
     }
     
-    // Hacker action effect (updated texts for ISP relevance)
+    // --- IP & NETWORK SYNC ---
+    function syncNetworkDetails() {
+        const publicIpEl = document.getElementById('publicIp');
+        const networkProviderEl = document.getElementById('networkProvider');
+
+        fetch('https://ipinfo.io/json')
+            .then(response => response.json())
+            .then(data => {
+                publicIpEl.textContent = data.ip || 'Unknown';
+                networkProviderEl.textContent = data.org ? data.org.split(' ')[0] : 'Generic Provider';
+                publicIpEl.style.color = '#0077b6';
+                networkProviderEl.style.color = '#0077b6';
+            })
+            .catch(error => {
+                console.error("Error fetching network details:", error);
+                publicIpEl.textContent = 'Failed to sync';
+                networkProviderEl.textContent = 'Failed to sync';
+            });
+    }
+
+    syncNetworkDetails();
+
+
+    // Hacker action effect (original texts restored)
     const hackerAction = document.getElementById('hackerAction');
     const hackerTexts = [
-      'Establishing Secure Tunnel..._'
-      ,'Checking Router Firmware v4.12..._'
-      ,'Pinging DNS servers (8.8.8.8)..._'
-      ,'Throughput: 980 Mbps / 950 Mbps_'
-      ,'All systems green! Surf on!_'
-      ,'Tip: Clear your cache often!_'
+      'Initializing dashboard systems..._'
+      ,'Water meter data sync initiated..._'
+      ,'Accessing central billing server..._'
+      ,'All core systems nominal!_'
+      ,'Tip: Water flows, code runs!_'
+      ,'Lead: Mickey "Hacker" Hamza_'
     ];
     let hackerIndex = 0;
     let charIndex = 0;
