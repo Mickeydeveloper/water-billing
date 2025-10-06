@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard - Water Billing System</title>
+  <title>Dashboard - FiberNet ISP System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* CSS is largely preserved but with minor cleanup and new icon changes */
+    /* New color scheme: Orange/Blue for Network/Fiber */
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #e0f7fa 0%, #b2f0e6 100%);
+      background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); /* Light Orange/Yellow */
       margin: 0;
       padding: 0;
       min-height: 100vh;
@@ -37,33 +37,33 @@
       100% { transform: rotateY(0deg) rotateX(0deg); }
     }
     h2 {
-      color: #0077b6;
+      color: #ff9800; /* Deep Orange */
       margin-bottom: 18px;
     }
     .stat {
-      margin: 14px 0; /* Reduced margin for new elements */
+      margin: 14px 0;
       font-size: 1.1em;
       color: #333;
-      background: #e0f7fa;
+      background: #fff3e0; /* Lightest Orange */
       border-radius: 8px;
-      padding: 10px 0; /* Reduced padding for new elements */
-      box-shadow: 0 2px 8px #0077b622;
+      padding: 10px 0;
+      box-shadow: 0 2px 8px #ff980022;
     }
     .open-login-btn {
       margin-top: 24px;
       padding: 12px 0;
       width: 100%;
-      background: #0077b6;
+      background: #ff9800; /* Deep Orange */
       color: #fff;
       border: none;
       border-radius: 6px;
       font-size: 1.1em;
       cursor: pointer;
-      box-shadow: 0 2px 8px #0077b633;
+      box-shadow: 0 2px 8px #ff980033;
       transition: background 0.2s;
     }
     .open-login-btn:hover {
-      background: #023e8a;
+      background: #ef6c00; /* Darker Orange */
     }
     .icon {
       vertical-align: middle;
@@ -73,7 +73,7 @@
       margin: 22px 0 0 0;
       padding: 12px 18px;
       background: #222;
-      color: #0f0;
+      color: #ffc107; /* Amber for Network Look */
       font-family: 'Courier New', Courier, monospace;
       border-radius: 8px;
       font-size: 1.1em;
@@ -95,10 +95,10 @@
 <body>
   <canvas id="bubbleCanvas"></canvas>
   <div class="dashboard">
-    <h2>Mickey System Dashboard</h2>
+    <h2>FiberNet ISP Dashboard</h2>
     <div style="width:100%;height:60px;overflow:hidden;position:relative;margin-bottom:18px;">
       <svg viewBox="0 0 500 60" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;left:0;top:0;">
-        <path id="wavePath" d="M0,30 Q125,60 250,30 T500,30 V60 H0 Z" fill="#00b894" opacity="0.18">
+        <path id="wavePath" d="M0,30 Q125,60 250,30 T500,30 V60 H0 Z" fill="#2196f3" opacity="0.18">
           <animate attributeName="d" dur="3s" repeatCount="indefinite"
             values="M0,30 Q125,60 250,30 T500,30 V60 H0 Z;
                     M0,35 Q125,20 250,35 T500,35 V60 H0 Z;
@@ -107,22 +107,24 @@
       </svg>
     </div>
     
-    <div class="stat" id="webStat"><span class="icon">🌐</span>Web Status: <span id="webStatus">Checking...</span></div>
+    <div class="stat" id="webStat"><span class="icon">📶</span>Connection Status: <span id="webStatus">Checking...</span></div>
     
-    <div class="stat"><span class="icon">🔋</span>Battery: <span id="battery">Checking...</span></div>
+    <div class="stat" id="dataUsageStat"><span class="icon">📊</span>Monthly Data Usage: <span id="dataUsage">Loading...</span></div>
+    
+    <div class="stat"><span class="icon">⚡</span>Router Power: <span id="battery">Checking...</span></div>
 
-    <button class="open-login-btn" onclick="window.location.href='login.html'">Open Login</button>
-    <button class="open-login-btn" style="margin-top:10px;background:#25a244;" onclick="window.location.href='records.html'">Open Records</button>
+    <button class="open-login-btn" onclick="window.location.href='login.html'">Manage Account</button>
+    <button class="open-login-btn" style="margin-top:10px;background:#2196f3;" onclick="window.location.href='support.html'">Technical Support</button>
     
-    <div id="waterFact" style="margin-top:22px;font-size:1em;color:#0077b6;background:#e0f7fa;border-radius:8px;padding:12px 10px;box-shadow:0 2px 8px #0077b622;">
-      Loading fun water fact...
+    <div id="techFact" style="margin-top:22px;font-size:1em;color:#ff9800;background:#fff3e0;border-radius:8px;padding:12px 10px;box-shadow:0 2px 8px #ff980022;">
+      Loading fun tech fact...
     </div>
     <div class="hacker-action" id="hackerAction"></div>
   </div>
   <script>
     // --- UTILITIES & BUBBLE EFFECT (Kept) ---
 
-    // Bubble effect code (unmodified)
+    // Bubble effect code - Color changed to light blue for 'data packets'
     const canvas = document.getElementById('bubbleCanvas');
     const ctx = canvas.getContext('2d');
     let bubbles = [];
@@ -132,40 +134,73 @@
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-    function createBubble() { /* ... implementation ... */ return { x: Math.random() * canvas.width, y: canvas.height + 20, r: 8 + Math.random() * 22, speed: 1 + Math.random() * 2, color: `rgba(0,${180+Math.random()*75},${255},${0.2+Math.random()*0.3})` }; }
-    function drawBubbles() { /* ... implementation ... */ ctx.clearRect(0, 0, canvas.width, canvas.height); bubbles.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fillStyle = b.color; ctx.fill(); }); }
-    function updateBubbles() { /* ... implementation ... */ bubbles.forEach(b => b.y -= b.speed); bubbles = bubbles.filter(b => b.y + b.r > 0); while (bubbles.length < 30) { bubbles.push(createBubble()); } }
-    function animateBubbles() { /* ... implementation ... */ updateBubbles(); drawBubbles(); requestAnimationFrame(animateBubbles); }
+    function createBubble() { 
+      return { 
+        x: Math.random() * canvas.width, 
+        y: canvas.height + 20, 
+        r: 8 + Math.random() * 22, 
+        speed: 1 + Math.random() * 2, 
+        color: `rgba(${33},${150},${243},${0.2+Math.random()*0.3})` /* Blue Bubble Color */
+      }; 
+    }
+    function drawBubbles() { 
+      ctx.clearRect(0, 0, canvas.width, canvas.height); 
+      bubbles.forEach(b => { 
+        ctx.beginPath(); 
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); 
+        ctx.fillStyle = b.color; 
+        ctx.fill(); 
+      }); 
+    }
+    function updateBubbles() { 
+      bubbles.forEach(b => b.y -= b.speed); 
+      bubbles = bubbles.filter(b => b.y + b.r > 0); 
+      while (bubbles.length < 30) { 
+        bubbles.push(createBubble()); 
+      } 
+    }
+    function animateBubbles() { 
+      updateBubbles(); 
+      drawBubbles(); 
+      requestAnimationFrame(animateBubbles); 
+    }
     animateBubbles();
 
-    // Fun water facts (unmodified)
+    // Fun tech facts (updated)
     const facts = [
-      "About 71% of the Earth's surface is water-covered.",
-      "Water expands when it freezes, unlike most liquids.",
-      "The human brain is about 75% water.",
-      "Tanzania's Lake Victoria is the largest lake in Africa by area!",
-      "Water can dissolve more substances than any other liquid."
+      "The first email was sent in 1971 by Ray Tomlinson.",
+      "A typical fiber optic cable can transmit data for miles.",
+      "The 'www' stands for World Wide Web, invented by Tim Berners-Lee.",
+      "Tanzania's connection is largely based on the SEACOM and EASSy fiber optic cables!",
+      "An IP address is like your internet home address."
     ];
     function showRandomFact() {
       const fact = facts[Math.floor(Math.random() * facts.length)];
-      document.getElementById('waterFact').textContent = '💧 ' + fact;
+      document.getElementById('techFact').textContent = '💡 ' + fact;
     }
     showRandomFact();
     setInterval(showRandomFact, 12000);
 
     // --- SYSTEM STATUS CHECKS ---
 
-    // Web status (unmodified)
-    document.getElementById('webStatus').textContent = navigator.onLine ? 'Online' : 'Offline';
-    window.addEventListener('online', () => document.getElementById('webStatus').textContent = 'Online');
+    // Web status (renamed/repurposed for Connection Status)
+    document.getElementById('webStatus').textContent = navigator.onLine ? 'Excellent' : 'Offline';
+    window.addEventListener('online', () => document.getElementById('webStatus').textContent = 'Excellent');
     window.addEventListener('offline', () => document.getElementById('webStatus').textContent = 'Offline');
+    
+    // Placeholder for Monthly Data Usage
+    function setRandomDataUsage() {
+        const usageGB = (200 + Math.random() * 800).toFixed(2); // Random usage between 200GB and 1000GB
+        document.getElementById('dataUsage').textContent = usageGB + ' GB';
+    }
+    setRandomDataUsage();
 
-    // Battery status (unmodified)
+    // Battery status (repurposed for Router Power)
     if (navigator.getBattery) {
       navigator.getBattery().then(function(battery) {
         function updateBattery() {
           let level = Math.round(battery.level * 100) + '%';
-          let charging = battery.charging ? ' (Charging)' : '';
+          let charging = battery.charging ? ' (Running)' : ''; // Changed 'Charging' to 'Running'
           document.getElementById('battery').textContent = level + charging;
         }
         updateBattery();
@@ -173,22 +208,18 @@
         battery.addEventListener('chargingchange', updateBattery);
       });
     } else {
-      document.getElementById('battery').textContent = 'Not supported';
+      document.getElementById('battery').textContent = 'Nominal'; // Default 'power' check
     }
     
-    // --- LOCATION & NETWORK VIA IP GEOLOCATION API: REMOVED ---
-    
-    // Original fetchLocationAndNetwork() function deleted.
-
-    // Hacker action effect (modified texts for relevance)
+    // Hacker action effect (updated texts for ISP relevance)
     const hackerAction = document.getElementById('hackerAction');
     const hackerTexts = [
-      'Initializing dashboard systems..._'
-      ,'Water meter data sync initiated..._'
-      ,'Accessing central billing server..._'
-      ,'All core systems nominal!_'
-      ,'Tip: Water flows, code runs!_'
-      ,'Lead: Mickey "Hacker" Hamza_'
+      'Establishing Secure Tunnel..._'
+      ,'Checking Router Firmware v4.12..._'
+      ,'Pinging DNS servers (8.8.8.8)..._'
+      ,'Throughput: 980 Mbps / 950 Mbps_'
+      ,'All systems green! Surf on!_'
+      ,'Tip: Clear your cache often!_'
     ];
     let hackerIndex = 0;
     let charIndex = 0;
