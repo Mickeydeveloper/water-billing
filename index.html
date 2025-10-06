@@ -108,13 +108,7 @@
     </div>
     
     <div class="stat" id="webStat"><span class="icon">🌐</span>Web Status: <span id="webStatus">Checking...</span></div>
-    <div class="stat"><span class="icon">💻</span>Your IP: <span id="ip">Loading...</span></div>
-    <div class="stat"><span class="icon">📶</span>Internet Provider: <span id="isp">Loading...</span></div>
     
-    <div class="stat"><span class="icon">📍</span>Region: <span id="region">Loading...</span></div>
-    <div class="stat"><span class="icon">🏙️</span>District: <span id="district">Loading...</span></div>
-    <div class="stat"><span class="icon">🏘️</span>Ward: <span id="ward">Loading...</span></div>
-
     <div class="stat"><span class="icon">🔋</span>Battery: <span id="battery">Checking...</span></div>
 
     <button class="open-login-btn" onclick="window.location.href='login.html'">Open Login</button>
@@ -182,72 +176,17 @@
       document.getElementById('battery').textContent = 'Not supported';
     }
     
-    // --- LOCATION & NETWORK VIA IP GEOLOCATION API ---
+    // --- LOCATION & NETWORK VIA IP GEOLOCATION API: REMOVED ---
     
-    /**
-     * Fetches IP, ISP, and Location data using a public API.
-     * The API fields are mapped to your required Tanzanian administrative units.
-     * City -> Ward (Local Area)
-     * RegionName -> District (Administrative Region)
-     * Country -> Region (Top-level area, often 'Tanzania')
-     */
-    function fetchLocationAndNetwork() {
-        const ipApiUrl = 'http://ip-api.com/json/?fields=status,message,country,regionName,city,isp,query';
+    // Original fetchLocationAndNetwork() function deleted.
 
-        fetch(ipApiUrl)
-            .then(res => {
-                if (!res.ok) throw new Error('API request failed');
-                return res.json();
-            })
-            .then(data => {
-                if (data.status === 'fail') {
-                    console.error('IP-API Failed:', data.message);
-                    document.getElementById('ip').textContent = 'Unavailable';
-                    document.getElementById('isp').textContent = 'Unavailable';
-                    document.getElementById('region').textContent = 'Unavailable';
-                    document.getElementById('district').textContent = 'Unavailable';
-                    document.getElementById('ward').textContent = 'Unavailable';
-                    return;
-                }
-                
-                // MAPPING API FIELDS TO YOUR REQUIREMENTS:
-                // isp -> Internet Provider
-                // query (IP) -> Your IP
-                // country -> Region (Top-level)
-                // regionName -> District
-                // city -> Ward
-                
-                document.getElementById('ip').textContent = data.query || 'N/A';
-                document.getElementById('isp').textContent = data.isp || 'N/A';
-                
-                // Location Data
-                document.getElementById('region').textContent = data.country || 'N/A'; 
-                document.getElementById('district').textContent = data.regionName || 'N/A';
-                document.getElementById('ward').textContent = data.city || 'N/A';
-            })
-            .catch(error => {
-                console.error("Geolocation Error:", error);
-                document.getElementById('ip').textContent = 'Error Fetching IP';
-                document.getElementById('isp').textContent = 'Error Fetching ISP';
-                document.getElementById('region').textContent = 'Error';
-                document.getElementById('district').textContent = 'Error';
-                document.getElementById('ward').textContent = 'Error';
-            });
-    }
-
-    fetchLocationAndNetwork(); // Run the new function
-
-    // --- REMOVED: Camera Status, Storage Status, Network Type (replaced by fetchLocationAndNetwork) ---
-    // The previous code for network, camera, and storage has been deleted.
-
-    // Hacker action effect (modified texts)
+    // Hacker action effect (modified texts for relevance)
     const hackerAction = document.getElementById('hackerAction');
     const hackerTexts = [
-      'Initializing system scan..._'
-      ,'Fetching real-time location..._'
-      ,'Identifying Internet Provider..._'
-      ,'Mapping IP to Dar es Salaam..._'
-      ,'All systems secure!_'
+      'Initializing dashboard systems..._'
+      ,'Water meter data sync initiated..._'
+      ,'Accessing central billing server..._'
+      ,'All core systems nominal!_'
       ,'Tip: Water flows, code runs!_'
       ,'Lead: Mickey "Hacker" Hamza_'
     ];
