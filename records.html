@@ -1,216 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Customer Billing Records</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #e0f7fa 0%, #b2f0e6 100%);
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .records-container {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px #0002;
-      padding: 36px 44px 30px 44px;
-      max-width: 600px;
-      width: 100%;
-      text-align: left;
-    }
-    h2 {
-      color: #0077b6;
-      text-align: center;
-      margin-bottom: 18px;
-    }
-    .customer-list {
-      margin-bottom: 24px;
-    }
-    .customer-item {
-      padding: 10px 0;
-      border-bottom: 1px solid #e0f7fa;
-      cursor: pointer;
-      color: #0077b6;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-    .customer-item:hover {
-      background: #e0f7fa;
-    }
-    .billing-details {
-      background: #e0f7fa;
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 10px;
-      box-shadow: 0 2px 8px #0077b622;
-    }
-    .month-title {
-      color: #023e8a;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    .option-bar {
-      margin-bottom: 18px;
-      text-align: center;
-    }
-    .option-btn {
-      padding: 8px 18px;
-      margin: 0 8px;
-      border: none;
-      border-radius: 6px;
-      background: #0077b6;
-      color: #fff;
-      font-size: 1em;
-      cursor: pointer;
-      box-shadow: 0 2px 8px #0077b633;
-      transition: background 0.2s;
-    }
-    .option-btn.active, .option-btn:hover {
-      background: #023e8a;
-    }
-    .manual-form {
-      background: #f1f1f1;
-      border-radius: 8px;
-      padding: 14px;
-      margin-bottom: 18px;
-      display: none;
-    }
-    .manual-form input {
-      margin: 6px 0;
-      padding: 6px;
-      width: 100%;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    .manual-form button {
-      margin-top: 10px;
-      width: 100%;
-      padding: 10px;
-      background: #0077b6;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      font-size: 1em;
-      cursor: pointer;
-      box-shadow: 0 2px 8px #0077b633;
-      transition: background 0.2s;
-    }
-    .manual-form button:hover {
-      background: #023e8a;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mickey Water Billing - Historia</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
+    <style>
+        /* Re-use variables from index.html */
+        :root {
+            --color-primary: #0077b6;
+            --color-secondary: #023e8a;
+            --color-success: #25a244;
+            --color-background-light: #e0f7fa;
+            --color-background-dark: #b2f0e6;
+            --color-text-dark: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--color-background-light) 0%, var(--color-background-dark) 100%);
+            margin: 0;
+            padding: 40px;
+            min-height: 100vh;
+            color: var(--color-text-dark);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--color-primary);
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background: #6c757d;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .back-btn:hover {
+            background: #495057;
+        }
+        
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        .records-table th, .records-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .records-table th {
+            background-color: var(--color-primary);
+            color: #fff;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .records-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .records-table td:nth-child(4), /* usage */
+        .records-table td:nth-child(6) { /* total */
+            font-weight: bold;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+            font-size: 1.2em;
+        }
+        
+        .clear-btn {
+            float: right;
+            padding: 8px 15px;
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .clear-btn:hover {
+            background: #c82333;
+        }
+        
+    </style>
 </head>
 <body>
-  <div class="records-container">
-    <h2>Customer Billing Records</h2>
-    <div class="option-bar">
-      <button class="option-btn active" id="autoBtn">Automatic</button>
-      <button class="option-btn" id="manualBtn">Add Manual</button>
+    <div class="container">
+        <a href="index.html" class="back-btn">← Rudi kwenye Ankara</a>
+        <button class="clear-btn" id="clearRecordsBtn">Futa Rekodi Zote</button>
+        <h1>Historia Kamili ya Ankara za Maji</h1>
+        <div id="recordsView">
+            </div>
     </div>
-    <form class="manual-form" id="manualForm">
-      <input type="text" id="manualName" placeholder="Customer Name" required>
-      <input type="number" id="manualUsage" placeholder="Usage (unit)" min="0" required>
-      <input type="month" id="manualMonth" required>
-      <button type="submit">Add Record</button>
-    </form>
-    <div class="customer-list" id="customerList"></div>
-    <div class="billing-details" id="billingDetails" style="display:none;"></div>
-  </div>
-  <script>
-    // Load records from localStorage (same format as main.html)
-    function getAllRecords() {
-      let history = JSON.parse(localStorage.getItem('waterBillingHistory') || '{}');
-      let customers = {};
-      Object.keys(history).forEach(monthYear => {
-        history[monthYear].forEach(r => {
-          if (!customers[r.name]) customers[r.name] = [];
-          customers[r.name].push({ name: r.name, usage: r.usage, monthYear });
+    
+    <script>
+        const LOCAL_STORAGE_KEY = 'mickeyBillingRecords';
+        
+        function loadRecords() {
+            const recordsView = document.getElementById('recordsView');
+            const records = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+            
+            if (records.length === 0) {
+                recordsView.innerHTML = '<p class="empty-message">Hakuna rekodi zilizohifadhiwa bado.</p>';
+                return;
+            }
+
+            // Sort by date descending (most recent first)
+            records.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            let tableHTML = `
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>Tarehe</th>
+                            <th>Jina</th>
+                            <th>Namba</th>
+                            <th>Matumizi (unit)</th>
+                            <th>Rate (TZS)</th>
+                            <th>Jumla (TZS)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            records.forEach(record => {
+                const dateStr = new Date(record.date).toLocaleString('en-GB');
+                tableHTML += `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td>${record.name}</td>
+                        <td>${record.phone}</td>
+                        <td>${record.usage.toFixed(2)}</td>
+                        <td>${record.rate.toLocaleString('en-US')}</td>
+                        <td>${record.total.toLocaleString('en-US')}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            recordsView.innerHTML = tableHTML;
+        }
+        
+        function clearRecords() {
+            if (confirm('Una uhakika unataka kufuta rekodi zote? Kitendo hiki hakiwezi kurudishwa.')) {
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+                loadRecords(); // Re-load to show empty message
+                alert('Rekodi zote zimefutwa.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRecords();
+            document.getElementById('clearRecordsBtn').onclick = clearRecords;
         });
-      });
-      // Add manual records
-      let manual = JSON.parse(localStorage.getItem('manualBillingRecords') || '[]');
-      manual.forEach(r => {
-        if (!customers[r.name]) customers[r.name] = [];
-        customers[r.name].push({ name: r.name, usage: r.usage, monthYear: r.monthYear });
-      });
-      return customers;
-    }
-    function showCustomerList() {
-      const customers = getAllRecords();
-      const listDiv = document.getElementById('customerList');
-      listDiv.innerHTML = '';
-      const names = Object.keys(customers);
-      if (names.length === 0) {
-        listDiv.innerHTML = '<em>No records found.</em>';
-        return;
-      }
-      names.forEach(name => {
-        const item = document.createElement('div');
-        item.className = 'customer-item';
-        item.textContent = name;
-        item.onclick = () => showBillingDetails(name, customers[name]);
-        listDiv.appendChild(item);
-      });
-    }
-    function showBillingDetails(name, records) {
-      const detailsDiv = document.getElementById('billingDetails');
-      detailsDiv.style.display = 'block';
-      detailsDiv.innerHTML = `<h3>${name}</h3>`;
-      // Calculate summary
-      let totalUsage = 0;
-      records.forEach(r => {
-        totalUsage += Number(r.usage) || 0;
-      });
-      detailsDiv.innerHTML += `<div style='margin-bottom:10px;'><strong>Total Usage:</strong> ${totalUsage} unit</div>`;
-      // Group by month
-      const grouped = {};
-      records.forEach(r => {
-        if (!grouped[r.monthYear]) grouped[r.monthYear] = [];
-        grouped[r.monthYear].push(r);
-      });
-      Object.keys(grouped).sort().reverse().forEach(monthYear => {
-        detailsDiv.innerHTML += `<div class='month-title'>${monthYear.replace('-', '/')}</div>`;
-        grouped[monthYear].forEach(r => {
-          detailsDiv.innerHTML += `<div>Usage: ${r.usage} unit</div><hr>`;
-        });
-      });
-    }
-    // Manual/Auto toggle
-    const autoBtn = document.getElementById('autoBtn');
-    const manualBtn = document.getElementById('manualBtn');
-    const manualForm = document.getElementById('manualForm');
-    autoBtn.onclick = () => {
-      autoBtn.classList.add('active');
-      manualBtn.classList.remove('active');
-      manualForm.style.display = 'none';
-      showCustomerList();
-    };
-    manualBtn.onclick = () => {
-      manualBtn.classList.add('active');
-      autoBtn.classList.remove('active');
-      manualForm.style.display = 'block';
-    };
-    manualForm.onsubmit = function(e) {
-      e.preventDefault();
-      const name = document.getElementById('manualName').value.trim();
-      const usage = parseFloat(document.getElementById('manualUsage').value);
-      const monthYear = document.getElementById('manualMonth').value.replace('-', '/');
-      let manual = JSON.parse(localStorage.getItem('manualBillingRecords') || '[]');
-      manual.push({ name, usage, monthYear });
-      localStorage.setItem('manualBillingRecords', JSON.stringify(manual));
-      manualForm.reset();
-      manualForm.style.display = 'none';
-      autoBtn.classList.add('active');
-      manualBtn.classList.remove('active');
-      showCustomerList();
-    };
-    showCustomerList();
-  </script>
+    </script>
 </body>
 </html>
