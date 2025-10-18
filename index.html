@@ -2,201 +2,302 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard - Water Billing System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard for Mickey Water Billing System">
+  <meta name="author" content="Mickey Hamza">
+  <title>Dashboard - Mickey Water Billing System</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
   <style>
+    :root {
+      --primary-color: #0077b6;
+      --secondary-color: #0099cc;
+      --success-color: #25a244;
+      --error-color: #ff6f61;
+      --background-color: #e0f7fa;
+      --text-color: #333;
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.15);
+      --border-radius: 12px;
+      --transition: all 0.3s ease-out;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background-color: #1a1a2e;
+        --text-color: #e0e0e0;
+        --primary-color: #4da8da;
+        --secondary-color: #80ced7;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #e0f7fa 0%, #b2f0e6 100%);
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--background-color) 0%, #b2f0e6 100%);
       margin: 0;
-      padding: 0;
+      padding: 20px;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-      perspective: 1200px; /* Global perspective for body */
-    }
-    .dashboard {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 10px 40px #0003; /* More pronounced shadow */
-      padding: 30px 40px;
-      max-width: 450px;
-      width: 100%;
-      text-align: center;
-      position: relative;
-      z-index: 1;
-      transform-style: preserve-3d; /* Crucial for 3D children */
-      animation: rotate3d 8s infinite ease-in-out; /* Slower, smoother animation */
-      transition: transform 0.5s ease-out; /* Smooth transitions for potential transforms */
-      border: 1px solid #cceeff; /* Slight border for definition */
-    }
-    @keyframes rotate3d {
-      0% { transform: rotateY(0deg) rotateX(0deg) translateZ(0px); }
-      25% { transform: rotateY(10deg) rotateX(5deg) translateZ(10px); }
-      50% { transform: rotateY(0deg) rotateX(0deg) translateZ(0px); }
-      75% { transform: rotateY(-10deg) rotateX(-5deg) translateZ(10px); }
-      100% { transform: rotateY(0deg) rotateX(0deg) translateZ(0px); }
-    }
-    h2 {
-      color: #0077b6;
-      margin-bottom: 24px;
-      font-size: 1.9em; /* Slightly larger */
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.1); /* Text shadow for depth */
-      transform: translateZ(20px); /* Push heading forward */
-      transition: transform 0.3s ease-out;
-    }
-    .status-box {
-      background: #f0faff;
-      border: 2px solid #0077b6;
-      border-radius: 10px;
-      padding: 18px; /* More padding */
-      margin-bottom: 30px; /* More margin */
-      text-align: left;
-      box-shadow: 0 6px 20px #0077b62a; /* Stronger shadow */
-      transition: all 0.3s ease-out;
-      transform: translateZ(15px); /* Push status box forward */
-      position: relative; /* For pseudo-elements */
-    }
-    .status-box:hover {
-        box-shadow: 0 8px 25px #0077b63a;
-        transform: translateZ(20px) scale(1.02); /* Lift and slightly enlarge on hover */
-    }
-    .status-box p {
-      margin: 8px 0; /* More spacing */
-      font-size: 1.08em; /* Slightly larger text */
-      color: #333;
-    }
-    .status-box strong {
-      color: #0077b6;
-      font-weight: 600;
-      min-width: 130px; /* Wider for alignment */
-      display: inline-block;
-    }
-    .open-login-btn {
-      margin-top: 12px; /* More space between buttons */
-      padding: 14px 0; /* More padding */
-      width: 100%;
-      background: #0077b6;
-      color: #fff;
-      border: none;
-      border-radius: 8px; /* Slightly more rounded */
-      font-size: 1.15em; /* Slightly larger text */
-      cursor: pointer;
-      box-shadow: 0 4px 12px #0077b644; /* Stronger shadow */
-      transition: all 0.3s ease-out; /* Smooth transition for 3D effects */
-      transform: translateZ(10px); /* Push buttons forward */
-    }
-    .open-login-btn:hover {
-      background: #023e8a;
-      transform: translateZ(20px) scale(1.03); /* Lift higher and slightly enlarge */
-      box-shadow: 0 6px 18px #0077b655;
-    }
-    .open-login-btn.records {
-        background: #25a244;
-    }
-    .open-login-btn.records:hover {
-        background: #1e7a33;
-    }
-    .open-login-btn.botweb {
-        background: #ff6f61;
-    }
-    .open-login-btn.botweb:hover {
-        background: #e05e52;
-    }
-    .icon {
-      vertical-align: middle;
-      margin-right: 10px; /* More spacing for icons */
-      font-size: 1.2em; /* Larger icons */
-    }
-    .hacker-action {
-      margin: 30px 0 0 0; /* More margin */
-      padding: 15px 20px; /* More padding */
-      background: #222;
-      color: #0f0;
-      font-family: 'Courier New', Courier, monospace;
-      border-radius: 10px; /* More rounded */
-      font-size: 1.1em;
-      box-shadow: 0 4px 12px #0006; /* Stronger shadow */
-      text-align: center;
-      letter-spacing: 1px;
-      min-height: 38px; /* Taller */
-      transform: translateZ(5px); /* Slightly forward */
-    }
-    #bubbleCanvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 0;
-      pointer-events: none;
-      transform: translateZ(-500px); /* Push bubbles far back for perspective */
-      perspective: 1000px; /* Individual perspective for canvas */
-    }
-    #waterFact {
-        margin-top:25px; /* More margin */
-        font-size:1.05em;
-        color:#0077b6;
-        background:#e0f7fa;
-        border-radius:10px; /* More rounded */
-        padding:15px 12px; /* More padding */
-        box-shadow: 0 4px 12px #0077b622;
-        transform: translateZ(8px); /* Slightly forward */
+      overflow-x: hidden;
     }
 
-    /* --- NEW STYLES FOR FLOATING SERVER CYCLE --- */
+    .video-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+    }
+
+    .video-container.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .dashboard {
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      transform: translateZ(20px);
+      transition: var(--transition);
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .dashboard.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    h1 {
+      color: var(--primary-color);
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      margin-bottom: 1.5rem;
+      text-shadow: 1px 1px 0 #fff;
+    }
+
+    .status-box {
+      background: #f0faff;
+      border: 2px solid var(--primary-color);
+      border-radius: var(--border-radius);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+
+    .status-box:hover {
+      box-shadow: var(--shadow-md);
+      transform: scale(1.02);
+    }
+
+    .status-box p {
+      margin: 0.5rem 0;
+      font-size: 1rem;
+      color: var(--text-color);
+    }
+
+    .status-box strong {
+      color: var(--primary-color);
+      font-weight: 600;
+      min-width: 120px;
+      display: inline-block;
+    }
+
+    .icon {
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 0.9rem;
+      margin: 0.5rem 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      text-shadow: 0.5px 0.5px 0 #fff;
+    }
+
+    .btn:hover, .btn:focus {
+      transform: scale(1.03);
+      box-shadow: var(--shadow-md);
+      outline: none;
+    }
+
+    .btn--primary {
+      background: var(--primary-color);
+      color: #fff;
+    }
+
+    .btn--primary:hover, .btn--primary:focus {
+      background: #023e8a;
+    }
+
+    .btn--success {
+      background: var(--success-color);
+    }
+
+    .btn--success:hover, .btn--success:focus {
+      background: #1e7a33;
+    }
+
+    .btn--error {
+      background: var(--error-color);
+    }
+
+    .btn--error:hover, .btn--error:focus {
+      background: #e05e52;
+    }
+
+    .water-fact {
+      margin-top: 1.5rem;
+      font-size: 1rem;
+      color: var(--primary-color);
+      background: #e0f7fa;
+      border-radius: var(--border-radius);
+      padding: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hacker-action {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #222;
+      color: #0f0;
+      font-family: 'Courier New', monospace;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+      min-height: 2.5rem;
+    }
+
     .server-float {
-        position: fixed;
-        bottom: 30px; /* Further from edge */
-        right: 30px; /* Further from edge */
-        width: 110px; /* Slightly larger */
-        height: 110px; /* Slightly larger */
-        background: linear-gradient(45deg, #0077b6, #0099cc); /* Gradient for depth */
-        border-radius: 50%;
-        color: #fff;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        font-size: 0.9em; /* Slightly larger text */
-        font-weight: 700; /* Bolder text */
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 6px 18px #0006; /* Stronger shadow */
-        z-index: 10;
-        cursor: default;
-        transition: transform 0.4s ease-out, box-shadow 0.4s ease-out;
-        animation: floatCycle 6s infinite ease-in-out; /* Smoother and longer animation */
-        border: 2px solid rgba(255,255,255,0.5); /* Inner white border */
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.4); /* Text shadow for depth */
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 600;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-md);
+      z-index: 10;
+      transition: var(--transition);
     }
 
     .server-float:hover {
-        transform: translateY(-8px) scale(1.15) rotate(5deg); /* Lift more, enlarge more, slight rotate */
-        box-shadow: 0 10px 25px #0009;
+      transform: scale(1.1);
+      box-shadow: var(--shadow-md);
     }
 
-    @keyframes floatCycle {
-        0% { transform: translateY(0px) rotateY(0deg) rotateX(0deg); }
-        25% { transform: translateY(-10px) rotateY(10deg) rotateX(5deg); }
-        50% { transform: translateY(0px) rotateY(0deg) rotateX(0deg); }
-        75% { transform: translateY(-10px) rotateY(-10deg) rotateX(-5deg); }
-        100% { transform: translateY(0px) rotateY(0deg) rotateX(0deg); }
+    .server-float--syncing {
+      background: linear-gradient(45deg, var(--success-color), #2ecc71);
+      animation: pulseSync 0.5s ease-in-out;
+    }
+
+    .server-float--error {
+      background: linear-gradient(45deg, var(--error-color), #e05e52);
+    }
+
+    @keyframes pulseSync {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .wave-container {
+      width: 100%;
+      height: 60px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      will-change: transform;
+    }
+
+    .wave-container svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    @media (max-width: 480px) {
+      .dashboard {
+        padding: 1.5rem;
+        max-width: 100%;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .btn {
+        font-size: 0.9rem;
+        padding: 0.8rem;
+      }
+
+      .server-float {
+        width: 60px;
+        height: 60px;
+        font-size: 0.8rem;
+      }
+    }
+
+    .btn:focus {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
     }
   </style>
 </head>
 <body>
-  <canvas id="bubbleCanvas"></canvas>
-  
-  <div class="server-float">
-    <span style="line-height: 1.3;">Mickey<br>Server</span>
+  <div class="video-container" id="videoContainer" role="region" aria-label="Introductory video">
+    <video id="introVideo" autoplay muted playsinline aria-describedby="videoError">
+      <source src="https://files.catbox.moe/e204ki.mp4" type="video/mp4">
+      <p id="videoError">Your browser does not support the video tag. <a href="#" onclick="showDashboard()">Skip to dashboard</a>.</p>
+    </video>
   </div>
 
-  <div class="dashboard">
-    <h2>Mickey Water Billing System</h2>
-    
-    <div style="width:100%;height:60px;overflow:hidden;position:relative;margin-bottom:18px; transform: translateZ(12px);">
-      <svg viewBox="0 0 500 60" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;left:0;top:0;">
+  <div class="server-float" id="serverFloat" role="status" aria-live="polite">
+    <span>Mickey<br>Server</span>
+  </div>
+
+  <main class="dashboard" id="dashboard" role="main">
+    <header>
+      <h1>Mickey Water Billing System</h1>
+    </header>
+
+    <div class="wave-container">
+      <svg viewBox="0 0 500 60" preserveAspectRatio="none">
         <path id="wavePath" d="M0,30 Q125,60 250,30 T500,30 V60 H0 Z" fill="#00b894" opacity="0.18">
           <animate attributeName="d" dur="3s" repeatCount="indefinite"
             values="M0,30 Q125,60 250,30 T500,30 V60 H0 Z;
@@ -206,56 +307,49 @@
       </svg>
     </div>
 
-    <div class="status-box">
-        <p><span class="icon">🌐</span><strong>Web Status:</strong> <span id="webStatus">Checking...</span></p>
-        <p><span class="icon">📍</span><strong>Public IP:</strong> <span id="publicIp">Syncing...</span></p>
-        <p><span class="icon">📡</span><strong>Network Provider:</strong> <span id="networkProvider">Syncing...</span></p>
-        <p><span class="icon">🔋</span><strong>Local Battery:</strong> <span id="battery">Checking...</span></p>
-    </div>
+    <section class="status-box" aria-label="System Status">
+      <p><span class="icon">🌐</span><strong>Web Status:</strong> <span id="webStatus">Checking...</span></p>
+      <p><span class="icon">📍</span><strong>Public IP:</strong> <span id="publicIp">Syncing...</span></p>
+      <p><span class="icon">📡</span><strong>Internet Provider:</strong> <span id="internetProvider">Syncing...</span></p>
+      <p><span class="icon">🔋</span><strong>Local Battery:</strong> <span id="battery">Checking...</span></p>
+    </section>
 
-    <button class="open-login-btn" onclick="window.location.href='login.html'">Open Login</button>
-    <button class="open-login-btn records" onclick="window.location.href='records.html'">Open Records</button>
-    <button class="open-login-btn botweb" onclick="window.location.href='botweb.html'"><span class="icon">🤖</span>Open BotWeb</button>
-    
-    <div id="waterFact">
-      Loading fun water fact...
-    </div>
-    <div class="hacker-action" id="hackerAction"></div>
-  </div>
+    <button class="btn btn--primary" onclick="window.location.href='login.html'" aria-label="Open Login Page">Open Login</button>
+    <button class="btn btn--success" onclick="window.location.href='records.html'" aria-label="Open Records Page">Open Records</button>
+    <button class="btn btn--error" onclick="window.location.href='botweb.html'" aria-label="Open BotWeb Page"><span class="icon">🤖</span>Open BotWeb</button>
+
+    <div class="water-fact" id="waterFact" role="complementary">Loading fun water fact...</div>
+    <div class="hacker-action" id="hackerAction" role="log" aria-live="polite"></div>
+  </main>
+
   <script>
-    // --- UTILITIES & BUBBLE EFFECT (Kept) ---
+    // Utility: Debounce function
+    function debounce(fn, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn.apply(this, args), wait);
+      };
+    }
 
-    // Bubble effect code 
-    const canvas = document.getElementById('bubbleCanvas');
-    const ctx = canvas.getContext('2d');
-    let bubbles = [];
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    // Video handling
+    function showDashboard() {
+      const videoContainer = document.getElementById('videoContainer');
+      const dashboard = document.getElementById('dashboard');
+      videoContainer.classList.add('hidden');
+      dashboard.classList.add('visible');
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-    function createBubble() { 
-      // Add a random Z position for depth in the bubbles themselves
-      return { x: Math.random() * canvas.width, y: canvas.height + 20, r: 8 + Math.random() * 22, speed: 1 + Math.random() * 2, color: `rgba(0,${180+Math.random()*75},${255},${0.2+Math.random()*0.3})`, z: Math.random() * 100 - 50 }; 
-    }
-    function drawBubbles() { 
-      ctx.clearRect(0, 0, canvas.width, canvas.height); 
-      bubbles.forEach(b => { 
-        ctx.beginPath(); 
-        // Apply a simple perspective effect based on Z
-        const scale = 1 + b.z / 200; // Bubbles further back appear smaller
-        ctx.arc(b.x, b.y, b.r * scale, 0, Math.PI * 2); 
-        ctx.fillStyle = b.color; 
-        b.y += Math.sin(b.x / 30) * 0.5; 
-        ctx.fill(); 
-      }); 
-    }
-    function updateBubbles() { bubbles.forEach(b => b.y -= b.speed); bubbles = bubbles.filter(b => b.y + b.r > 0); while (bubbles.length < 30) { bubbles.push(createBubble()); } }
-    function animateBubbles() { updateBubbles(); drawBubbles(); requestAnimationFrame(animateBubbles); }
-    animateBubbles();
 
-    // Fun water facts (unmodified)
+    function handleVideo() {
+      const video = document.getElementById('introVideo');
+      video.addEventListener('ended', showDashboard);
+      video.addEventListener('error', () => {
+        console.error('Video failed to load');
+        showDashboard();
+      });
+    }
+
+    // Water facts
     const facts = [
       "About 71% of the Earth's surface is water-covered.",
       "Water expands when it freezes, unlike most liquids.",
@@ -263,85 +357,110 @@
       "Tanzania's Lake Victoria is the largest lake in Africa by area!",
       "Water can dissolve more substances than any other liquid."
     ];
+
     function showRandomFact() {
       const fact = facts[Math.floor(Math.random() * facts.length)];
-      document.getElementById('waterFact').textContent = '💧 ' + fact;
+      document.getElementById('waterFact').textContent = `💧 ${fact}`;
+      setTimeout(showRandomFact, 12000);
     }
-    showRandomFact();
-    setInterval(showRandomFact, 12000);
 
-    // --- SYSTEM STATUS CHECKS ---
+    // Web status
+    function updateWebStatus() {
+      document.getElementById('webStatus').textContent = navigator.onLine ? 'Online' : 'Offline';
+    }
 
-    // Web status (unmodified)
-    document.getElementById('webStatus').textContent = navigator.onLine ? 'Online' : 'Offline';
-    window.addEventListener('online', () => document.getElementById('webStatus').textContent = 'Online');
-    window.addEventListener('offline', () => document.getElementById('webStatus').textContent = 'Offline');
-
-    // Battery status (unmodified)
-    if (navigator.getBattery) {
-      navigator.getBattery().then(function(battery) {
-        function updateBattery() {
-          let level = Math.round(battery.level * 100) + '%';
-          let charging = battery.charging ? ' (Charging)' : '';
-          document.getElementById('battery').textContent = level + charging;
+    // Battery status
+    async function updateBatteryStatus() {
+      try {
+        if (navigator.getBattery) {
+          const battery = await navigator.getBattery();
+          const updateBattery = () => {
+            const level = `${Math.round(battery.level * 100)}% ${battery.charging ? '(Charging)' : ''}`;
+            document.getElementById('battery').textContent = level;
+          };
+          updateBattery();
+          battery.addEventListener('levelchange', updateBattery);
+          battery.addEventListener('chargingchange', updateBattery);
+        } else {
+          document.getElementById('battery').textContent = 'Not supported';
         }
-        updateBattery();
-        battery.addEventListener('levelchange', updateBattery);
-        battery.addEventListener('chargingchange', updateBattery);
-      });
-    } else {
-      document.getElementById('battery').textContent = 'Not supported';
-    }
-    
-    // --- IP & NETWORK SYNC ---
-    function syncNetworkDetails() {
-        const publicIpEl = document.getElementById('publicIp');
-        const networkProviderEl = document.getElementById('networkProvider');
-
-        fetch('https://ipinfo.io/json')
-            .then(response => response.json())
-            .then(data => {
-                publicIpEl.textContent = data.ip || 'Unknown';
-                networkProviderEl.textContent = data.org ? data.org.split(' ')[0] : 'Generic Provider';
-                publicIpEl.style.color = '#0077b6';
-                networkProviderEl.style.color = '#0077b6';
-            })
-            .catch(error => {
-                console.error("Error fetching network details:", error);
-                publicIpEl.textContent = 'Failed to sync';
-                networkProviderEl.textContent = 'Failed to sync';
-            });
-    }
-
-    syncNetworkDetails();
-
-
-    // Hacker action effect (original texts restored)
-    const hackerAction = document.getElementById('hackerAction');
-    const hackerTexts = [
-      'Initializing dashboard systems..._'
-      ,'Water meter data sync initiated..._'
-      ,'Accessing central billing server..._'
-      ,'All core systems nominal!_'
-      ,'Tip: Water flows, code runs!_'
-      ,'Lead: Mickey "Hacker" Hamza_'
-    ];
-    let hackerIndex = 0;
-    let charIndex = 0;
-    function typeHackerAction() {
-      if (charIndex <= hackerTexts[hackerIndex].length) {
-        hackerAction.textContent = hackerTexts[hackerIndex].slice(0, charIndex) + (charIndex % 2 ? '_' : '');
-        charIndex++;
-        setTimeout(typeHackerAction, 60);
-      } else {
-        setTimeout(() => {
-          hackerIndex = (hackerIndex + 1) % hackerTexts.length;
-          charIndex = 0;
-          typeHackerAction();
-        }, 1200);
+      } catch (error) {
+        console.error('Battery API error:', error);
+        document.getElementById('battery').textContent = 'Error';
       }
     }
-    typeHackerAction();
+
+    // Network details
+    const syncNetworkDetails = debounce(async () => {
+      const publicIpEl = document.getElementById('publicIp');
+      const internetProviderEl = document.getElementById('internetProvider');
+      const serverFloat = document.getElementById('serverFloat');
+
+      publicIpEl.textContent = 'Syncing...';
+      internetProviderEl.textContent = 'Syncing...';
+      serverFloat.classList.add('server-float--syncing');
+
+      try {
+        const response = await fetch('https://ipinfo.io/json');
+        const data = await response.json();
+        publicIpEl.textContent = data.ip || 'Unknown';
+        internetProviderEl.textContent = data.org || 'Unknown Provider';
+        publicIpEl.style.color = 'var(--primary-color)';
+        internetProviderEl.style.color = 'var(--primary-color)';
+        setTimeout(() => serverFloat.classList.remove('server-float--syncing'), 500);
+      } catch (error) {
+        console.error('Error fetching network details:', error);
+        publicIpEl.textContent = 'Failed to sync';
+        internetProviderEl.textContent = 'Failed to sync';
+        serverFloat.classList.add('server-float--error');
+        setTimeout(() => serverFloat.classList.remove('server-float--error'), 500);
+      }
+    }, 1000);
+
+    // Hacker action effect
+    const hackerTexts = [
+      'Initializing dashboard systems..._',
+      'Water meter data sync initiated..._',
+      'Accessing central billing server..._',
+      'All core systems nominal!_',
+      'Tip: Water flows, code runs!_',
+      'Lead: Mickey "Hacker" Hamza_'
+    ];
+
+    function typeHackerAction() {
+      const hackerAction = document.getElementById('hackerAction');
+      let hackerIndex = 0;
+      let charIndex = 0;
+
+      function type() {
+        if (charIndex <= hackerTexts[hackerIndex].length) {
+          hackerAction.textContent = hackerTexts[hackerIndex].slice(0, charIndex) + (charIndex % 2 ? '_' : '');
+          charIndex++;
+          requestAnimationFrame(type);
+        } else {
+          setTimeout(() => {
+            hackerIndex = (hackerIndex + 1) % hackerTexts.length;
+            charIndex = 0;
+            type();
+          }, 1200);
+        }
+      }
+      type();
+    }
+
+    // Initialize
+    function init() {
+      handleVideo();
+      updateWebStatus();
+      window.addEventListener('online', updateWebStatus);
+      window.addEventListener('offline', updateWebStatus);
+      updateBatteryStatus();
+      syncNetworkDetails();
+      showRandomFact();
+      typeHackerAction();
+    }
+
+    init();
   </script>
 </body>
-</html>
+      </html>
