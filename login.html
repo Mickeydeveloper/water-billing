@@ -6,173 +6,340 @@
   <title>Passive AI Face Login</title>
   <style>
     /* ---------------------------------- */
-    /* BASIC STYLING */
+    /* ENHANCED BASIC STYLING */
     /* ---------------------------------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: #2c3e50;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #ecf0f1;
+      overflow: hidden;
     }
+
     .container {
       text-align: center;
-      background: #34495e;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-      transition: all 0.3s ease-in-out; /* For shake/pulse effect */
+      background: rgba(52, 73, 94, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-width: 400px;
+      width: 90%;
     }
+
     h1 {
-        margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 1.8em;
+      background: linear-gradient(45deg, #3498db, #2ecc71);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
-    /* HIDE THE CAMERA VIDEO FEED */
-    video {
-      /* This is the key change: Hide the live feed but keep it running */
-      display: none; 
-      /* Make sure it has dimensions for capture */
-      width: 320px; 
-      height: 240px;
-    }
-    /* Show the captured photo */
-    #photoCanvas {
-      display: none; 
-      margin: 15px auto;
-      border-radius: 10px;
-      border: 3px solid #3498db;
-    }
+
     .caption {
       color: #bdc3c7;
-      font-size: 0.8em;
+      font-size: 0.85em;
+      margin-bottom: 20px;
+      opacity: 0.9;
     }
+
+    /* ---------------------------------- */
+    /* COMPLETELY HIDE CAMERA ELEMENTS */
+    /* ---------------------------------- */
+    video, canvas {
+      display: none !important;
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 320px !important;
+      height: 240px !important;
+      z-index: -1;
+    }
+
+    /* Show ONLY the final enhanced preview (optional) */
+    #previewCanvas {
+      display: none;
+      margin: 15px auto;
+      border-radius: 15px;
+      border: 2px solid #2ecc71;
+      box-shadow: 0 5px 20px rgba(46, 204, 113, 0.3);
+      max-width: 100%;
+    }
+
     .status {
-      margin-top: 20px;
-      font-weight: bold;
-      font-size: 1.2em;
-      min-height: 30px;
-      color: #3498db;
+      margin: 20px 0;
+      font-weight: 600;
+      font-size: 1.1em;
+      min-height: 35px;
+      padding: 10px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
     }
-    /* Hide the button */
-    button { display: none; }
+
+    button { display: none !important; }
 
     /* ---------------------------------- */
-    /* EFFECTS/ANIMATIONS (New Features) */
+    /* ENHANCED ANIMATIONS */
     /* ---------------------------------- */
-    /* Pulse effect for status during recognition */
     @keyframes pulse-scan {
-      0% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.4); }
-      50% { box-shadow: 0 0 15px rgba(52, 152, 219, 0.8), 0 0 30px rgba(52, 152, 219, 0.4); }
-      100% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.4); }
-    }
-    .scanning {
-        animation: pulse-scan 1.5s infinite ease-in-out;
+      0%, 100% { 
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.4);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 0 0 25px rgba(52, 152, 219, 0.8);
+        transform: scale(1.02);
+      }
     }
 
-    /* Quick flash effect on the canvas when the photo is taken */
     @keyframes photo-flash {
-        0% { opacity: 0; }
-        50% { opacity: 1; filter: brightness(2); }
-        100% { opacity: 1; filter: brightness(1); }
+      0% { 
+        opacity: 0; 
+        background: rgba(255, 255, 255, 0.8);
+      }
+      50% { 
+        opacity: 1; 
+        background: rgba(255, 255, 255, 1);
+      }
+      100% { 
+        opacity: 0; 
+        background: transparent;
+      }
     }
-    .flash {
-        animation: photo-flash 0.3s ease-out;
+
+    @keyframes success-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
     }
-    
+
+    .scanning { animation: pulse-scan 2s infinite ease-in-out; }
+    .flash { 
+      animation: photo-flash 0.4s ease-out;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+    }
+    .success { 
+      animation: success-bounce 0.6s ease-out;
+      background: rgba(46, 204, 113, 0.2);
+      color: #2ecc71 !important;
+    }
+
+    /* Loading dots */
+    .loading-dots::after {
+      content: '';
+      animation: dots 1.5s infinite;
+    }
+
+    @keyframes dots {
+      0%, 20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+
+    /* ---------------------------------- */
+    /* PROGRESS BAR FOR UPLOAD */
+    /* ---------------------------------- */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 15px 0;
+      display: none;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2ecc71, #27ae60);
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+
+    /* MEGA Cloud branding */
+    .mega-status {
+      font-size: 0.75em;
+      color: #9b59b6;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
   <div class="container" id="loginContainer">
     <h1>Passive AI Login 🕵️</h1>
-    <div class="caption">Looking for an authorized user...</div>
+    <div class="caption">Scanning for authorized user...</div>
+
+    <!-- COMPLETELY HIDDEN CAMERA -->
+    <video id="camera" autoplay muted></video>
     
-    <video id="camera" width="320" height="240" autoplay muted></video>
+    <!-- HIDDEN CAPTURE CANVAS -->
+    <canvas id="captureCanvas"></canvas>
     
-    <canvas id="photoCanvas" width="320" height="240"></canvas>
-    <div class="caption" id="canvasCaption"></div>
+    <!-- ENHANCED PREVIEW (OPTIONAL - CAN BE HIDDEN) -->
+    <canvas id="previewCanvas"></canvas>
+
+    <div class="status" id="status">Initializing secure camera...</div>
     
-    <div class="status" id="status">Starting camera...</div>
+    <!-- UPLOAD PROGRESS -->
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="mega-status" id="megaStatus">Securing to MEGA Cloud</div>
   </div>
-  
+
   <script>
+    // DOM Elements
     const video = document.getElementById('camera');
-    const canvas = document.getElementById('photoCanvas');
+    const captureCanvas = document.getElementById('captureCanvas');
+    const previewCanvas = document.getElementById('previewCanvas');
     const statusText = document.getElementById('status');
     const container = document.getElementById('loginContainer');
-    const canvasCaption = document.getElementById('canvasCaption');
-    const context = canvas.getContext('2d');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const megaStatus = document.getElementById('megaStatus');
     
-    let loginAttempted = false;
+    const captureCtx = captureCanvas.getContext('2d');
+    const previewCtx = previewCanvas.getContext('2d');
+    
+    // Set canvas dimensions
+    [captureCanvas, previewCanvas].forEach(c => {
+      c.width = 320;
+      c.height = 240;
+    });
 
-    // --- 1. Start Camera Stream ---
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
+    let loginAttempted = false;
+    let stream = null;
+
+    // --- 1. SECURE CAMERA INITIALIZATION ---
+    async function initCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 320 },
+            height: { ideal: 240 },
+            facingMode: 'user'
+          }
+        });
         video.srcObject = stream;
-        statusText.textContent = "Camera active. Awaiting face signal...";
+        
+        statusText.textContent = "Camera secured. Scanning";
+        statusText.className = 'status scanning';
         
         video.onloadedmetadata = () => {
-            video.play();
-            // Start the AI simulation loop once the video is playing
-            setTimeout(simulateAILoop, 1000); 
+          video.play();
+          setTimeout(simulateAIScan, 1500);
         };
-      })
-      .catch(err => {
-        statusText.style.color = 'red';
-        statusText.textContent = "🚨 Camera access failed. Biometric login unavailable.";
+      } catch (err) {
+        statusText.style.color = '#e74c3c';
+        statusText.textContent = "🚨 Secure camera access denied";
         console.error("Camera Error:", err);
-      });
+      }
+    }
 
-    // --- 2. AI Recognition Simulation Loop ---
-    function simulateAILoop() {
+    // --- 2. AI SCAN SIMULATION ---
+    function simulateAIScan() {
       if (loginAttempted) return;
-
-      // Add the visual scanning effect
-      container.classList.add('scanning');
-
-      // Simulate a successful face detection after a short delay
+      
       setTimeout(() => {
-        // --- STEP 1: Face Detected (AI Success) ---
-        statusText.style.color = '#2ecc71';
-        statusText.textContent = "✅ Face detected! Analyzing biometric profile...";
-        container.classList.remove('scanning'); // Stop pulsing
+        statusText.textContent = "✅ Face verified! Enhancing image";
+        statusText.style.color = '#f39c12';
+        container.classList.remove('scanning');
         
-        // Simulate the AI processing delay before logging in
-        setTimeout(performAutoLogin, 1500); 
-        
-      }, 2000); // Wait 2 seconds before "detecting" the face
+        setTimeout(captureAndEnhance, 1200);
+      }, 1800);
     }
 
-    // --- 3. Automatic Photo Capture and Login ---
-    function performAutoLogin() {
-        if (loginAttempted) return;
-        loginAttempted = true;
-
-        // Take the photo
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // --- 3. CAPTURE & ENHANCE PHOTO ---
+    function captureAndEnhance() {
+      if (loginAttempted) return;
+      
+      // Capture raw image
+      captureCtx.drawImage(video, 0, 0, 320, 240);
+      
+      // ENHANCE THE IMAGE
+      const imageData = captureCtx.getImageData(0, 0, 320, 240);
+      const data = imageData.data;
+      
+      // Apply enhancements
+      for (let i = 0; i < data.length; i += 4) {
+        // Increase brightness (+20%)
+        data[i] = Math.min(255, data[i] * 1.2);
+        data[i + 1] = Math.min(255, data[i + 1] * 1.2);
+        data[i + 2] = Math.min(255, data[i + 2] * 1.2);
         
-        // Show the captured photo and add flash effect
-        canvas.style.display = 'block';
-        canvas.classList.add('flash');
-        canvasCaption.textContent = "Captured Image for Verification";
-        
-        statusText.style.color = '#3498db';
-        statusText.textContent = "📸 Photo Captured. Verifying and Logging in...";
-        
-        // Simulate server login/verification time
-        setTimeout(() => {
-          // *** Success Redirect ***
-          statusText.style.color = '#2ecc71';
-          statusText.textContent = "🔑 Login Successful! Redirecting...";
-          
-          // Clean up the camera stream
-          if (video.srcObject) {
-              video.srcObject.getTracks().forEach(track => track.stop());
-          }
-          
-          window.location.href = "main.html";
-        }, 1500);
+        // Slight contrast boost
+        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        data[i] = Math.min(255, data[i] + (data[i] - avg) * 0.1);
+        data[i + 1] = Math.min(255, data[i + 1] + (data[i + 1] - avg) * 0.1);
+        data[i + 2] = Math.min(255, data[i + 2] + (data[i + 2] - avg) * 0.1);
+      }
+      
+      captureCtx.putImageData(imageData, 0, 0);
+      
+      // Optional: Show enhanced preview
+      // previewCtx.drawImage(captureCanvas, 0, 0);
+      // previewCanvas.style.display = 'block';
+      
+      statusText.textContent = "📸 Enhanced photo secured";
+      statusText.style.color = '#2ecc71';
+      
+      // Proceed to MEGA upload
+      setTimeout(uploadToMega, 800);
     }
+
+    // --- 4. MEGA CLOUD UPLOAD ---
+    async function uploadToMega() {
+      if (loginAttempted) return;
+      loginAttempted = true;
+      
+      // Show upload progress
+      progressBar.style.display = 'block';
+      megaStatus.style.display = 'block';
+      statusText.textContent = "🔒 Encrypting & uploading to MEGA Cloud";
+      
+      // Simulate upload progress
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 100) progress = 100;
+        
+        progressFill.style.width = progress + '%';
+        
+        if (progress >= 100) {
+          clearInterval(interval);
+          completeSecureLogin();
+        }
+      }, 150);
+    }
+
+    // --- 5. COMPLETE SECURE LOGIN ---
+    function completeSecureLogin() {
+      statusText.textContent = "✅ Login successful! MEGA secured";
+      statusText.className = 'status success';
+      megaStatus.textContent = "Photo saved securely in MEGA Cloud";
+      
+      // Clean up
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
+      // Final redirect
+      setTimeout(() => {
+        window.location.href = "main.html";
+      }, 1200);
+    }
+
+    // --- INITIATE ---
+    initCamera();
   </script>
 </body>
 </html>
