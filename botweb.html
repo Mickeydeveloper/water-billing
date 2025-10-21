@@ -9,40 +9,13 @@
     <meta property="og:description" content="Multi-Device WhatsApp Bot for group management, games, and more. Coded by Mickey.">
     <meta property="og:image" content="https://github.com/Mickeymozy/Mickey-Tech/blob/main/assets/bot_image.jpg?raw=true">
     <meta property="og:type" content="website">
-    <link rel="icon" href="https://github.com/Mickeymozy/Mickey-Tech/blob/main/assets/bot_image.jpg" type="image/x-icon">
+    <link rel="icon" href="https://github.com/Mickeymozy/Mickey-Tech/blob/main/assets/bot_image.jpg?raw=true" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        .social-icons {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        .social-icons a {
-            color: #fff;
-            font-size: 2rem;
-            transition: color 0.2s;
-        }
-        .social-icons a:hover {
-            color: #00ffc0;
-        }
-        @media (max-width: 480px) {
-            .header-content h1 {
-                font-size: 2.2rem;
-            }
-            .header-content h2 {
-                font-size: 1.1rem;
-            }
-            .section-title {
-                font-size: 1.2rem;
-            }
-            .bot-image {
-                height: 160px;
-            }
-        }
-        @import url('https://fonts.googleapis.com/css2?family=Ribeye&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Ribeye&family=Poppins:wght@300;400;600&display=swap');
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 0;
@@ -67,12 +40,12 @@
             letter-spacing: 1px;
         }
         .container {
-            max-width: 900px;
-            margin: 2rem auto;
+            max-width: 1000px;
+            margin: 3rem auto;
             padding: 2rem;
-            background: rgba(30, 30, 30, 0.9);
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.3) inset;
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3);
             transform: translateZ(0);
         }
         .header-content {
@@ -82,45 +55,65 @@
         }
         .header-content h1 {
             font-family: 'Ribeye', cursive;
-            font-size: 3.5rem;
+            font-size: 4rem;
             color: #33ff00;
             margin: 0.5rem 0;
-            text-shadow: 0 0 10px #33ff00, 0 0 20px #33ff00;
+            text-shadow: 0 0 15px #33ff00, 0 0 30px #33ff00;
         }
         .header-content h2 {
-            font-size: 1.8rem;
+            font-size: 2rem;
             color: #bdbdbd;
             margin: 0;
+        }
+        .header-content h3 {
+            font-size: 1.5rem;
+            color: #00ffc0;
+            margin: 0.5rem 0;
         }
         .bot-image {
             max-width: 100%;
             height: auto;
-            border-radius: 12px;
+            border-radius: 15px;
             margin-top: 2rem;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease-in-out;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            transition: transform 0.4s ease-in-out;
         }
         .bot-image:hover {
-            transform: scale(1.05) rotateX(5deg) rotateY(5deg);
+            transform: scale(1.08) rotateX(8deg) rotateY(8deg);
+        }
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .social-icons a {
+            color: #fff;
+            font-size: 2.2rem;
+            transition: color 0.3s, transform 0.3s;
+        }
+        .social-icons a:hover {
+            color: #00ffc0;
+            transform: scale(1.2);
         }
         .section {
             margin-top: 3rem;
-            padding: 2rem;
-            background: rgba(40, 40, 40, 0.8);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2.5rem;
+            background: rgba(40, 40, 40, 0.85);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             transform-style: preserve-3d;
-            transition: transform 0.5s ease-in-out;
+            transition: transform 0.6s ease-in-out;
         }
         .section:hover {
-            transform: translateZ(20px);
+            transform: translateZ(30px);
         }
         .section-title {
             color: #00ffc0;
-            font-size: 2rem;
+            font-size: 2.2rem;
             margin-bottom: 1.5rem;
             text-align: center;
-            text-shadow: 0 0 5px #00ffc0;
+            text-shadow: 0 0 8px #00ffc0;
         }
         .button-group {
             display: flex;
@@ -130,59 +123,83 @@
             margin-top: 1.5rem;
         }
         .btn {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             padding: 14px 28px;
             font-size: 1.1rem;
-            font-weight: bold;
+            font-weight: 600;
             text-decoration: none;
             color: #fff;
             border-radius: 10px;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
             text-align: center;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
             transform-style: preserve-3d;
         }
         .btn:hover {
-            transform: translateZ(10px) translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            transform: translateZ(15px) translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
         }
-        .btn-blue { background-color: #007bff; }
-        .btn-red { background-color: #dc3545; }
-        .btn-youtube { background-color: #ff4d4d; }
-        .btn-green { background-color: #28a745; }
-        .btn-telegram { background-color: #0088cc; }
-        .btn-whatsapp { background-color: #25D366; }
+        .btn-blue { background: linear-gradient(135deg, #007bff, #0056b3); }
+        .btn-red { background: linear-gradient(135deg, #dc3545, #b02a37); }
+        .btn-youtube { background: linear-gradient(135deg, #ff4d4d, #cc0000); }
+        .btn-green { background: linear-gradient(135deg, #28a745, #1e7e34); }
+        .btn-telegram { background: linear-gradient(135deg, #0088cc, #006699); }
+        .btn-whatsapp { background: linear-gradient(135deg, #25D366, #1da851); }
         .code-block {
+            position: relative;
             background-color: rgba(60, 60, 60, 0.9);
-            border-left: 4px solid #007bff;
+            border-left: 5px solid #007bff;
             padding: 1.5rem;
             margin: 1.5rem 0;
             white-space: pre-wrap;
             word-wrap: break-word;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) inset;
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.3);
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s;
+        }
+        .copy-btn:hover {
+            background: #0056b3;
         }
         ul {
             list-style: none;
             padding: 0;
         }
+        ul li {
+            margin-bottom: 1rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
         ul li::before {
-            content: '• ';
+            content: '•';
             color: #00ffc0;
             font-weight: bold;
-            display: inline-block;
-            width: 1em;
-            margin-left: -1em;
+            position: absolute;
+            left: 0;
+            top: 0;
         }
         .disclaimer {
             margin-top: 3rem;
             padding: 2rem;
-            background-color: #ffd700;
-            border: 1px solid #ffaa00;
-            border-radius: 12px;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            border-radius: 15px;
             color: #4b4b00;
             font-weight: bold;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
         .footer {
             text-align: center;
@@ -192,19 +209,46 @@
             color: #777;
             font-size: 0.9rem;
         }
-        
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
+            from { opacity: 0; transform: translateY(-30px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 768px) {
             .container {
-                margin: 1rem;
-                padding: 1rem;
+                margin: 1.5rem;
+                padding: 1.5rem;
+            }
+            .header-content h1 {
+                font-size: 3rem;
+            }
+            .header-content h2 {
+                font-size: 1.6rem;
+            }
+            .section-title {
+                font-size: 1.8rem;
+            }
+            .bot-image {
+                height: 200px;
             }
             .button-group {
                 flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-content h1 {
+                font-size: 2.5rem;
+            }
+            .header-content h2 {
+                font-size: 1.3rem;
+            }
+            .section-title {
+                font-size: 1.5rem;
+            }
+            .bot-image {
+                height: 160px;
             }
         }
     </style>
@@ -218,16 +262,16 @@
                 <h1>MICKEY-TECH-BOT</h1>
                 <h2>Multi-Device WhatsApp Bot</h2>
                 <h3>Coded by Mickey</h3>
-                <a href="https://youtube.com/@mMickeymozy">
+                <a href="https://youtube.com/@mMickeymozy" target="_blank">
                     <img src="https://github.com/Mickeymozy/Mickey-Tech/blob/main/assets/bot_image.jpg?raw=true" alt="MICKEY-TECH-BOT" class="bot-image" height="300" loading="lazy">
                 </a>
                 <div class="social-icons">
-                    <a href="https://youtube.com/@mMickeymozy" title="YouTube" target="_blank"><span aria-label="YouTube">&#x1F4FA;</span></a>
-                    <a href="https://t.me/MickeyTechBot" title="Telegram" target="_blank"><span aria-label="Telegram">&#x1F4E7;</span></a>
-                    <a href="https://wa.me/25512130873" title="WhatsApp" target="_blank"><span aria-label="WhatsApp">&#x1F4F1;</span></a>
-                    <a href="mickidadyhamza@gmail.com" title="Email" target="_blank"><span aria-label="Email">&#x2709;&#xFE0F;</span></a>
+                    <a href="https://youtube.com/@mMickeymozy" title="YouTube" target="_blank"><i class="fab fa-youtube"></i></a>
+                    <a href="https://t.me/MickeyTechBot" title="Telegram" target="_blank"><i class="fab fa-telegram-plane"></i></a>
+                    <a href="https://wa.me/255612130873" title="WhatsApp" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    <a href="mailto:mickidadyhamza@gmail.com" title="Email" target="_blank"><i class="fas fa-envelope"></i></a>
                 </div>
-                <p>MICKEY-TECH-BOT is a WhatsApp bot built using the Baileys library for group management, including features like tagging all members, muting/unmuting, and many more. It's designed to help admins efficiently manage WhatsApp groups.</p>
+                <p>MICKEY-TECH-BOT is a versatile WhatsApp bot built using the Baileys library. It excels in group management with features like tagging all members, muting/unmuting, and more. Designed for admins to streamline WhatsApp group operations efficiently.</p>
             </div>
         </header>
 
@@ -237,86 +281,101 @@
                 <div class="button-group">
                     <a href="https://mickey-tech-bot-pair.onrender.com/" target="_blank" class="btn btn-red">GET PAIR CODE</a>
                     <a href="https://youtu.be/your-tutorial-link" class="btn btn-youtube" target="_blank">Deploy Tutorial</a>
-                    <a href="https://katabump.com/deploy" class="btn btn-green" target="_blank">Deploy on Panel</a>
-                </div>
-                <div class="button-group" style="margin-top: 10px;">
-                    <a href="https://katabump.com/deploy" target="_blank" class="btn btn-panel">Deploy on Katabump</a>
+                    <a href="https://katabump.com/deploy" class="btn btn-green" target="_blank">Deploy on Katabump</a>
                 </div>
             </section>
-            
+
             <section class="section">
                 <h2 class="section-title">⚙️ Features</h2>
                 <ul>
-                    <li><strong>Tag all group members</strong> with the `.tagall` command</li>
-                    <li><strong>Admin restricted usage</strong> (Only group admins can use certain commands)</li>
-                    <li><strong>Games</strong> like Tic-Tac-Toe for interactive group engagement</li>
-                    <li><strong>Text-to-Speech</strong> with `.tts`</li>
-                    <li><strong>Sticker creation</strong> with `.sticker`</li>
-                    <li><strong>Anti-link detection</strong> for group safety</li>
-                    <li><strong>Warn and manage group members</strong> with admin control</li>
+                    <li><strong>Tag all group members</strong> with the <code>.tagall</code> command for quick announcements.</li>
+                    <li><strong>Admin restricted usage</strong>: Certain commands are limited to group admins for better control.</li>
+                    <li><strong>Interactive Games</strong>: Enjoy Tic-Tac-Toe and other games for group fun.</li>
+                    <li><strong>Text-to-Speech</strong>: Convert text to audio with <code>.tts</code>.</li>
+                    <li><strong>Sticker Creation</strong>: Easily create stickers using <code>.sticker</code>.</li>
+                    <li><strong>Anti-Link Detection</strong>: Automatically detect and handle unwanted links for group safety.</li>
+                    <li><strong>Member Management</strong>: Warn, kick, or manage users with robust admin tools.</li>
                 </ul>
             </section>
-            
+
             <section class="section">
                 <h2 class="section-title">🛠️ Setup & Installation</h2>
                 <h3>Prerequisites</h3>
                 <ul>
-                    <li>Node.js installed on your system</li>
-                    <li>Git installed (for cloning the repository)</li>
+                    <li>Node.js (version 16 or higher) installed on your system.</li>
+                    <li>Git for cloning the repository.</li>
                 </ul>
                 <h3>Step-by-Step Setup</h3>
                 <p>1. <strong>Clone the repository:</strong></p>
-                <pre class="code-block"><code>git clone &lt;your-repo-url&gt;
-cd MICKEY-TECH-BOT</code></pre>
+                <div class="code-block">
+                    <code>git clone https://github.com/Mickeymozy/Mickey-Tech.git
+cd Mickey-Tech</code>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
                 <p>2. <strong>Install the dependencies:</strong></p>
-                <pre class="code-block"><code>npm install</code></pre>
+                <div class="code-block">
+                    <code>npm install</code>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
                 <p>3. <strong>Run the bot:</strong></p>
-                <pre class="code-block"><code>node index.js</code></pre>
+                <div class="code-block">
+                    <code>node index.js</code>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
                 <p>4. <strong>Scan the QR code:</strong></p>
-                <p>Once the bot starts, a QR code will appear in the terminal. Scan this QR code using the Linked Devices feature in WhatsApp to connect your WhatsApp account with the bot.</p>
+                <p>Upon starting, a QR code will display in the terminal. Use WhatsApp's Linked Devices feature to scan it and connect your account.</p>
             </section>
-        
+
             <section class="section">
                 <h2 class="section-title">Join Us</h2>
                 <div class="button-group">
-                    <a href="https://t.me/@nitafutemimi" class="btn btn-telegram" target="_blank">Join Telegram</a>
+                    <a href="https://t.me/MickeyTechBot" class="btn btn-telegram" target="_blank">Join Telegram</a>
                     <a href="https://wa.me/255612130873" class="btn btn-whatsapp" target="_blank">Join WhatsApp</a>
                 </div>
             </section>
-        
+
             <div class="disclaimer">
                 <h3>⚠️ Important Warning</h3>
-                <p><strong>Note:</strong> This bot is created for educational purposes only. This is NOT an official WhatsApp bot. Using this bot may lead to your WhatsApp account being banned. Use it at your own risk. The developers will not be responsible for any consequences or account bans that may occur while using this bot.</p>
+                <p><strong>Note:</strong> This bot is for educational purposes only and is NOT an official WhatsApp product. Usage may result in account bans. Proceed at your own risk; developers assume no liability for any issues.</p>
             </div>
         </main>
 
-        <footer>
-            <div class="footer">
-                <p>Copyright &copy; 2025 Mickey. All rights reserved.</p>
-                <p>This project is powered by Mickey-Developer and developed this.</p>
-                <p><a href="#top" style="color:#00ffc0;text-decoration:none;">Back to Top</a></p>
-            </div>
+        <footer class="footer">
+            <p>Copyright &copy; 2025 Mickey. All rights reserved.</p>
+            <p>Powered by Mickey-Developer.</p>
+            <p><a href="#top" style="color:#00ffc0;text-decoration:none;">Back to Top</a></p>
         </footer>
     </div>
 <script>
 // Smooth scroll for back to top
 document.querySelectorAll('a[href="#top"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                window.scrollTo({top: 0, behavior: 'smooth'});
-        });
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    });
 });
 
-// Detect network provider from IP and show in box
+// Detect network provider
 fetch('https://ipapi.co/json/')
     .then(response => response.json())
     .then(data => {
-        const provider = data.org || data.org_name || data.asn_org || data.asn || 'Unknown';
+        const provider = data.org || 'Unknown';
         document.getElementById('networkProviderBox').textContent = `Network Provider: ${provider}`;
     })
     .catch(() => {
         document.getElementById('networkProviderBox').textContent = 'Network Provider: Unknown';
     });
+
+// Copy code functionality
+function copyCode(button) {
+    const code = button.previousElementSibling.innerText;
+    navigator.clipboard.writeText(code).then(() => {
+        button.textContent = 'Copied!';
+        setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+}
 </script>
 </body>
 </html>
