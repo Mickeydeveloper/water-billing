@@ -449,7 +449,7 @@ function playAudio() {
     }
 
     const audioPlayer = document.getElementById('audioPlayer');
-    const apiUrl = `https://apis.davidcyriltech.my.id/play?query=${encodeURIComponent(query)}`;
+    const apiUrl = `https://api.vreden.my.id/api/v1/download/youtube/audio?url=${url}&quality=128`;
     
     // Show loading
     audioPlayer.style.display = 'none';
