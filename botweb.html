@@ -146,6 +146,7 @@
         .btn-green { background: linear-gradient(135deg, #28a745, #1e7e34); }
         .btn-telegram { background: linear-gradient(135deg, #0088cc, #006699); }
         .btn-whatsapp { background: linear-gradient(135deg, #25D366, #1da851); }
+        .btn-audio { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
         .code-block {
             position: relative;
             background-color: rgba(60, 60, 60, 0.9);
@@ -174,6 +175,47 @@
         }
         .copy-btn:hover {
             background: #0056b3;
+        }
+        /* Audio Player Styles */
+        .audio-player {
+            background: rgba(25, 25, 25, 0.95);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border: 2px solid #ff6b6b;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.2);
+        }
+        .audio-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .audio-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        .audio-input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+        }
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .audio-player audio {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 8px;
         }
         ul {
             list-style: none;
@@ -235,6 +277,9 @@
             .button-group {
                 flex-direction: column;
             }
+            .audio-input-group {
+                flex-direction: column;
+            }
         }
 
         @media (max-width: 480px) {
@@ -285,6 +330,23 @@
                 </div>
             </section>
 
+            <!-- NEW AUDIO PLAYER SECTION -->
+            <section class="section">
+                <h2 class="section-title">🎵 Audio Player - Play Music</h2>
+                <div class="audio-player">
+                    <div class="audio-input-group">
+                        <input type="text" id="audioQuery" class="audio-input" placeholder="Enter song name (e.g., 'Shape of You')" value="Shape of You">
+                        <button onclick="playAudio()" class="btn btn-audio"><i class="fas fa-play"></i> Play Audio</button>
+                    </div>
+                    <audio id="audioPlayer" controls style="display: none;"></audio>
+                </div>
+                <div class="code-block">
+                    <code>Bot Command: .play Shape of You</code>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <p><strong>Usage:</strong> Use <code>.play [song name]</code> in your WhatsApp bot to play any song instantly!</p>
+            </section>
+
             <section class="section">
                 <h2 class="section-title">⚙️ Features</h2>
                 <ul>
@@ -293,6 +355,7 @@
                     <li><strong>Interactive Games</strong>: Enjoy Tic-Tac-Toe and other games for group fun.</li>
                     <li><strong>Text-to-Speech</strong>: Convert text to audio with <code>.tts</code>.</li>
                     <li><strong>Sticker Creation</strong>: Easily create stickers using <code>.sticker</code>.</li>
+                    <li><strong><strong>NEW</strong> Audio Player</strong>: Play any song with <code>.play [song]</code> command.</li>
                     <li><strong>Anti-Link Detection</strong>: Automatically detect and handle unwanted links for group safety.</li>
                     <li><strong>Member Management</strong>: Warn, kick, or manage users with robust admin tools.</li>
                 </ul>
@@ -376,6 +439,44 @@ function copyCode(button) {
         console.error('Failed to copy: ', err);
     });
 }
+
+// NEW AUDIO PLAYER FUNCTIONALITY
+function playAudio() {
+    const query = document.getElementById('audioQuery').value.trim();
+    if (!query) {
+        alert('Please enter a song name!');
+        return;
+    }
+
+    const audioPlayer = document.getElementById('audioPlayer');
+    const apiUrl = `https://apis.davidcyriltech.my.id/play?query=${encodeURIComponent(query)}`;
+    
+    // Show loading
+    audioPlayer.style.display = 'none';
+    const playBtn = event.target.closest('button');
+    const originalText = playBtn.innerHTML;
+    playBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    playBtn.disabled = true;
+
+    fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) throw new Error('Audio not found');
+            return response.url || apiUrl;
+        })
+        .then(audioUrl => {
+            audioPlayer.src = audioUrl;
+            audioPlayer.style.display = 'block';
+            audioPlayer.play().catch(e => console.error('Playback failed:', e));
+        })
+        .catch(error => {
+            alert('Song not found! Try another name.');
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            playBtn.innerHTML = originalText;
+            playBtn.disabled = false;
+        });
+}
 </script>
 </body>
-</html>
+    </html>
