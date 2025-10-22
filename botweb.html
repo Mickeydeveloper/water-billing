@@ -151,6 +151,7 @@
         .btn-audio { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
         .btn-search { background: linear-gradient(135deg, #17a2b8, #138496); }
         .btn-stop { background: linear-gradient(135deg, #6c757d, #545b62); }
+        .btn-download { background: linear-gradient(135deg, #ffc107, #e0a800); }
         .code-block {
             position: relative;
             background-color: rgba(60, 60, 60, 0.9);
@@ -244,6 +245,8 @@
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px solid #444;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .song-info {
             color: #00ffc0;
@@ -251,6 +254,26 @@
             text-align: center;
             margin: 10px 0;
             min-height: 20px;
+        }
+        .error-message {
+            color: #ff4d4d;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 77, 77, 0.1);
+            border-radius: 5px;
+            border-left: 4px solid #ff4d4d;
+        }
+        .success-message {
+            color: #28a745;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
         }
         .audio-player audio {
             width: 100%;
@@ -365,6 +388,13 @@
             .audio-input {
                 min-width: 100%;
             }
+            .audio-player-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .volume-control {
+                justify-content: center;
+            }
         }
 
         @media (max-width: 480px) {
@@ -415,9 +445,9 @@
                 </div>
             </section>
 
-            <!-- IMPROVED AUDIO PLAYER SECTION -->
+            <!-- ULTIMATE AUDIO PLAYER WITH VREDEN API -->
             <section class="section">
-                <h2 class="section-title">🎵 Audio Player - Play Music</h2>
+                <h2 class="section-title">🎵 Audio Player - Play & Download Music</h2>
                 <div class="audio-player">
                     <div class="audio-input-group">
                         <input type="text" id="audioQuery" class="audio-input" placeholder="Enter song name (e.g., 'Shape of You')" value="Shape of You">
@@ -427,6 +457,8 @@
                     </div>
                     
                     <div class="song-info" id="songInfo">Enter a song name to start playing...</div>
+                    <div class="error-message" id="errorMessage" style="display: none;"></div>
+                    <div class="success-message" id="successMessage" style="display: none;"></div>
                     
                     <audio id="audioPlayer" controls style="display: none;"></audio>
                     
@@ -437,6 +469,9 @@
                     <div class="audio-player-controls" id="audioControls" style="display: none;">
                         <button onclick="stopAudio()" class="btn btn-stop">
                             <i class="fas fa-stop"></i> Stop
+                        </button>
+                        <button onclick="downloadAudio()" class="btn btn-download">
+                            <i class="fas fa-download"></i> Download MP3
                         </button>
                         <div class="volume-control">
                             <i class="fas fa-volume-up"></i>
@@ -459,13 +494,12 @@
                     <li><strong>Interactive Games</strong>: Enjoy Tic-Tac-Toe and other games for group fun.</li>
                     <li><strong>Text-to-Speech</strong>: Convert text to audio with <code>.tts</code>.</li>
                     <li><strong>Sticker Creation</strong>: Easily create stickers using <code>.sticker</code>.</li>
-                    <li><strong><strong>🎵 ENHANCED AUDIO PLAYER</strong></strong>: Search & play any song with <code>.play [song]</code> command.</li>
+                    <li><strong><strong>🎵 VREDEN API AUDIO PLAYER</strong></strong>: Search, play, and download 128kbps MP3 with <code>.play [song]</code>.</li>
                     <li><strong>Anti-Link Detection</strong>: Automatically detect and handle unwanted links for group safety.</li>
                     <li><strong>Member Management</strong>: Warn, kick, or manage users with robust admin tools.</li>
                 </ul>
             </section>
 
-            <!-- Rest of the sections remain the same -->
             <section class="section">
                 <h2 class="section-title">🛠️ Setup & Installation</h2>
                 <h3>Prerequisites</h3>
@@ -510,7 +544,7 @@ cd Mickey-Tech</code>
 
         <footer class="footer">
             <p>Copyright &copy; 2025 Mickey. All rights reserved.</p>
-            <p>Powered by Mickey-Developer.</p>
+            <p>Powered by Mickey-Developer | Vreden API</p>
             <p><a href="#top" style="color:#00ffc0;text-decoration:none;">Back to Top</a></p>
         </footer>
     </div>
@@ -546,96 +580,146 @@ function copyCode(button) {
     });
 }
 
-// 🎵 IMPROVED AUDIO PLAYER FUNCTIONALITY
+// 🎵 ULTIMATE VREDEN API INTEGRATION
 let currentAudioUrl = null;
+let currentQuery = null;
 
-function searchAndPlay() {
+async function searchAndPlay() {
     const query = document.getElementById('audioQuery').value.trim();
     if (!query) {
-        alert('Please enter a song name!');
+        showError('Please enter a song name!');
         return;
     }
 
+    currentQuery = query;
     const searchBtn = document.getElementById('searchBtn');
     const originalText = searchBtn.innerHTML;
     const songInfo = document.getElementById('songInfo');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
     const audioPlayer = document.getElementById('audioPlayer');
     const progressContainer = document.getElementById('progressContainer');
     const audioControls = document.getElementById('audioControls');
 
-    // Show loading state
-    searchBtn.innerHTML = '<div class="loading"></div> Searching...';
-    searchBtn.disabled = true;
-    songInfo.textContent = `Searching for "${query}"...`;
+    // Reset UI
+    hideMessages();
+    songInfo.textContent = `🔍 Searching for "${query}"...`;
     audioPlayer.style.display = 'none';
     progressContainer.style.display = 'none';
     audioControls.style.display = 'none';
 
-    // Step 1: Search YouTube for the song
-    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-    
-    // Simulate search by directly getting video (in real bot, you'd parse this)
-    setTimeout(() => {
-        // Step 2: Get audio download URL using a reliable API
-        const audioApiUrl = `https://api.github.com/repos/zackradisic/youtube-audio-stream/contents?ref=main`;
+    // Show loading
+    searchBtn.innerHTML = '<div class="loading"></div> Searching...';
+    searchBtn.disabled = true;
+
+    try {
+        // Step 1: Search YouTube and get first video URL
+        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' official audio')}`;
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
         
-        // Using a working audio streaming service
-        fetch(`https://no-cors-proxy.hf.space/https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ`, {
-            method: 'GET'
-        })
-        .then(() => {
-            // For demo, using a reliable audio streaming service
-            // In your actual bot, use: ytdl-core or similar
-            currentAudioUrl = `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${Math.floor(Math.random() * 16) + 1}.mp3`;
-            
-            // Update UI
-            songInfo.innerHTML = `<i class="fas fa-music"></i> Now playing: ${query}`;
-            audioPlayer.src = currentAudioUrl;
-            audioPlayer.style.display = 'block';
-            progressContainer.style.display = 'block';
-            audioControls.style.display = 'flex';
-            
-            // Play the audio
-            audioPlayer.play().catch(e => {
-                console.error('Autoplay prevented:', e);
-                songInfo.textContent = 'Click play button to start!';
-            });
-            
-            // Reset button
-            searchBtn.innerHTML = originalText;
-            searchBtn.disabled = false;
-            
-            // Setup progress bar
-            setupProgressBar();
-            setupVolumeControl();
-            
-        })
-        .catch(error => {
-            // Fallback to a sample audio
-            currentAudioUrl = 'https://files.catbox.moe/qe0x2s.mp3';
-            songInfo.innerHTML = `<i class="fas fa-music"></i> Playing: ${query} (Demo Track)`;
-            audioPlayer.src = currentAudioUrl;
-            audioPlayer.style.display = 'block';
-            progressContainer.style.display = 'block';
-            audioControls.style.display = 'flex';
-            
-            audioPlayer.play().catch(e => console.error('Playback failed:', e));
-            
-            searchBtn.innerHTML = originalText;
-            searchBtn.disabled = false;
-            
-            setupProgressBar();
-            setupVolumeControl();
-        });
-    }, 1500);
+        const searchResponse = await fetch(proxyUrl);
+        const searchData = await searchResponse.json();
+        const html = searchData.contents;
+
+        // Simple regex to extract first video URL
+        const videoUrlMatch = html.match(/href="\/watch\?v=([a-zA-Z0-9_-]{11})/);
+        if (!videoUrlMatch) {
+            throw new Error('No video found for this song');
+        }
+        
+        const videoId = videoUrlMatch[1];
+        const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+        // Step 2: Get MP3 URL using VREDEN API (128kbps)
+        const vrednApiUrl = `https://api.vreden.my.id/api/v1/download/youtube/audio?url=${encodeURIComponent(youtubeUrl)}&quality=128`;
+        
+        songInfo.textContent = `📥 Downloading ${query} (128kbps)...`;
+        
+        const apiResponse = await fetch(vrednApiUrl);
+        
+        if (!apiResponse.ok) {
+            throw new Error(`API Error: ${apiResponse.status}`);
+        }
+        
+        const apiData = await apiResponse.json();
+        
+        // Extract the audio URL from Vreden API response
+        currentAudioUrl = apiData.result || apiData.url || vrednApiUrl;
+        
+        if (!currentAudioUrl) {
+            throw new Error('No audio URL returned from API');
+        }
+
+        // Step 3: SUCCESS - Update UI
+        successMessage.textContent = `✅ ${query} loaded successfully! (128kbps MP3)`;
+        successMessage.style.display = 'block';
+        songInfo.innerHTML = `<i class="fas fa-music"></i> 🎵 Now playing: ${query}`;
+        
+        audioPlayer.src = currentAudioUrl;
+        audioPlayer.style.display = 'block';
+        progressContainer.style.display = 'block';
+        audioControls.style.display = 'flex';
+
+        // Auto-play (with fallback)
+        try {
+            await audioPlayer.play();
+        } catch (e) {
+            songInfo.innerHTML += `<br><small>👆 Click play button to start</small>`;
+        }
+
+        // Setup controls
+        setupProgressBar();
+        setupVolumeControl();
+
+    } catch (error) {
+        console.error('Error:', error);
+        showError(`❌ Failed to load "${query}"\n${error.message}\n\nTry another song name!`);
+    } finally {
+        // Reset button
+        searchBtn.innerHTML = originalText;
+        searchBtn.disabled = false;
+    }
+}
+
+function hideMessages() {
+    document.getElementById('errorMessage').style.display = 'none';
+    document.getElementById('successMessage').style.display = 'none';
+}
+
+function showError(message) {
+    hideMessages();
+    const errorMessage = document.getElementById('errorMessage');
+    errorMessage.innerHTML = message;
+    errorMessage.style.display = 'block';
+    document.getElementById('songInfo').textContent = '';
 }
 
 function stopAudio() {
     const audioPlayer = document.getElementById('audioPlayer');
     audioPlayer.pause();
     audioPlayer.currentTime = 0;
-    document.getElementById('songInfo').textContent = 'Stopped';
+    document.getElementById('songInfo').textContent = '⏹️ Stopped';
     document.getElementById('progressBar').style.width = '0%';
+}
+
+function downloadAudio() {
+    if (!currentAudioUrl || !currentQuery) {
+        alert('No song loaded to download!');
+        return;
+    }
+    
+    // Create download link
+    const a = document.createElement('a');
+    a.href = currentAudioUrl;
+    a.download = `${currentQuery.replace(/[^a-z0-9]/gi, '_')}_128kbps.mp3`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // Show success
+    const successMessage = document.getElementById('successMessage');
+    successMessage.textContent = `⬇️ Downloading ${currentQuery}.mp3...`;
+    successMessage.style.display = 'block';
 }
 
 function setupProgressBar() {
@@ -643,12 +727,14 @@ function setupProgressBar() {
     const progressBar = document.getElementById('progressBar');
     const progressContainer = document.getElementById('progressContainer');
     
+    // Click to seek
     progressContainer.addEventListener('click', (e) => {
         const rect = progressContainer.getBoundingClientRect();
         const percent = (e.clientX - rect.left) / rect.width;
         audioPlayer.currentTime = percent * audioPlayer.duration;
     });
     
+    // Update progress
     audioPlayer.addEventListener('timeupdate', () => {
         if (audioPlayer.duration) {
             const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
@@ -669,17 +755,15 @@ function setupVolumeControl() {
         audioPlayer.volume = e.target.value / 100;
     });
     
-    // Set initial volume
-    audioPlayer.volume = 0.7;
-    volumeSlider.value = 70;
+    audioPlayer.volume = 1.0;
+    volumeSlider.value = 100;
 }
 
-// Initialize player on page load
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    const audioPlayer = document.getElementById('audioPlayer');
     setupProgressBar();
     setupVolumeControl();
 });
 </script>
 </body>
-</html>
+    </html>
