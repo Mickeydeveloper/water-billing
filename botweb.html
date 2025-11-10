@@ -115,84 +115,6 @@
             text-align: center;
             text-shadow: 0 0 8px #00ffc0;
         }
-        .button-group {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            padding: 14px 28px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            text-decoration: none;
-            color: #fff;
-            border-radius: 10px;
-            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-            transform-style: preserve-3d;
-            border: none;
-            cursor: pointer;
-        }
-        .btn:hover {
-            transform: translateZ(15px) translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
-        }
-        .btn-blue { background: linear-gradient(135deg, #007bff, #0056b3); }
-        .btn-red { background: linear-gradient(135deg, #dc3545, #b02a37); }
-        .btn-youtube { background: linear-gradient(135deg, #ff4d4d, #cc0000); }
-        .btn-green { background: linear-gradient(135deg, #28a745, #1e7e34); }
-        .btn-telegram { background: linear-gradient(135deg, #0088cc, #006699); }
-        .btn-whatsapp { background: linear-gradient(135deg, #25D366, #1da851); }
-        .btn-audio { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
-        .btn-search { background: linear-gradient(135deg, #17a2b8, #138496); }
-        .btn-stop { background: linear-gradient(135deg, #6c757d, #545b62); }
-        .btn-download { background: linear-gradient(135deg, #ffc107, #e0a800); }
-        .code-block {
-            position: relative;
-            background-color: rgba(60, 60, 60, 0.9);
-            border-left: 5px solid #007bff;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            border-radius: 8px;
-            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.3);
-            font-family: 'Courier New', monospace;
-            font-size: 0.95rem;
-        }
-        .copy-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #007bff;
-            color: #fff;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.3s;
-        }
-        .copy-btn:hover {
-            background: #0056b3;
-        }
-
-        /* IMPROVED AUDIO PLAYER STYLES */
-        .audio-player {
-            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-            border-radius: 15px;
-            padding: 2rem;
-            margin: 1.5rem 0;
-            border: 2px solid #ff6b6b;
-            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
         /* Album art and improved controls */
         .audio-player .album-art {
             display: flex;
@@ -492,6 +414,7 @@
                     </div>
 
                     <div class="song-info" id="songInfo">Enter a song name to start playing...</div>
+                    <div id="searchStatus" class="song-info" style="font-size:0.95rem;color:#cbd5e1;margin-top:6px;"></div>
                     <div class="error-message" id="errorMessage" style="display: none;"></div>
                     <div class="success-message" id="successMessage" style="display: none;"></div>
                     
@@ -621,6 +544,16 @@ let currentAudioBlob = null;        // store downloaded audio blob
 let currentAudioObjectUrl = null;  // URL.createObjectURL for playback/download
 let currentQuery = null;
 
+// Small helper to escape HTML for safe insertion
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 async function searchAndPlay() {
     const query = document.getElementById('audioQuery').value.trim();
     if (!query) {
@@ -641,6 +574,8 @@ async function searchAndPlay() {
     // Reset UI
     hideMessages();
     songInfo.textContent = `🔍 Searching for "${query}"...`;
+    const statusLine = document.getElementById('searchStatus');
+    if (statusLine) statusLine.textContent = 'Searching...';
     audioPlayer.style.display = 'none';
     progressContainer.style.display = 'none';
     audioControls.style.display = 'none';
@@ -650,91 +585,105 @@ async function searchAndPlay() {
     searchBtn.disabled = true;
 
     try {
-        // Step 1: Search YouTube and get first video URL
+        // Step 1: Search YouTube and get first video URL via AllOrigins proxy
         const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' official audio')}`;
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
-        
+
         const searchResponse = await fetch(proxyUrl);
         const searchData = await searchResponse.json();
-        const html = searchData.contents;
+        const html = searchData.contents || '';
 
         // Simple regex to extract first video URL
         const videoUrlMatch = html.match(/href="\/watch\?v=([a-zA-Z0-9_-]{11})/);
         if (!videoUrlMatch) {
             throw new Error('No video found for this song');
         }
-        
+
         const videoId = videoUrlMatch[1];
         const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+        // Try to extract title from surrounding html
+        let foundTitle = query;
+        try {
+            const titleRegex = new RegExp(`<a[^>]+href="\\/watch\\?v=${videoId}"[^>]*title=\"([^\"]+)\"`, 'i');
+            const tmatch = html.match(titleRegex);
+            if (tmatch && tmatch[1]) foundTitle = tmatch[1];
+            else {
+                const metaMatch = html.match(/<meta property="og:title" content="([^"]+)"/i) || html.match(/<title>([^<]+)<\/title>/i);
+                if (metaMatch && metaMatch[1]) foundTitle = metaMatch[1];
+            }
+        } catch (e) { /* ignore */ }
+
+        songInfo.innerHTML = `<i class="fas fa-music"></i> 🎵 Found: ${escapeHtml(foundTitle)}`;
+        if (statusLine) statusLine.textContent = 'Found video — resolving audio URL...';
 
         // Show YouTube thumbnail as album art (pleasant fallback)
         const albumArtImg = document.getElementById('albumArtImg');
         if (albumArtImg) {
             albumArtImg.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-            albumArtImg.alt = `${query} thumbnail`;
+            albumArtImg.alt = `${foundTitle} thumbnail`;
         }
+
         // Step 2: Get MP3 URL using VREDEN API (128kbps)
         const vrednApiUrl = `https://api.vreden.my.id/api/v1/download/youtube/audio?url=${encodeURIComponent(youtubeUrl)}&quality=128`;
-        
-        songInfo.textContent = `📥 Downloading ${query} (128kbps)...`;
-        
         const apiResponse = await fetch(vrednApiUrl);
-        
-        if (!apiResponse.ok) {
-            throw new Error(`API Error: ${apiResponse.status}`);
-        }
-        
+        if (!apiResponse.ok) throw new Error(`API Error: ${apiResponse.status}`);
         const apiData = await apiResponse.json();
-        
-        // Extract the audio URL from Vreden API response
         currentAudioUrl = apiData.result || apiData.url || vrednApiUrl;
-        
-        if (!currentAudioUrl) {
-            throw new Error('No audio URL returned from API');
-        }
+        if (!currentAudioUrl) throw new Error('No audio URL returned from API');
 
-        // Step 3: Download actual audio bytes from the API and play from blob URL
-        successMessage.textContent = `✅ ${query} loaded successfully! (128kbps MP3)`;
-        successMessage.style.display = 'block';
-        songInfo.innerHTML = `<i class="fas fa-music"></i> 🎵 Preparing: ${query}`;
+        // Step 3: Stream-download the audio with progress and play from blob URL
+        if (statusLine) statusLine.textContent = 'Downloading audio from API...';
+        songInfo.innerHTML = `<i class="fas fa-cloud-download-alt"></i> Downloading: ${escapeHtml(foundTitle)}`;
 
-        // Fetch the audio bytes (as blob) so we play from the API response only
-        try {
-            const audioFetchResp = await fetch(currentAudioUrl);
-            if (!audioFetchResp.ok) throw new Error(`Failed to download audio (${audioFetchResp.status})`);
+        const audioResp = await fetch(currentAudioUrl);
+        if (!audioResp.ok) throw new Error(`Failed to download audio (${audioResp.status})`);
 
-            const blob = await audioFetchResp.blob();
+        const contentLength = audioResp.headers.get('content-length');
+        const total = contentLength ? parseInt(contentLength, 10) : null;
+
+        const progressBarEl = document.getElementById('progressBar');
+        const progressContainerEl = document.getElementById('progressContainer');
+        progressContainerEl.style.display = 'block';
+
+        if (audioResp.body && total) {
+            const reader = audioResp.body.getReader();
+            let received = 0;
+            const chunks = [];
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                received += value.length;
+                const percent = Math.min(100, Math.round((received / total) * 100));
+                if (progressBarEl) progressBarEl.style.width = percent + '%';
+                if (statusLine) statusLine.textContent = `Downloading audio... ${percent}%`;
+            }
+            const blob = new Blob(chunks, { type: audioResp.headers.get('content-type') || 'audio/mpeg' });
             currentAudioBlob = blob;
-
-            // Revoke previous object URL if any
-            if (currentAudioObjectUrl) {
-                try { URL.revokeObjectURL(currentAudioObjectUrl); } catch(e){}
-            }
+            if (currentAudioObjectUrl) try { URL.revokeObjectURL(currentAudioObjectUrl); } catch(e){}
             currentAudioObjectUrl = URL.createObjectURL(blob);
-
-            // Set audio src to the local object URL (plays from downloaded blob)
-            audioPlayer.src = currentAudioObjectUrl;
-            audioPlayer.style.display = 'block';
-            progressContainer.style.display = 'block';
-            audioControls.style.display = 'flex';
-
-            // Auto-play (with fallback)
-            try {
-                await audioPlayer.play();
-            } catch (e) {
-                songInfo.innerHTML += `<br><small>👆 Click play button to start</small>`;
-            }
-
-            // Setup controls
-            setupProgressBar();
-            setupVolumeControl();
-
-            songInfo.innerHTML = `<i class="fas fa-music"></i> 🎵 Now playing: ${query}`;
-        } catch (err) {
-            console.error('Error downloading audio blob:', err);
-            showError(`❌ Failed to download audio: ${err.message}`);
-            // Keep currentAudioUrl in case browser can handle direct streaming as fallback
+        } else {
+            const blob = await audioResp.blob();
+            currentAudioBlob = blob;
+            if (currentAudioObjectUrl) try { URL.revokeObjectURL(currentAudioObjectUrl); } catch(e){}
+            currentAudioObjectUrl = URL.createObjectURL(blob);
+            if (progressBarEl) progressBarEl.style.width = '100%';
+            if (statusLine) statusLine.textContent = 'Download complete';
         }
+
+        // Attach and play
+        audioPlayer.src = currentAudioObjectUrl;
+        audioPlayer.style.display = 'block';
+        audioControls.style.display = 'flex';
+        setupProgressBar();
+        setupVolumeControl();
+        try { await audioPlayer.play(); } catch(e) { songInfo.innerHTML += `<br><small>👆 Click play to start</small>`; }
+
+        songInfo.innerHTML = `<i class="fas fa-music"></i> 🎵 Now playing: ${escapeHtml(foundTitle)}`;
+        if (statusLine) statusLine.textContent = 'Playing';
+        successMessage.textContent = `✅ ${foundTitle} loaded successfully!`;
+        successMessage.style.display = 'block';
 
     } catch (error) {
         console.error('Error:', error);
