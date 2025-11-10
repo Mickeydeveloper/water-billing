@@ -193,6 +193,37 @@
             position: relative;
             overflow: hidden;
         }
+        /* Album art and improved controls */
+        .audio-player .album-art {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .audio-player .album-art img {
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.4) inset;
+            border: 3px solid rgba(255,255,255,0.04);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .audio-player .album-art img:hover { transform: scale(1.03); }
+
+        .audio-player .song-info { font-size: 1.05rem; }
+
+        /* Thicker, nicer progress bar */
+        .progress-container { height: 8px; background: #333; border-radius: 6px; }
+        .progress-bar { height: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+
+        /* Slightly larger buttons and consistent padding */
+        .audio-player .btn { padding: 12px 18px; font-size: 1rem; }
+        .audio-player .btn i { margin-right: 8px; }
+
+        /* Responsive tweaks for album art */
+        @media (max-width: 480px) {
+            .audio-player .album-art img { width: 110px; height: 110px; }
+        }
         .audio-player::before {
             content: '';
             position: absolute;
@@ -455,7 +486,11 @@
                             <i class="fas fa-search"></i> Search & Play
                         </button>
                     </div>
-                    
+
+                    <div class="album-art" id="albumArt" aria-hidden="true">
+                        <img id="albumArtImg" src="https://cdn-icons-png.flaticon.com/512/727/727245.png" alt="Album art" loading="lazy">
+                    </div>
+
                     <div class="song-info" id="songInfo">Enter a song name to start playing...</div>
                     <div class="error-message" id="errorMessage" style="display: none;"></div>
                     <div class="success-message" id="successMessage" style="display: none;"></div>
@@ -582,6 +617,8 @@ function copyCode(button) {
 
 // 🎵 ULTIMATE VREDEN API INTEGRATION
 let currentAudioUrl = null;
+let currentAudioBlob = null;        // store downloaded audio blob
+let currentAudioObjectUrl = null;  // URL.createObjectURL for playback/download
 let currentQuery = null;
 
 async function searchAndPlay() {
@@ -630,6 +667,12 @@ async function searchAndPlay() {
         const videoId = videoUrlMatch[1];
         const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
+        // Show YouTube thumbnail as album art (pleasant fallback)
+        const albumArtImg = document.getElementById('albumArtImg');
+        if (albumArtImg) {
+            albumArtImg.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+            albumArtImg.alt = `${query} thumbnail`;
+        }
         // Step 2: Get MP3 URL using VREDEN API (128kbps)
         const vrednApiUrl = `https://api.vreden.my.id/api/v1/download/youtube/audio?url=${encodeURIComponent(youtubeUrl)}&quality=128`;
         
@@ -650,26 +693,48 @@ async function searchAndPlay() {
             throw new Error('No audio URL returned from API');
         }
 
-        // Step 3: SUCCESS - Update UI
+        // Step 3: Download actual audio bytes from the API and play from blob URL
         successMessage.textContent = `✅ ${query} loaded successfully! (128kbps MP3)`;
         successMessage.style.display = 'block';
-        songInfo.innerHTML = `<i class="fas fa-music"></i> 🎵 Now playing: ${query}`;
-        
-        audioPlayer.src = currentAudioUrl;
-        audioPlayer.style.display = 'block';
-        progressContainer.style.display = 'block';
-        audioControls.style.display = 'flex';
+        songInfo.innerHTML = `<i class="fas fa-music"></i> 🎵 Preparing: ${query}`;
 
-        // Auto-play (with fallback)
+        // Fetch the audio bytes (as blob) so we play from the API response only
         try {
-            await audioPlayer.play();
-        } catch (e) {
-            songInfo.innerHTML += `<br><small>👆 Click play button to start</small>`;
-        }
+            const audioFetchResp = await fetch(currentAudioUrl);
+            if (!audioFetchResp.ok) throw new Error(`Failed to download audio (${audioFetchResp.status})`);
 
-        // Setup controls
-        setupProgressBar();
-        setupVolumeControl();
+            const blob = await audioFetchResp.blob();
+            currentAudioBlob = blob;
+
+            // Revoke previous object URL if any
+            if (currentAudioObjectUrl) {
+                try { URL.revokeObjectURL(currentAudioObjectUrl); } catch(e){}
+            }
+            currentAudioObjectUrl = URL.createObjectURL(blob);
+
+            // Set audio src to the local object URL (plays from downloaded blob)
+            audioPlayer.src = currentAudioObjectUrl;
+            audioPlayer.style.display = 'block';
+            progressContainer.style.display = 'block';
+            audioControls.style.display = 'flex';
+
+            // Auto-play (with fallback)
+            try {
+                await audioPlayer.play();
+            } catch (e) {
+                songInfo.innerHTML += `<br><small>👆 Click play button to start</small>`;
+            }
+
+            // Setup controls
+            setupProgressBar();
+            setupVolumeControl();
+
+            songInfo.innerHTML = `<i class="fas fa-music"></i> 🎵 Now playing: ${query}`;
+        } catch (err) {
+            console.error('Error downloading audio blob:', err);
+            showError(`❌ Failed to download audio: ${err.message}`);
+            // Keep currentAudioUrl in case browser can handle direct streaming as fallback
+        }
 
     } catch (error) {
         console.error('Error:', error);
@@ -707,18 +772,35 @@ function downloadAudio() {
         alert('No song loaded to download!');
         return;
     }
-    
-    // Create download link
+    // If we have the blob already, use it to download (ensures download comes from API bytes)
+    const filename = `${currentQuery.replace(/[^a-z0-9]/gi, '_')}_128kbps.mp3`;
+    if (currentAudioBlob) {
+        const blobUrl = URL.createObjectURL(currentAudioBlob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        // Revoke the temporary download URL shortly after
+        setTimeout(() => { try { URL.revokeObjectURL(blobUrl); } catch(e){} }, 10000);
+
+        const successMessage = document.getElementById('successMessage');
+        successMessage.textContent = `⬇️ Download started: ${filename}`;
+        successMessage.style.display = 'block';
+        return;
+    }
+
+    // Fallback: try downloading from the API URL directly
     const a = document.createElement('a');
     a.href = currentAudioUrl;
-    a.download = `${currentQuery.replace(/[^a-z0-9]/gi, '_')}_128kbps.mp3`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    
-    // Show success
+
     const successMessage = document.getElementById('successMessage');
-    successMessage.textContent = `⬇️ Downloading ${currentQuery}.mp3...`;
+    successMessage.textContent = `⬇️ Downloading ${filename} (fallback)`;
     successMessage.style.display = 'block';
 }
 
