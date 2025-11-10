@@ -1,800 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MICKEY-TECH-BOT</title>
-    <meta name="description" content="MICKEY-TECH-BOT: Multi-Device WhatsApp Bot for group management, games, and more. Coded by Mickey.">
-    <meta property="og:title" content="MICKEY-TECH-BOT">
-    <meta property="og:description" content="Multi-Device WhatsApp Bot for group management, games, and more. Coded by Mickey.">
-    <meta property="og:image" content="https://github.com/Mickeymozy/Mickey-Tech/blob/main/assets/bot_image.jpg?raw=true">
-    <meta property="og:type" content="website">
-    <link rel="icon" href="https://github.com/Mickeymozy/Mickey-Tech/blob/main/assets/bot_image.jpg?raw=true" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Ribeye&family=Poppins:wght@300;400;600&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Player</title>
 
-        body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: #121212;
-            color: #e0e0e0;
-            overflow-x: hidden;
-            perspective: 1000px;
-        }
-        .network-provider-box {
-            position: fixed;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #222;
-            color: #00ffc0;
-            padding: 6px 18px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            z-index: 9999;
-            letter-spacing: 1px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 3rem auto;
-            padding: 2rem;
-            background: rgba(30, 30, 30, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3);
-            transform: translateZ(0);
-        }
-        .header-content {
-            text-align: center;
-            padding-bottom: 2rem;
-            animation: fadeIn 1.5s ease-in-out;
-        }
-        .header-content h1 {
-            font-family: 'Ribeye', cursive;
-            font-size: 4rem;
-            color: #33ff00;
-            margin: 0.5rem 0;
-            text-shadow: 0 0 15px #33ff00, 0 0 30px #33ff00;
-        }
-        .header-content h2 {
-            font-size: 2rem;
-            color: #bdbdbd;
-            margin: 0;
-        }
-        .header-content h3 {
-            font-size: 1.5rem;
-            color: #00ffc0;
-            margin: 0.5rem 0;
-        }
-        .bot-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 15px;
-            margin-top: 2rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-            transition: transform 0.4s ease-in-out;
-        }
-        .bot-image:hover {
-            transform: scale(1.08) rotateX(8deg) rotateY(8deg);
-        }
-        .social-icons {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-        .social-icons a {
-            color: #fff;
-            font-size: 2.2rem;
-            transition: color 0.3s, transform 0.3s;
-        }
-        .social-icons a:hover {
-            color: #00ffc0;
-            transform: scale(1.2);
-        }
-        .section {
-            margin-top: 3rem;
-            padding: 2.5rem;
-            background: rgba(40, 40, 40, 0.85);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            transform-style: preserve-3d;
-            transition: transform 0.6s ease-in-out;
-        }
-        .section:hover {
-            transform: translateZ(30px);
-        }
-        .section-title {
-            color: #00ffc0;
-            font-size: 2.2rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            text-shadow: 0 0 8px #00ffc0;
-        }
-        /* Album art and improved controls */
-        .audio-player .album-art {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 12px;
-        }
-        .audio-player .album-art img {
-            width: 140px;
-            height: 140px;
-            object-fit: cover;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.4) inset;
-            border: 3px solid rgba(255,255,255,0.04);
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-        }
-        .audio-player .album-art img:hover { transform: scale(1.03); }
-
-        .audio-player .song-info { font-size: 1.05rem; }
-
-        /* Thicker, nicer progress bar */
-        .progress-container { height: 8px; background: #333; border-radius: 6px; }
-        .progress-bar { height: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.6); }
-
-        /* Slightly larger buttons and consistent padding */
-        .audio-player .btn { padding: 12px 18px; font-size: 1rem; }
-        .audio-player .btn i { margin-right: 8px; }
-
-        /* Responsive tweaks for album art */
-        @media (max-width: 480px) {
-            .audio-player .album-art img { width: 110px; height: 110px; }
-        }
-        .audio-player::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #ff6b6b, #ee5a24, #ff6b6b);
-            animation: shimmer 2s infinite;
-        }
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        .audio-input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .audio-input {
-            flex: 1;
-            min-width: 250px;
-            padding: 12px 18px;
-            background: #333;
-            border: 2px solid #555;
-            border-radius: 10px;
-            color: #fff;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        .audio-input:focus {
-            outline: none;
-            border-color: #ff6b6b;
-            box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
-            transform: scale(1.02);
-        }
-        .audio-controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-        .audio-player-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #444;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .song-info {
-            color: #00ffc0;
-            font-weight: bold;
-            text-align: center;
-            margin: 10px 0;
-            min-height: 20px;
-        }
-        .error-message {
-            color: #ff4d4d;
-            font-weight: bold;
-            text-align: center;
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(255, 77, 77, 0.1);
-            border-radius: 5px;
-            border-left: 4px solid #ff4d4d;
-        }
-        .success-message {
-            color: #28a745;
-            font-weight: bold;
-            text-align: center;
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(40, 167, 69, 0.1);
-            border-radius: 5px;
-            border-left: 4px solid #28a745;
-        }
-        .audio-player audio {
-            width: 100%;
-            margin-top: 10px;
-            border-radius: 8px;
-            background: #222;
-        }
-        .progress-container {
-            width: 100%;
-            height: 6px;
-            background: #444;
-            border-radius: 3px;
-            margin: 10px 0;
-            cursor: pointer;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #ff6b6b, #ee5a24);
-            width: 0%;
-            border-radius: 3px;
-            transition: width 0.1s ease;
-        }
-        .volume-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #fff;
-        }
-        .volume-slider {
-            width: 80px;
-            height: 4px;
-            background: #444;
-            border-radius: 2px;
-            outline: none;
-            cursor: pointer;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        ul li {
-            margin-bottom: 1rem;
-            position: relative;
-            padding-left: 1.5rem;
-        }
-        ul li::before {
-            content: '•';
-            color: #00ffc0;
-            font-weight: bold;
-            position: absolute;
-            left: 0;
-            top: 0;
-        }
-        .disclaimer {
-            margin-top: 3rem;
-            padding: 2rem;
-            background: linear-gradient(135deg, #ffd700, #ffaa00);
-            border-radius: 15px;
-            color: #4b4b00;
-            font-weight: bold;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-        }
-        .footer {
-            text-align: center;
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 2px solid #333;
-            color: #777;
-            font-size: 0.9rem;
-        }
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #444;
-            border-radius: 50%;
-            border-top-color: #ff6b6b;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 1.5rem;
-                padding: 1.5rem;
-            }
-            .header-content h1 {
-                font-size: 3rem;
-            }
-            .header-content h2 {
-                font-size: 1.6rem;
-            }
-            .section-title {
-                font-size: 1.8rem;
-            }
-            .bot-image {
-                height: 200px;
-            }
-            .button-group {
-                flex-direction: column;
-            }
-            .audio-input-group {
-                flex-direction: column;
-            }
-            .audio-input {
-                min-width: 100%;
-            }
-            .audio-player-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .volume-control {
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header-content h1 {
-                font-size: 2.5rem;
-            }
-            .header-content h2 {
-                font-size: 1.3rem;
-            }
-            .section-title {
-                font-size: 1.5rem;
-            }
-            .bot-image {
-                height: 160px;
-            }
-        }
-    </style>
+<style>
+/* ✅ MODERN UI THEME (All CSS Here) */
+:root {
+    --bg: #0b0f15;
+    --card: #131a24;
+    --accent: #00ffc6;
+    --text: #eef6ff;
+    --muted: #7d8da5;
+}
+* {
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+body {
+    margin: 0;
+    background: radial-gradient(circle at top, #0b141f, #000);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+.container {
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+.card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 0 40px rgba(0,255,199,0.12);
+}
+input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #1c2735;
+    color: var(--text);
+    outline: none;
+}
+button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #000;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+button:hover {
+    opacity: .85;
+}
+.status {
+    margin-top: 10px;
+    color: var(--muted);
+}
+audio {
+    width: 100%;
+    margin-top: 18px;
+}
+</style>
 </head>
+
 <body>
-    <div class="network-provider-box" id="networkProviderBox">Detecting network provider...</div>
-    <audio src="https://files.catbox.moe/qe0x2s.mp3" autoplay loop hidden></audio>
-    <div class="container">
-        <header>
-            <div class="header-content">
-                <h1>MICKEY-TECH-BOT</h1>
-                <h2>Multi-Device WhatsApp Bot</h2>
-                <h3>Coded by Mickey</h3>
-                <a href="https://youtube.com/@mMickeymozy" target="_blank">
-                    <img src="https://github.com/Mickeymozy/Mickey-Tech/blob/main/assets/bot_image.jpg?raw=true" alt="MICKEY-TECH-BOT" class="bot-image" height="300" loading="lazy">
-                </a>
-                <div class="social-icons">
-                    <a href="https://youtube.com/@mMickeymozy" title="YouTube" target="_blank"><i class="fab fa-youtube"></i></a>
-                    <a href="https://t.me/MickeyTechBot" title="Telegram" target="_blank"><i class="fab fa-telegram-plane"></i></a>
-                    <a href="https://wa.me/255612130873" title="WhatsApp" target="_blank"><i class="fab fa-whatsapp"></i></a>
-                    <a href="mailto:mickidadyhamza@gmail.com" title="Email" target="_blank"><i class="fas fa-envelope"></i></a>
-                </div>
-                <p>MICKEY-TECH-BOT is a versatile WhatsApp bot built using the Baileys library. It excels in group management with features like tagging all members, muting/unmuting, and more. Designed for admins to streamline WhatsApp group operations efficiently.</p>
-            </div>
-        </header>
+<div class="container">
+    <h2>🎵 Music Search & Player</h2>
 
-        <main>
-            <section class="section">
-                <h2 class="section-title">🚀 Steps to Deploy</h2>
-                <div class="button-group">
-                    <a href="https://mickey-tech-bot-pair.onrender.com/" target="_blank" class="btn btn-red">GET PAIR CODE</a>
-                    <a href="https://youtu.be/your-tutorial-link" class="btn btn-youtube" target="_blank">Deploy Tutorial</a>
-                    <a href="https://katabump.com/deploy" class="btn btn-green" target="_blank">Deploy on Katabump</a>
-                </div>
-            </section>
+    <div class="card">
+        <input id="song" type="text" placeholder="Search audio... (Example: Adele Hello)">
+        <button onclick="playMusic()">PLAY MUSIC</button>
 
-            <!-- ULTIMATE AUDIO PLAYER WITH VREDEN API -->
-            <section class="section">
-                <h2 class="section-title">🎵 Audio Player - Play & Download Music</h2>
-                <div class="audio-player">
-                    <div class="audio-input-group">
-                        <input type="text" id="audioQuery" class="audio-input" placeholder="Enter song name (e.g., 'Shape of You')" value="Shape of You">
-                        <button onclick="searchAndPlay()" class="btn btn-search" id="searchBtn">
-                            <i class="fas fa-search"></i> Search & Play
-                        </button>
-                    </div>
+        <div id="status" class="status">Idle...</div>
 
-                    <div class="album-art" id="albumArt" aria-hidden="true">
-                        <img id="albumArtImg" src="https://cdn-icons-png.flaticon.com/512/727/727245.png" alt="Album art" loading="lazy">
-                    </div>
-
-                    <div class="song-info" id="songInfo">Enter a song name to start playing...</div>
-                    <div id="searchStatus" class="song-info" style="font-size:0.95rem;color:#cbd5e1;margin-top:6px;"></div>
-                    <div class="error-message" id="errorMessage" style="display: none;"></div>
-                    <div class="success-message" id="successMessage" style="display: none;"></div>
-                    
-                    <audio id="audioPlayer" controls style="display: none;"></audio>
-                    
-                    <div class="progress-container" id="progressContainer" style="display: none;">
-                        <div class="progress-bar" id="progressBar"></div>
-                    </div>
-                    
-                    <div class="audio-player-controls" id="audioControls" style="display: none;">
-                        <button onclick="stopAudio()" class="btn btn-stop">
-                            <i class="fas fa-stop"></i> Stop
-                        </button>
-                        <button onclick="downloadAudio()" class="btn btn-download">
-                            <i class="fas fa-download"></i> Download MP3
-                        </button>
-                        <div class="volume-control">
-                            <i class="fas fa-volume-up"></i>
-                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100">
-                        </div>
-                    </div>
-                </div>
-                <div class="code-block">
-                    <code>Bot Command: .play Shape of You</code>
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                </div>
-                <p><strong>Usage:</strong> Use <code>.play [song name]</code> in your WhatsApp bot to play any song instantly!</p>
-            </section>
-
-            <section class="section">
-                <h2 class="section-title">⚙️ Features</h2>
-                <ul>
-                    <li><strong>Tag all group members</strong> with the <code>.tagall</code> command for quick announcements.</li>
-                    <li><strong>Admin restricted usage</strong>: Certain commands are limited to group admins for better control.</li>
-                    <li><strong>Interactive Games</strong>: Enjoy Tic-Tac-Toe and other games for group fun.</li>
-                    <li><strong>Text-to-Speech</strong>: Convert text to audio with <code>.tts</code>.</li>
-                    <li><strong>Sticker Creation</strong>: Easily create stickers using <code>.sticker</code>.</li>
-                    <li><strong><strong>🎵 VREDEN API AUDIO PLAYER</strong></strong>: Search, play, and download 128kbps MP3 with <code>.play [song]</code>.</li>
-                    <li><strong>Anti-Link Detection</strong>: Automatically detect and handle unwanted links for group safety.</li>
-                    <li><strong>Member Management</strong>: Warn, kick, or manage users with robust admin tools.</li>
-                </ul>
-            </section>
-
-            <section class="section">
-                <h2 class="section-title">🛠️ Setup & Installation</h2>
-                <h3>Prerequisites</h3>
-                <ul>
-                    <li>Node.js (version 16 or higher) installed on your system.</li>
-                    <li>Git for cloning the repository.</li>
-                </ul>
-                <h3>Step-by-Step Setup</h3>
-                <p>1. <strong>Clone the repository:</strong></p>
-                <div class="code-block">
-                    <code>git clone https://github.com/Mickeymozy/Mickey-Tech.git
-cd Mickey-Tech</code>
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                </div>
-                <p>2. <strong>Install the dependencies:</strong></p>
-                <div class="code-block">
-                    <code>npm install</code>
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                </div>
-                <p>3. <strong>Run the bot:</strong></p>
-                <div class="code-block">
-                    <code>node index.js</code>
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                </div>
-                <p>4. <strong>Scan the QR code:</strong></p>
-                <p>Upon starting, a QR code will display in the terminal. Use WhatsApp's Linked Devices feature to scan it and connect your account.</p>
-            </section>
-
-            <section class="section">
-                <h2 class="section-title">Join Us</h2>
-                <div class="button-group">
-                    <a href="https://t.me/MickeyTechBot" class="btn btn-telegram" target="_blank">Join Telegram</a>
-                    <a href="https://wa.me/255612130873" class="btn btn-whatsapp" target="_blank">Join WhatsApp</a>
-                </div>
-            </section>
-
-            <div class="disclaimer">
-                <h3>⚠️ Important Warning</h3>
-                <p><strong>Note:</strong> This bot is for educational purposes only and is NOT an official WhatsApp product. Usage may result in account bans. Proceed at your own risk; developers assume no liability for any issues.</p>
-            </div>
-        </main>
-
-        <footer class="footer">
-            <p>Copyright &copy; 2025 Mickey. All rights reserved.</p>
-            <p>Powered by Mickey-Developer | Vreden API</p>
-            <p><a href="#top" style="color:#00ffc0;text-decoration:none;">Back to Top</a></p>
-        </footer>
+        <audio id="audioPlayer" controls></audio>
     </div>
+</div>
 
 <script>
-// Smooth scroll for back to top
-document.querySelectorAll('a[href="#top"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    });
-});
+/* ✅ ALL JS HERE */
+async function playMusic() {
+    const audioPlayer = document.getElementById("audioPlayer");
+    const songName = document.getElementById("song").value.trim();
+    const status = document.getElementById("status");
 
-// Detect network provider
-fetch('https://ipapi.co/json/')
-    .then(response => response.json())
-    .then(data => {
-        const provider = data.org || 'Unknown';
-        document.getElementById('networkProviderBox').textContent = `Network Provider: ${provider}`;
-    })
-    .catch(() => {
-        document.getElementById('networkProviderBox').textContent = 'Network Provider: Unknown';
-    });
-
-// Copy code functionality
-function copyCode(button) {
-    const code = button.previousElementSibling.innerText;
-    navigator.clipboard.writeText(code).then(() => {
-        button.textContent = 'Copied!';
-        setTimeout(() => { button.textContent = 'Copy'; }, 2000);
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-    });
-}
-
-// 🎵 ULTIMATE VREDEN API INTEGRATION
-let currentAudioUrl = null;
-let currentAudioBlob = null;        // store downloaded audio blob
-let currentAudioObjectUrl = null;  // URL.createObjectURL for playback/download
-let currentQuery = null;
-
-// Small helper to escape HTML for safe insertion
-function escapeHtml(str) {
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-async function searchAndPlay() {
-    const query = document.getElementById('audioQuery').value.trim();
-    if (!query) {
-        showError('Please enter a song name!');
+    if (!songName) {
+        status.innerText = "⚠️ Enter song name first";
         return;
     }
 
-    currentQuery = query;
-    const searchBtn = document.getElementById('searchBtn');
-    const originalText = searchBtn.innerHTML;
-    const songInfo = document.getElementById('songInfo');
-    const errorMessage = document.getElementById('errorMessage');
-    const successMessage = document.getElementById('successMessage');
-    const audioPlayer = document.getElementById('audioPlayer');
-    const progressContainer = document.getElementById('progressContainer');
-    const audioControls = document.getElementById('audioControls');
-
-    // Reset UI
-    hideMessages();
-    songInfo.textContent = `🔍 Searching for "${query}"...`;
-    const statusLine = document.getElementById('searchStatus');
-    if (statusLine) statusLine.textContent = 'Searching...';
-    audioPlayer.style.display = 'none';
-    progressContainer.style.display = 'none';
-    audioControls.style.display = 'none';
-
-    // Show loading
-    searchBtn.innerHTML = '<div class="loading"></div> Searching...';
-    searchBtn.disabled = true;
+    status.innerText = "⏳ Searching song...";
 
     try {
-        // Step 1: Search YouTube and get first video URL via AllOrigins proxy
-        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' official audio')}`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
+        // ✅ Vreden API search
+        const apiURL = `https://api.vreden.my.id/api/v1/download/play/audio?query=${encodeURIComponent(songName)}`;
+        const res = await fetch(apiURL);
 
-        const searchResponse = await fetch(proxyUrl);
-        const searchData = await searchResponse.json();
-        const html = searchData.contents || '';
+        if (!res.ok) throw new Error("API failed");
 
-        // Simple regex to extract first video URL
-        const videoUrlMatch = html.match(/href="\/watch\?v=([a-zA-Z0-9_-]{11})/);
-        if (!videoUrlMatch) {
-            throw new Error('No video found for this song');
+        const data = await res.json();
+        const audioURL = data?.result?.url;
+
+        if (!audioURL) {
+            status.innerText = "❌ Audio not found!";
+            return;
         }
 
-        const videoId = videoUrlMatch[1];
-        const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-        // Try to extract title from surrounding html
-        let foundTitle = query;
-        try {
-            const titleRegex = new RegExp(`<a[^>]+href="\\/watch\\?v=${videoId}"[^>]*title=\"([^\"]+)\"`, 'i');
-            const tmatch = html.match(titleRegex);
-            if (tmatch && tmatch[1]) foundTitle = tmatch[1];
-            else {
-                const metaMatch = html.match(/<meta property="og:title" content="([^"]+)"/i) || html.match(/<title>([^<]+)<\/title>/i);
-                if (metaMatch && metaMatch[1]) foundTitle = metaMatch[1];
-            }
-        } catch (e) { /* ignore */ }
-
-        songInfo.innerHTML = `<i class="fas fa-music"></i> 🎵 Found: ${escapeHtml(foundTitle)}`;
-        if (statusLine) statusLine.textContent = 'Found video — resolving audio URL...';
-
-        // Show YouTube thumbnail as album art (pleasant fallback)
-        const albumArtImg = document.getElementById('albumArtImg');
-        if (albumArtImg) {
-            albumArtImg.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-            albumArtImg.alt = `${foundTitle} thumbnail`;
-        }
-
-        // Step 2: Get MP3 URL using VREDEN API (128kbps)
-        const vrednApiUrl = `https://api.vreden.my.id/api/v1/download/youtube/audio?url=${encodeURIComponent(youtubeUrl)}&quality=128`;
-        const apiResponse = await fetch(vrednApiUrl);
-        if (!apiResponse.ok) throw new Error(`API Error: ${apiResponse.status}`);
-        const apiData = await apiResponse.json();
-        currentAudioUrl = apiData.result || apiData.url || vrednApiUrl;
-        if (!currentAudioUrl) throw new Error('No audio URL returned from API');
-
-        // Step 3: Stream-download the audio with progress and play from blob URL
-        if (statusLine) statusLine.textContent = 'Downloading audio from API...';
-        songInfo.innerHTML = `<i class="fas fa-cloud-download-alt"></i> Downloading: ${escapeHtml(foundTitle)}`;
-
-        const audioResp = await fetch(currentAudioUrl);
-        if (!audioResp.ok) throw new Error(`Failed to download audio (${audioResp.status})`);
-
-        const contentLength = audioResp.headers.get('content-length');
-        const total = contentLength ? parseInt(contentLength, 10) : null;
-
-        const progressBarEl = document.getElementById('progressBar');
-        const progressContainerEl = document.getElementById('progressContainer');
-        progressContainerEl.style.display = 'block';
-
-        if (audioResp.body && total) {
-            const reader = audioResp.body.getReader();
-            let received = 0;
-            const chunks = [];
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                chunks.push(value);
-                received += value.length;
-                const percent = Math.min(100, Math.round((received / total) * 100));
-                if (progressBarEl) progressBarEl.style.width = percent + '%';
-                if (statusLine) statusLine.textContent = `Downloading audio... ${percent}%`;
-            }
-            const blob = new Blob(chunks, { type: audioResp.headers.get('content-type') || 'audio/mpeg' });
-            currentAudioBlob = blob;
-            if (currentAudioObjectUrl) try { URL.revokeObjectURL(currentAudioObjectUrl); } catch(e){}
-            currentAudioObjectUrl = URL.createObjectURL(blob);
-        } else {
-            const blob = await audioResp.blob();
-            currentAudioBlob = blob;
-            if (currentAudioObjectUrl) try { URL.revokeObjectURL(currentAudioObjectUrl); } catch(e){}
-            currentAudioObjectUrl = URL.createObjectURL(blob);
-            if (progressBarEl) progressBarEl.style.width = '100%';
-            if (statusLine) statusLine.textContent = 'Download complete';
-        }
-
-        // Attach and play
-        audioPlayer.src = currentAudioObjectUrl;
-        audioPlayer.style.display = 'block';
-        audioControls.style.display = 'flex';
-        setupProgressBar();
-        setupVolumeControl();
-        try { await audioPlayer.play(); } catch(e) { songInfo.innerHTML += `<br><small>👆 Click play to start</small>`; }
-
-        songInfo.innerHTML = `<i class="fas fa-music"></i> 🎵 Now playing: ${escapeHtml(foundTitle)}`;
-        if (statusLine) statusLine.textContent = 'Playing';
-        successMessage.textContent = `✅ ${foundTitle} loaded successfully!`;
-        successMessage.style.display = 'block';
+        status.innerText = "✅ Playing...";
+        audioPlayer.src = audioURL;
+        await audioPlayer.play();
 
     } catch (error) {
-        console.error('Error:', error);
-        showError(`❌ Failed to load "${query}"\n${error.message}\n\nTry another song name!`);
-    } finally {
-        // Reset button
-        searchBtn.innerHTML = originalText;
-        searchBtn.disabled = false;
+        status.innerText = "❌ Error: " + error.message;
+        console.error(error);
     }
 }
-
-function hideMessages() {
-    document.getElementById('errorMessage').style.display = 'none';
-    document.getElementById('successMessage').style.display = 'none';
-}
-
-function showError(message) {
-    hideMessages();
-    const errorMessage = document.getElementById('errorMessage');
-    errorMessage.innerHTML = message;
-    errorMessage.style.display = 'block';
-    document.getElementById('songInfo').textContent = '';
-}
-
-function stopAudio() {
-    const audioPlayer = document.getElementById('audioPlayer');
-    audioPlayer.pause();
-    audioPlayer.currentTime = 0;
-    document.getElementById('songInfo').textContent = '⏹️ Stopped';
-    document.getElementById('progressBar').style.width = '0%';
-}
-
-function downloadAudio() {
-    if (!currentAudioUrl || !currentQuery) {
-        alert('No song loaded to download!');
-        return;
-    }
-    // If we have the blob already, use it to download (ensures download comes from API bytes)
-    const filename = `${currentQuery.replace(/[^a-z0-9]/gi, '_')}_128kbps.mp3`;
-    if (currentAudioBlob) {
-        const blobUrl = URL.createObjectURL(currentAudioBlob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        // Revoke the temporary download URL shortly after
-        setTimeout(() => { try { URL.revokeObjectURL(blobUrl); } catch(e){} }, 10000);
-
-        const successMessage = document.getElementById('successMessage');
-        successMessage.textContent = `⬇️ Download started: ${filename}`;
-        successMessage.style.display = 'block';
-        return;
-    }
-
-    // Fallback: try downloading from the API URL directly
-    const a = document.createElement('a');
-    a.href = currentAudioUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    const successMessage = document.getElementById('successMessage');
-    successMessage.textContent = `⬇️ Downloading ${filename} (fallback)`;
-    successMessage.style.display = 'block';
-}
-
-function setupProgressBar() {
-    const audioPlayer = document.getElementById('audioPlayer');
-    const progressBar = document.getElementById('progressBar');
-    const progressContainer = document.getElementById('progressContainer');
-    
-    // Click to seek
-    progressContainer.addEventListener('click', (e) => {
-        const rect = progressContainer.getBoundingClientRect();
-        const percent = (e.clientX - rect.left) / rect.width;
-        audioPlayer.currentTime = percent * audioPlayer.duration;
-    });
-    
-    // Update progress
-    audioPlayer.addEventListener('timeupdate', () => {
-        if (audioPlayer.duration) {
-            const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-            progressBar.style.width = percent + '%';
-        }
-    });
-    
-    audioPlayer.addEventListener('loadedmetadata', () => {
-        progressBar.style.width = '0%';
-    });
-}
-
-function setupVolumeControl() {
-    const audioPlayer = document.getElementById('audioPlayer');
-    const volumeSlider = document.getElementById('volumeSlider');
-    
-    volumeSlider.addEventListener('input', (e) => {
-        audioPlayer.volume = e.target.value / 100;
-    });
-    
-    audioPlayer.volume = 1.0;
-    volumeSlider.value = 100;
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    setupProgressBar();
-    setupVolumeControl();
-});
 </script>
+
 </body>
-    </html>
+</html>
