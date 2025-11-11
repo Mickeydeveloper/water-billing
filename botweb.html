@@ -69,6 +69,10 @@ audio {
     width: 100%;
     margin-top: 18px;
 }
+#downloadBtn {
+    display: none;
+    margin-top: 12px;
+}
 </style>
 </head>
 
@@ -83,15 +87,20 @@ audio {
         <div id="status" class="status">Idle...</div>
 
         <audio id="audioPlayer" controls></audio>
+        
+        <button id="downloadBtn" onclick="downloadAudio()">DOWNLOAD AUDIO</button>
     </div>
 </div>
 
 <script>
 /* ✅ ALL JS HERE */
+let currentAudioURL = '';
+
 async function playMusic() {
     const audioPlayer = document.getElementById("audioPlayer");
     const songName = document.getElementById("song").value.trim();
     const status = document.getElementById("status");
+    const downloadBtn = document.getElementById("downloadBtn");
 
     if (!songName) {
         status.innerText = "⚠️ Enter song name first";
@@ -101,9 +110,14 @@ async function playMusic() {
     status.innerText = "⏳ Searching song...";
 
     try {
-        // ✅ Vreden API search
+        // ✅ Vreden API search with added headers to potentially bypass issues
         const apiURL = `https://api.vreden.my.id/api/v1/download/play/audio?query=${encodeURIComponent(songName)}`;
-        const res = await fetch(apiURL);
+        const res = await fetch(apiURL, {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        });
 
         if (!res.ok) throw new Error("API failed");
 
@@ -112,16 +126,36 @@ async function playMusic() {
 
         if (!audioURL) {
             status.innerText = "❌ Audio not found!";
+            downloadBtn.style.display = 'none';
             return;
         }
 
+        currentAudioURL = audioURL;
         status.innerText = "✅ Playing...";
         audioPlayer.src = audioURL;
         await audioPlayer.play();
+        downloadBtn.style.display = 'block';
 
     } catch (error) {
-        status.innerText = "❌ Error: " + error.message;
+        // Improved error handling for "Failed to fetch"
+        if (error.message === 'Failed to fetch') {
+            status.innerText = "❌ Network error: Check your internet or run this on a local server (e.g., using VS Code Live Server) to avoid CORS issues.";
+        } else {
+            status.innerText = "❌ Error: " + error.message;
+        }
         console.error(error);
+        downloadBtn.style.display = 'none';
+    }
+}
+
+function downloadAudio() {
+    if (currentAudioURL) {
+        const link = document.createElement('a');
+        link.href = currentAudioURL;
+        link.download = 'audio.mp3'; // You can customize the filename
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 }
 </script>
