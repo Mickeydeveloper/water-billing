@@ -3,293 +3,300 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mickey Player - Fastest Music Downloader</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <title>MICKEY PLAYER • 3D</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
   <style>
     :root {
-      --bg: #0f0f0f;
-      --card: #1a1a1a;
+      --bg: linear-gradient(135deg, #0a0a1f, #1a0033, #000);
+      --glass: rgba(20, 20, 40, 0.65);
+      --border: rgba(255, 45, 85, 0.3);
       --accent: #ff2d55;
+      --glow: 0 0 30px rgba(255, 45, 85, 0.6);
       --green: #1db954;
-      --text: #fff;
-      --text2: #b3b3b3;
+      --text: #ffffff;
+      --text2: #b8b8ff;
     }
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      background: linear-gradient(135deg, #000, #16213e);
+      background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      font-family: 'Segoe UI', 'SF Pro', sans-serif;
+      overflow-x: hidden;
+      perspective: 1000px;
     }
-    .container { max-width:1200px; margin:0 auto; padding:20px; }
 
-    header { text-align:center; padding:40px 0; }
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      padding: 60px 0 40px;
+      position: relative;
+      z-index: 2;
+    }
+
     h1 {
-      font-size:3.8rem;
-      background:linear-gradient(90deg,#ff2d55,#ff9a9e);
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-      font-weight:900;
+      font-size: 5.5rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, #ff2d55, #ff9a9e, #a18cd1, #fbc2eb);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--glow);
+      letter-spacing: -2px;
+      animation: float 6s ease-in-out infinite;
     }
-    .subtitle { color:#ff6b6b; font-size:1.3rem; margin-top:10px; }
 
+    .subtitle {
+      color: #ff6b9d;
+      font-size: 1.6rem;
+      margin-top: 15px;
+      font-weight: 500;
+      text-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
+    }
+
+    /* 3D Search Box */
     .search-box {
-      position:relative;
-      max-width:700px;
-      margin:40px auto;
+      position: relative;
+      max-width: 800px;
+      margin: 50px auto;
+      transform-style: preserve-3d;
     }
-    #search {
-      width:100%;
-      padding:20px 70px 20px 60px;
-      border:none;
-      border-radius:50px;
-      background:#1e1e1e;
-      color:white;
-      font-size:1.2rem;
-      box-shadow:0 15px 40px rgba(0,0,0,0.6);
-      transition:0.4s;
-    }
-    #search:focus {
-      outline:none;
-      box-shadow:0 0 0 5px rgba(255,45,85,0.4);
-      transform:scale(1.03);
-    }
-    .search-icon { position:absolute; left:22px; top:50%; transform:translateY(-50%); color:#ff2d55; font-size:1.5rem; }
-    .loading { position:absolute; right:25px; top:50%; transform:translateY(-50%); color:#ff2d55; display:none; }
 
+    #search {
+      width: 100%;
+      padding: 24px 80px 24px 70px;
+      border: none;
+      border-radius: 60px;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: white;
+      font-size: 1.4rem;
+      box-shadow: 
+        inset 0 4px 15px rgba(0,0,0,0.6),
+        0 20px 60px rgba(0,0,0,0.7),
+        var(--glow);
+      border: 1px solid var(--border);
+      transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    #search:focus {
+      outline: none;
+      transform: translateY(-10px) scale(1.04);
+      box-shadow: 
+        0 30px 80px rgba(255,45,85,0.5),
+        0 0 60px rgba(255,45,85,0.4);
+      border: 1px solid rgba(255,45,85,0.8);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.8rem;
+      color: var(--accent);
+      z-index: 2;
+      filter: drop-shadow(0 0 10px var(--accent));
+    }
+
+    .loading {
+      position: absolute;
+      right: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.8rem;
+      color: var(--accent);
+      display: none;
+      animation: spin 1s linear infinite;
+    }
+
+    /* 3D Floating Cards */
     .results {
-      display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(340px,1fr));
-      gap:25px;
-      margin-top:30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 30px;
+      margin-top: 50px;
+      padding: 20px;
     }
+
     .card {
-      background:var(--card);
-      border-radius:18px;
-      overflow:hidden;
-      transition:0.4s;
-      box-shadow:0 10px 30px rgba(0,0,0,0.5);
-      opacity:0;
-      transform:translateY(40px);
-      animation:up 0.7s forwards;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 
+        0 20px 50px rgba(0,0,0,0.6),
+        0 0 40px rgba(255,45,85,0.15);
+      transform: translateZ(0) rotateX(0);
+      transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+      opacity: 0;
+      animation: cardRise 0.9s forwards;
     }
-    @keyframes up { to { opacity:1; transform:translateY(0); } }
-    .card:hover { transform:translateY(-12px); box-shadow:0 25px 50px rgba(255,45,85,0.4); }
+
+    .card:hover {
+      transform: translateY(-25px) translateZ(50px) rotateX(5deg);
+      box-shadow: 
+        0 40px 100px rgba(255,45,85,0.4),
+        0 0 80px rgba(255,45,85,0.3);
+      border: 1px solid rgba(255,45,85,0.6);
+    }
+
+    @keyframes cardRise {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    @keyframes spin {
+      to { transform: translateY(-50%) rotate(360deg); }
+    }
 
     .thumb {
-      width:100%;
-      height:240px;
-      object-fit:cover;
-      background:#333;
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      transition: 0.6s;
+      filter: brightness(0.9);
     }
-    .info { padding:20px; }
-    .title { font-size:1.35rem; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .artist { color:var(--text2); font-size:1rem; margin-bottom:12px; }
+
+    .card:hover .thumb {
+      transform: scale(1.1);
+      filter: brightness(1.1) contrast(1.2);
+    }
+
+    .info {
+      padding: 24px;
+    }
+
+    .title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #fff, #a18cd1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .artist {
+      color: var(--text2);
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+    }
 
     .btns {
-      display:flex;
-      gap:12px;
+      display: flex;
+      gap: 14px;
     }
+
     button {
-      flex:1;
-      padding:14px;
-      border:none;
-      border-radius:50px;
-      font-weight:bold;
-      cursor:pointer;
-      transition:0.3s;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      font-size:1rem;
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 50px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.4s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
     }
-    .play { background:var(--green); color:white; }
-    .play:hover { background:#1ed760; transform:scale(1.07); }
-    .dl { background:var(--accent); color:white; }
-    .dl:hover { background:#ff5e7a; transform:scale(1.07); }
 
+    .play {
+      background: linear-gradient(135deg, #1db954, #1ed760);
+      color: white;
+    }
+
+    .play:hover {
+      transform: translateY(-5px) scale(1.08);
+      box-shadow: 0 15px 40px rgba(29,185,84,0.5);
+    }
+
+    .dl {
+      background: linear-gradient(135deg, var(--accent), #ff6b9d);
+      color: white;
+    }
+
+    .dl:hover {
+      transform: translateY(-5px) scale(1.08);
+      box-shadow: var(--glow), 0 15px 40px rgba(255,45,85,0.5);
+    }
+
+    /* Toast */
     .toast {
-      position:fixed;
-      top:30px;
-      left:50%;
-      transform:translateX(-50%);
-      background:#1db954;
-      color:white;
-      padding:16px 32px;
-      border-radius:50px;
-      font-weight:bold;
-      box-shadow:0 10px 30px rgba(0,0,0,0.5);
-      z-index:9999;
-      opacity:0;
-      transition:0.4s;
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #1db954, #1ed760);
+      color: white;
+      padding: 18px 40px;
+      border-radius: 60px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      box-shadow: 0 20px 50px rgba(29,185,84,0.5);
+      z-index: 9999;
+      opacity: 0;
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255,255,255,0.2);
     }
-    .toast.show { opacity:1; transform:translateX(-50%) translateY(10px); }
 
+    .toast.show {
+      opacity: 1;
+      animation: toastPop 0.6s;
+    }
+
+    @keyframes toastPop {
+      0% { transform: translateX(-50%) scale(0.8); }
+      70% { transform: translateX(-50%) scale(1.05); }
+      100% { transform: translateX(-50%) scale(1); }
+    }
+
+    /* Miniplayer - Glass + 3D */
     .miniplayer {
-      position:fixed;
-      bottom:0;
-      left:0;
-      right:0;
-      background:rgba(15,15,15,0.95);
-      backdrop-filter:blur(20px);
-      padding:15px 30px;
-      display:none;
-      align-items:center;
-      border-top:1px solid #333;
-      z-index:100;
-    }
-    .miniplayer.active { display:flex; }
-    .nowimg { width:60px; height:60px; border-radius:10px; }
-    .nowtext { margin-left:15px; }
-    .progress { flex:1; margin:0 30px; height:6px; border-radius:3px; }
-
-    @media(max-width:768px) {
-      h1 { font-size:2.8rem; }
-      .results { grid-template-columns:1fr; }
-      .miniplayer { flex-direction:column; text-align:center; }
-      .progress { margin:15px 0; width:100%; }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="container">
-    <header>
-      <h1>MICKEY PLAYER</h1>
-      <p class="subtitle">Search • Play • Download Lightning Fast</p>
-    </header>
-
-    <div class="search-box">
-      <i class="fas fa-search search-icon"></i>
-      <input type="text" id="search" placeholder="Enter song name or artist..." autocomplete="off"/>
-      <i class="fas fa-spinner fa-spin loading" id="loading"></i>
-    </div>
-
-    <div id="results" class="results"></div>
-  </div>
-
-  <div class="toast" id="toast">Music Found! Ready to Play & Download</div>
-
-  <div class="miniplayer" id="miniplayer">
-    <img id="miniImg" class="nowimg" src="https://via.placeholder.com/60"/>
-    <div class="nowtext">
-      <div id="miniTitle" style="font-weight:bold;">Not playing</div>
-      <div id="miniArtist" style="color:#aaa;">Unknown</div>
-    </div>
-    <audio id="audio" controls style="width:100%; max-width:500px;"></audio>
-    <progress class="progress" id="progress" value="0" max="100"></progress>
-  </div>
-
-  <script>
-    const searchInp = document.getElementById('search');
-    const results = document.getElementById('results');
-    const loading = document.getElementById('loading');
-    const toast = document.getElementById('toast');
-    const audio = document.getElementById('audio');
-    const miniplayer = document.getElementById('miniplayer');
-    const miniTitle = document.getElementById('miniTitle');
-    const miniArtist = document.getElementById('miniArtist');
-    const miniImg = document.getElementById('miniImg');
-
-    // Your REAL API
-    const API = "https://api.vreden.my.id/api/v1/download/play/audio?query=";
-
-    searchInp.addEventListener('input', debounce(async (e) => {
-      const q = e.target.value.trim();
-      results.innerHTML = '';
-      
-      if (q.length < 2) return;
-
-      loading.style.display = 'block';
-
-      try {
-        const res = await fetch(API + encodeURIComponent(q));
-        const data = await res.json();
-
-        loading.style.display = 'none';
-
-        if (data.status && data.result.length > 0) {
-          showToast();
-          data.result.forEach((song, i) => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.style.animationDelay = `${i * 0.1}s`;
-
-            const thumb = song.thumbnail || 'https://via.placeholder.com/400x400/222/fff?text=MICKEY';
-
-            card.innerHTML = `
-              <img src="${thumb}" class="thumb" alt="cover">
-              <div class="info">
-                <div class="title">${song.title}</div>
-                <div class="artist">${song.artist}</div>
-                <div class="btns">
-                  <button class="play" onclick="playNow('\( {song.url}', ' \){song.title}', '\( {song.artist}', ' \){thumb}')">
-                    <i class="fas fa-play"></i> Play
-                  </button>
-                  <button class="dl" onclick="downloadNow('\( {song.url}', ' \){song.title} - ${song.artist}.mp3')">
-                    <i class="fas fa-download"></i> Download Fast
-                  </button>
-                </div>
-              </div>
-            `;
-            results.appendChild(card);
-          });
-        } else {
-          results.innerHTML = `<p style="text-align:center; color:#888; grid-column:1/-1; padding:50px;">No results found 😭</p>`;
-        }
-      } catch (err) {
-        loading.style.display = 'none';
-        results.innerHTML = `<p style="text-align:center;color:#ff6b6b;">API Error. Try again later.</p>`;
-      }
-    }, 600));
-
-    function playNow(url, title, artist, img) {
-      audio.src = url;
-      audio.play();
-      miniTitle.textContent = title;
-      miniArtist.textContent = artist;
-      miniImg.src = img;
-      miniplayer.classList.add('active');
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15,15,35,0.8);
+      backdrop-filter: blur(25px);
+      padding: 18px 30px;
+      border-radius: 60px;
+      display: none;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      z-index: 1000;
+      max-width: 90%;
     }
 
-    function downloadNow(url, filename) {
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    .miniplayer.active { display: flex; animation: slideUp 0.6s; }
 
-      // Success feedback
-      const btn = event.target;
-      const old = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-check"></i> Downloaded!';
-      btn.style.background = '#1db954';
-      setTimeout(() => {
-        btn.innerHTML = old;
-        btn.style.background = '';
-      }, 2500);
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
     }
 
-    function showToast() {
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
+    .nowimg {
+      width: 70px;
+      height: 70px;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
-    function debounce(func, delay) {
-      let t;
-      return (...args) => {
-        clearTimeout(t);
-        t = setTimeout(() => func(...args), delay);
-      };
-    }
-
-    // Progress bar
-    audio.addEventListener('timeupdate', () => {
-      if (audio.duration) {
-        document.getElementById('progress').value = (audio.currentTime / audio.duration) * 100;
-      }
-    });
-  </script>
-</body>
-</html>
+    .nowtext {
+      margin
