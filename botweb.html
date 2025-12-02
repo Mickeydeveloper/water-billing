@@ -1,164 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Audio Player</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mickey Player - Fastest Music Downloader</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --card: #1a1a1a;
+      --accent: #ff2d55;
+      --green: #1db954;
+      --text: #fff;
+      --text2: #b3b3b3;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+    body {
+      background: linear-gradient(135deg, #000, #16213e);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .container { max-width:1200px; margin:0 auto; padding:20px; }
 
-<style>
-/* ✅ MODERN UI THEME (All CSS Here) */
-:root {
-    --bg: #0b0f15;
-    --card: #131a24;
-    --accent: #00ffc6;
-    --text: #eef6ff;
-    --muted: #7d8da5;
-}
-* {
-    box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
-}
-body {
-    margin: 0;
-    background: radial-gradient(circle at top, #0b141f, #000);
-    color: var(--text);
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-}
-.container {
-    width: 100%;
-    max-width: 500px;
-    text-align: center;
-}
-.card {
-    background: var(--card);
-    border-radius: 18px;
-    padding: 20px;
-    box-shadow: 0 0 40px rgba(0,255,199,0.12);
-}
-input {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    background: #1c2735;
-    color: var(--text);
-    outline: none;
-}
-button {
-    width: 100%;
-    margin-top: 12px;
-    padding: 14px;
-    border-radius: 10px;
-    border: none;
-    background: var(--accent);
-    color: #000;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-}
-button:hover {
-    opacity: .85;
-}
-.status {
-    margin-top: 10px;
-    color: var(--muted);
-}
-audio {
-    width: 100%;
-    margin-top: 18px;
-}
-#downloadBtn {
-    display: none;
-    margin-top: 12px;
-}
-</style>
+    header { text-align:center; padding:40px 0; }
+    h1 {
+      font-size:3.8rem;
+      background:linear-gradient(90deg,#ff2d55,#ff9a9e);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      font-weight:900;
+    }
+    .subtitle { color:#ff6b6b; font-size:1.3rem; margin-top:10px; }
+
+    .search-box {
+      position:relative;
+      max-width:700px;
+      margin:40px auto;
+    }
+    #search {
+      width:100%;
+      padding:20px 70px 20px 60px;
+      border:none;
+      border-radius:50px;
+      background:#1e1e1e;
+      color:white;
+      font-size:1.2rem;
+      box-shadow:0 15px 40px rgba(0,0,0,0.6);
+      transition:0.4s;
+    }
+    #search:focus {
+      outline:none;
+      box-shadow:0 0 0 5px rgba(255,45,85,0.4);
+      transform:scale(1.03);
+    }
+    .search-icon { position:absolute; left:22px; top:50%; transform:translateY(-50%); color:#ff2d55; font-size:1.5rem; }
+    .loading { position:absolute; right:25px; top:50%; transform:translateY(-50%); color:#ff2d55; display:none; }
+
+    .results {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(340px,1fr));
+      gap:25px;
+      margin-top:30px;
+    }
+    .card {
+      background:var(--card);
+      border-radius:18px;
+      overflow:hidden;
+      transition:0.4s;
+      box-shadow:0 10px 30px rgba(0,0,0,0.5);
+      opacity:0;
+      transform:translateY(40px);
+      animation:up 0.7s forwards;
+    }
+    @keyframes up { to { opacity:1; transform:translateY(0); } }
+    .card:hover { transform:translateY(-12px); box-shadow:0 25px 50px rgba(255,45,85,0.4); }
+
+    .thumb {
+      width:100%;
+      height:240px;
+      object-fit:cover;
+      background:#333;
+    }
+    .info { padding:20px; }
+    .title { font-size:1.35rem; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .artist { color:var(--text2); font-size:1rem; margin-bottom:12px; }
+
+    .btns {
+      display:flex;
+      gap:12px;
+    }
+    button {
+      flex:1;
+      padding:14px;
+      border:none;
+      border-radius:50px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:0.3s;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      font-size:1rem;
+    }
+    .play { background:var(--green); color:white; }
+    .play:hover { background:#1ed760; transform:scale(1.07); }
+    .dl { background:var(--accent); color:white; }
+    .dl:hover { background:#ff5e7a; transform:scale(1.07); }
+
+    .toast {
+      position:fixed;
+      top:30px;
+      left:50%;
+      transform:translateX(-50%);
+      background:#1db954;
+      color:white;
+      padding:16px 32px;
+      border-radius:50px;
+      font-weight:bold;
+      box-shadow:0 10px 30px rgba(0,0,0,0.5);
+      z-index:9999;
+      opacity:0;
+      transition:0.4s;
+    }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(10px); }
+
+    .miniplayer {
+      position:fixed;
+      bottom:0;
+      left:0;
+      right:0;
+      background:rgba(15,15,15,0.95);
+      backdrop-filter:blur(20px);
+      padding:15px 30px;
+      display:none;
+      align-items:center;
+      border-top:1px solid #333;
+      z-index:100;
+    }
+    .miniplayer.active { display:flex; }
+    .nowimg { width:60px; height:60px; border-radius:10px; }
+    .nowtext { margin-left:15px; }
+    .progress { flex:1; margin:0 30px; height:6px; border-radius:3px; }
+
+    @media(max-width:768px) {
+      h1 { font-size:2.8rem; }
+      .results { grid-template-columns:1fr; }
+      .miniplayer { flex-direction:column; text-align:center; }
+      .progress { margin:15px 0; width:100%; }
+    }
+  </style>
 </head>
-
 <body>
-<div class="container">
-    <h2>🎵 Music Search & Player</h2>
 
-    <div class="card">
-        <input id="song" type="text" placeholder="Search audio... (Example: Adele Hello)">
-        <button onclick="playMusic()">PLAY MUSIC</button>
+  <div class="container">
+    <header>
+      <h1>MICKEY PLAYER</h1>
+      <p class="subtitle">Search • Play • Download Lightning Fast</p>
+    </header>
 
-        <div id="status" class="status">Idle...</div>
-
-        <audio id="audioPlayer" controls></audio>
-        
-        <button id="downloadBtn" onclick="downloadAudio()">DOWNLOAD AUDIO</button>
+    <div class="search-box">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="search" placeholder="Enter song name or artist..." autocomplete="off"/>
+      <i class="fas fa-spinner fa-spin loading" id="loading"></i>
     </div>
-</div>
 
-<script>
-/* ✅ ALL JS HERE */
-let currentAudioURL = '';
+    <div id="results" class="results"></div>
+  </div>
 
-async function playMusic() {
-    const audioPlayer = document.getElementById("audioPlayer");
-    const songName = document.getElementById("song").value.trim();
-    const status = document.getElementById("status");
-    const downloadBtn = document.getElementById("downloadBtn");
+  <div class="toast" id="toast">Music Found! Ready to Play & Download</div>
 
-    if (!songName) {
-        status.innerText = "⚠️ Enter song name first";
-        return;
-    }
+  <div class="miniplayer" id="miniplayer">
+    <img id="miniImg" class="nowimg" src="https://via.placeholder.com/60"/>
+    <div class="nowtext">
+      <div id="miniTitle" style="font-weight:bold;">Not playing</div>
+      <div id="miniArtist" style="color:#aaa;">Unknown</div>
+    </div>
+    <audio id="audio" controls style="width:100%; max-width:500px;"></audio>
+    <progress class="progress" id="progress" value="0" max="100"></progress>
+  </div>
 
-    status.innerText = "⏳ Searching song...";
+  <script>
+    const searchInp = document.getElementById('search');
+    const results = document.getElementById('results');
+    const loading = document.getElementById('loading');
+    const toast = document.getElementById('toast');
+    const audio = document.getElementById('audio');
+    const miniplayer = document.getElementById('miniplayer');
+    const miniTitle = document.getElementById('miniTitle');
+    const miniArtist = document.getElementById('miniArtist');
+    const miniImg = document.getElementById('miniImg');
 
-    try {
-        // ✅ Vreden API search with added headers to potentially bypass issues
-        const apiURL = `https://api.vreden.my.id/api/v1/download/play/audio?query=${encodeURIComponent(songName)}`;
-        const res = await fetch(apiURL, {
-            method: 'GET',
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
-        });
+    // Your REAL API
+    const API = "https://api.vreden.my.id/api/v1/download/play/audio?query=";
 
-        if (!res.ok) throw new Error("API failed");
+    searchInp.addEventListener('input', debounce(async (e) => {
+      const q = e.target.value.trim();
+      results.innerHTML = '';
+      
+      if (q.length < 2) return;
 
+      loading.style.display = 'block';
+
+      try {
+        const res = await fetch(API + encodeURIComponent(q));
         const data = await res.json();
-        const audioURL = data?.result?.url;
 
-        if (!audioURL) {
-            status.innerText = "❌ Audio not found!";
-            downloadBtn.style.display = 'none';
-            return;
-        }
+        loading.style.display = 'none';
 
-        currentAudioURL = audioURL;
-        status.innerText = "✅ Playing...";
-        audioPlayer.src = audioURL;
-        await audioPlayer.play();
-        downloadBtn.style.display = 'block';
+        if (data.status && data.result.length > 0) {
+          showToast();
+          data.result.forEach((song, i) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.animationDelay = `${i * 0.1}s`;
 
-    } catch (error) {
-        // Improved error handling for "Failed to fetch"
-        if (error.message === 'Failed to fetch') {
-            status.innerText = "❌ Network error: Check your internet or run this on a local server (e.g., using VS Code Live Server) to avoid CORS issues.";
+            const thumb = song.thumbnail || 'https://via.placeholder.com/400x400/222/fff?text=MICKEY';
+
+            card.innerHTML = `
+              <img src="${thumb}" class="thumb" alt="cover">
+              <div class="info">
+                <div class="title">${song.title}</div>
+                <div class="artist">${song.artist}</div>
+                <div class="btns">
+                  <button class="play" onclick="playNow('\( {song.url}', ' \){song.title}', '\( {song.artist}', ' \){thumb}')">
+                    <i class="fas fa-play"></i> Play
+                  </button>
+                  <button class="dl" onclick="downloadNow('\( {song.url}', ' \){song.title} - ${song.artist}.mp3')">
+                    <i class="fas fa-download"></i> Download Fast
+                  </button>
+                </div>
+              </div>
+            `;
+            results.appendChild(card);
+          });
         } else {
-            status.innerText = "❌ Error: " + error.message;
+          results.innerHTML = `<p style="text-align:center; color:#888; grid-column:1/-1; padding:50px;">No results found 😭</p>`;
         }
-        console.error(error);
-        downloadBtn.style.display = 'none';
-    }
-}
+      } catch (err) {
+        loading.style.display = 'none';
+        results.innerHTML = `<p style="text-align:center;color:#ff6b6b;">API Error. Try again later.</p>`;
+      }
+    }, 600));
 
-function downloadAudio() {
-    if (currentAudioURL) {
-        const link = document.createElement('a');
-        link.href = currentAudioURL;
-        link.download = 'audio.mp3'; // You can customize the filename
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    function playNow(url, title, artist, img) {
+      audio.src = url;
+      audio.play();
+      miniTitle.textContent = title;
+      miniArtist.textContent = artist;
+      miniImg.src = img;
+      miniplayer.classList.add('active');
     }
-}
-</script>
 
+    function downloadNow(url, filename) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      // Success feedback
+      const btn = event.target;
+      const old = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-check"></i> Downloaded!';
+      btn.style.background = '#1db954';
+      setTimeout(() => {
+        btn.innerHTML = old;
+        btn.style.background = '';
+      }, 2500);
+    }
+
+    function showToast() {
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function debounce(func, delay) {
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => func(...args), delay);
+      };
+    }
+
+    // Progress bar
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        document.getElementById('progress').value = (audio.currentTime / audio.duration) * 100;
+      }
+    });
+  </script>
 </body>
 </html>
