@@ -1,302 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MICKEY PLAYER • 3D</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
-  <style>
-    :root {
-      --bg: linear-gradient(135deg, #0a0a1f, #1a0033, #000);
-      --glass: rgba(20, 20, 40, 0.65);
-      --border: rgba(255, 45, 85, 0.3);
-      --accent: #ff2d55;
-      --glow: 0 0 30px rgba(255, 45, 85, 0.6);
-      --green: #1db954;
-      --text: #ffffff;
-      --text2: #b8b8ff;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Music Player</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            border: none;
+            border-radius: 20px;
+            background-color: #333;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #1db954;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        button:hover {
+            background-color: #1ed760;
+        }
+        .player {
+            background-color: #181818;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            text-align: center;
+        }
+        .album-art {
+            width: 200px;
+            height: 200px;
+            background-color: #333;
+            margin: 0 auto 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+        }
+        audio {
+            width: 100%;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Custom Music Player</h1>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search for a song...">
+        <button onclick="searchSong()">Search</button>
+    </div>
+    <div class="player">
+        <div class="album-art" id="albumArt">🎵</div>
+        <h2 id="songTitle">No song selected</h2>
+        <audio id="audioPlayer" controls></audio>
+        <div class="error" id="errorMsg"></div>
+    </div>
 
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      font-family: 'Segoe UI', 'SF Pro', sans-serif;
-      overflow-x: hidden;
-      perspective: 1000px;
-    }
+    <script>
+        const apiUrl = 'https://api.vreden.my.id/api/v1/download/play/audio'; // Your specified API
+        const searchInput = document.getElementById('searchInput');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const songTitle = document.getElementById('songTitle');
+        const albumArt = document.getElementById('albumArt');
+        const errorMsg = document.getElementById('errorMsg');
 
-    .container {
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 20px;
-    }
+        async function searchSong() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                showError('Please enter a song name.');
+                return;
+            }
 
-    header {
-      text-align: center;
-      padding: 60px 0 40px;
-      position: relative;
-      z-index: 2;
-    }
+            try {
+                // Fetch from your API with query parameter
+                const response = await fetch(`${apiUrl}?query=${encodeURIComponent(query)}`);
+                if (!response.ok) throw new Error(`API error: ${response.status} ${response.statusText}`);
 
-    h1 {
-      font-size: 5.5rem;
-      font-weight: 900;
-      background: linear-gradient(90deg, #ff2d55, #ff9a9e, #a18cd1, #fbc2eb);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: var(--glow);
-      letter-spacing: -2px;
-      animation: float 6s ease-in-out infinite;
-    }
+                const data = await response.json();
+                // Assuming response has 'audioUrl' and 'title' keys; adjust if different
+                if (data && data.audioUrl) {
+                    // Load the audio
+                    audioPlayer.src = data.audioUrl;
+                    songTitle.textContent = data.title || query; // Fallback to query if no title
+                    albumArt.textContent = '🎵'; // Placeholder; add album art if API provides it
+                    errorMsg.textContent = '';
+                } else {
+                    showError('No audio found for that song. Check the API response.');
+                }
+            } catch (error) {
+                showError('Error fetching song: ' + error.message);
+            }
+        }
 
-    .subtitle {
-      color: #ff6b9d;
-      font-size: 1.6rem;
-      margin-top: 15px;
-      font-weight: 500;
-      text-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
-    }
+        function showError(message) {
+            errorMsg.textContent = message;
+            songTitle.textContent = 'No song selected';
+            audioPlayer.src = '';
+        }
 
-    /* 3D Search Box */
-    .search-box {
-      position: relative;
-      max-width: 800px;
-      margin: 50px auto;
-      transform-style: preserve-3d;
-    }
-
-    #search {
-      width: 100%;
-      padding: 24px 80px 24px 70px;
-      border: none;
-      border-radius: 60px;
-      background: var(--glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      color: white;
-      font-size: 1.4rem;
-      box-shadow: 
-        inset 0 4px 15px rgba(0,0,0,0.6),
-        0 20px 60px rgba(0,0,0,0.7),
-        var(--glow);
-      border: 1px solid var(--border);
-      transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-
-    #search:focus {
-      outline: none;
-      transform: translateY(-10px) scale(1.04);
-      box-shadow: 
-        0 30px 80px rgba(255,45,85,0.5),
-        0 0 60px rgba(255,45,85,0.4);
-      border: 1px solid rgba(255,45,85,0.8);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 28px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.8rem;
-      color: var(--accent);
-      z-index: 2;
-      filter: drop-shadow(0 0 10px var(--accent));
-    }
-
-    .loading {
-      position: absolute;
-      right: 28px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.8rem;
-      color: var(--accent);
-      display: none;
-      animation: spin 1s linear infinite;
-    }
-
-    /* 3D Floating Cards */
-    .results {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-      gap: 30px;
-      margin-top: 50px;
-      padding: 20px;
-    }
-
-    .card {
-      background: var(--glass);
-      backdrop-filter: blur(20px);
-      border-radius: 28px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      box-shadow: 
-        0 20px 50px rgba(0,0,0,0.6),
-        0 0 40px rgba(255,45,85,0.15);
-      transform: translateZ(0) rotateX(0);
-      transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-      opacity: 0;
-      animation: cardRise 0.9s forwards;
-    }
-
-    .card:hover {
-      transform: translateY(-25px) translateZ(50px) rotateX(5deg);
-      box-shadow: 
-        0 40px 100px rgba(255,45,85,0.4),
-        0 0 80px rgba(255,45,85,0.3);
-      border: 1px solid rgba(255,45,85,0.6);
-    }
-
-    @keyframes cardRise {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-20px); }
-    }
-
-    @keyframes spin {
-      to { transform: translateY(-50%) rotate(360deg); }
-    }
-
-    .thumb {
-      width: 100%;
-      height: 260px;
-      object-fit: cover;
-      transition: 0.6s;
-      filter: brightness(0.9);
-    }
-
-    .card:hover .thumb {
-      transform: scale(1.1);
-      filter: brightness(1.1) contrast(1.2);
-    }
-
-    .info {
-      padding: 24px;
-    }
-
-    .title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      background: linear-gradient(90deg, #fff, #a18cd1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .artist {
-      color: var(--text2);
-      font-size: 1.1rem;
-      margin-bottom: 16px;
-    }
-
-    .btns {
-      display: flex;
-      gap: 14px;
-    }
-
-    button {
-      flex: 1;
-      padding: 16px;
-      border: none;
-      border-radius: 50px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.4s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-    }
-
-    .play {
-      background: linear-gradient(135deg, #1db954, #1ed760);
-      color: white;
-    }
-
-    .play:hover {
-      transform: translateY(-5px) scale(1.08);
-      box-shadow: 0 15px 40px rgba(29,185,84,0.5);
-    }
-
-    .dl {
-      background: linear-gradient(135deg, var(--accent), #ff6b9d);
-      color: white;
-    }
-
-    .dl:hover {
-      transform: translateY(-5px) scale(1.08);
-      box-shadow: var(--glow), 0 15px 40px rgba(255,45,85,0.5);
-    }
-
-    /* Toast */
-    .toast {
-      position: fixed;
-      top: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #1db954, #1ed760);
-      color: white;
-      padding: 18px 40px;
-      border-radius: 60px;
-      font-weight: bold;
-      font-size: 1.1rem;
-      box-shadow: 0 20px 50px rgba(29,185,84,0.5);
-      z-index: 9999;
-      opacity: 0;
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-
-    .toast.show {
-      opacity: 1;
-      animation: toastPop 0.6s;
-    }
-
-    @keyframes toastPop {
-      0% { transform: translateX(-50%) scale(0.8); }
-      70% { transform: translateX(-50%) scale(1.05); }
-      100% { transform: translateX(-50%) scale(1); }
-    }
-
-    /* Miniplayer - Glass + 3D */
-    .miniplayer {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(15,15,35,0.8);
-      backdrop-filter: blur(25px);
-      padding: 18px 30px;
-      border-radius: 60px;
-      display: none;
-      align-items: center;
-      border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-      z-index: 1000;
-      max-width: 90%;
-    }
-
-    .miniplayer.active { display: flex; animation: slideUp 0.6s; }
-
-    @keyframes slideUp {
-      from { transform: translateX(-50%) translateY(100px); opacity: 0; }
-      to { transform: translateX(-50%) translateY(0); opacity: 1; }
-    }
-
-    .nowimg {
-      width: 70px;
-      height: 70px;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-
-    .nowtext {
-      margin
+        // Optional: Add keyboard support for search
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchSong();
+        });
+    </script>
+</body>
+</html>
