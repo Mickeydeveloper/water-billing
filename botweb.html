@@ -23,8 +23,10 @@
 
 <header>
     <div style="max-width:480px; margin:0 auto; display:flex; justify-content:space-between; align-items:center;">
-        <div class="logo">Halotel Bundles</div>
+        <div class="logo">Halotel Bundles        <div id="ussdBox" style="margin-top:20px; padding:15px; background:#eef; border-radius:6px; font-weight:bold; text-align:center;">USSD will appear here</div>
+        <a href="#" class="buy-btn" style="background:#0057ff;" onclick="generateUSSD()">GENERATE USSD</a>
     </div>
+</div>
 </header>
 
 <div class="container">
@@ -65,6 +67,18 @@ function sendWhatsApp() {
 
     let url = `https://wa.me/255${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
+}
+function generateUSSD() {
+    let phone = document.getElementById("phone").value;
+    let bundle = document.getElementById("bundle").value;
+
+    if (phone.trim() === "") {
+        alert("Please enter a valid Halotel number.");
+        return;
+    }
+
+    let ussd = `*148*88*1*${phone}#`;
+    document.getElementById("ussdBox").innerText = ussd;
 }
 </script>
 
