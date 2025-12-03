@@ -91,3 +91,5 @@ services:
 ---
 
 For static-only (no SMS), you only need the HTML files. For SMS, use the Node.js backend setup above.
+
+@C7Pv4K@.7MykB#
