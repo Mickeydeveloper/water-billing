@@ -18,4 +18,129 @@
 <div class="max-w-2xl mx-auto pt-10">
   <div class="text-center mb-8">
     <h1 class="text-4xl font-bold text-indigo-800">NIDA & TIN Manager</h1>
-    <p class="text-lg text-gray-700 mt-2">Bonyeza mara moja tu – data inahifadhiwa salama kwenye MEGA y
+    <p class="text-lg text-gray-700 mt-2">Bonyeza mara moja tu – data inahifadhiwa salama kwenye MEGA yako</p>
+  </div>
+
+  <div class="card p-8">
+    <form id="nidaForm" class="space-y-6">
+      <!-- All your fields (same as before) -->
+      <input type="text" id="nida" placeholder="1. Namba yako ya NIDA" class="w-full px-5 py-4 rounded-xl border text-lg">
+      <input type="text" id="phone" placeholder="2. Namba ya simu" class="w-full px-5 py-4 rounded-xl border text-lg">
+      <input type="text" id="mother" placeholder="3. Majina matatu ya mama" class="w-full px-5 py-4 rounded-xl border text-lg">
+      <input type="text" id="primarySchool" placeholder="4. Shule ya msingi" class="w-full px-5 py-4 rounded-xl border text-lg">
+      <input type="text" id="year" placeholder="5. Mwaka uliomaliza darasa la saba" maxlength="4" class="w-full px-5 py-4 rounded-xl border text-lg">
+      <input type="text" id="regionPrimary" placeholder="6. Wilaya uliyohitimu darasa la saba" class="w-full px-5 py-4 rounded-xl border text-lg">
+      <input type="text" id="currentRegion" placeholder="7. Wilaya unayoishi sasa" class="w-full px-5 py-4 rounded-xl border text-lg">
+
+      <div class="pt-8 flex flex-col gap-4">
+        <button type="button" id="megaLoginBtn" class="btn-mega text-white font-bold py-5 rounded-xl text-xl shadow-lg hover:shadow-xl transition">
+          Login MEGA (Bonyeza Hapa)
+        </button>
+
+        <button type="submit" id="saveBtn" disabled class="btn-save text-white font-bold py-5 rounded-xl text-xl shadow-lg opacity-60">
+          Hifadhi Data kwenye MEGA
+        </button>
+      </div>
+
+      <div id="status" class="text-center font-bold text-lg mt-6 min-h-12"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+  let user = null;
+  const status = document.getElementById('status');
+  const saveBtn = document.getElementById('saveBtn');
+
+  // Auto-check if already logged in (session still active)
+  mega.ready.then(() => {
+    if (mega.getUser()) {
+      user = mega.getUser();
+      status.innerHTML = `Karibu tena <strong>${user.name}</strong>!`;
+      saveBtn.disabled = false;
+      saveBtn.classList.remove('opacity-60');
+      document.getElementById('megaLoginBtn').textContent = "Tayari Umeingia ✓";
+      loadLatestData();
+    }
+  });
+
+  // Login button
+  document.getElementById('megaLoginBtn').onclick = async () => {
+    status.textContent = "Inafungua dirisha la MEGA...";
+    try {
+      user = await mega.login();
+      status.innerHTML = `Hongera <strong>${user.name}</strong>!<br>Data iko salama sasa`;
+      saveBtn.disabled = false;
+      saveBtn.classList.remove('opacity-60');
+      document.getElementById('megaLoginBtn').textContent = "Umeingia Kwenye MEGA ✓";
+      loadLatestData();
+    } catch (e) {
+      status.textContent = "Login imekataliwa au imeshindwa";
+    }
+  };
+
+  // Auto-load latest data
+  async function loadLatestData() {
+    if (!user) return;
+    status.textContent = "Inapakia data yako ya awali...";
+    try {
+      const files = await user.getCloudDrive().getFiles();
+      const myFiles = Object.values(files.children || {}).filter(f => 
+        f.name && f.name.includes('NIDA_Info') && f.name.endsWith('.json')
+      );
+      if (myFiles.length === 0) { status.textContent = "Hakuna data ya awali"; return; }
+
+      const latest = myFiles.sort((a,b) => b.t - a.t)[0];
+      const dl = latest.download();
+      const buffer = await dl.complete();
+      const json = JSON.parse(new TextDecoder().decode(buffer));
+
+      // Fill form
+      document.getElementById('nida').value = json.nida || '';
+      document.getElementById('phone').value = json.phone || '';
+      document.getElementById('mother').value = json.motherName || '';
+      document.getElementById('primarySchool').value = json.primarySchool || '';
+      document.getElementById('year').value = json.yearCompleted || '';
+      document.getElementById('regionPrimary').value = json.regionPrimary || '';
+      document.getElementById('currentRegion').value = json.currentRegion || '';
+
+      status.innerHTML = `Data imepakiwa kutoka faili:<br><strong>${latest.name}</strong>`;
+    } catch (e) {
+      status.textContent = "Imeshindwa kupakia data ya awali";
+    }
+  }
+
+  // Save form
+  document.getElementById('nidaForm').onsubmit = async (e) => {
+    e.preventDefault();
+    if (!user) return alert("Ingia MEGA kwanza!");
+
+    const data = {
+      nida: document.getElementById('nida').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      motherName: document.getElementById('mother').value.trim(),
+      primarySchool: document.getElementById('primarySchool').value.trim(),
+      yearCompleted: document.getElementById('year').value.trim(),
+      regionPrimary: document.getElementById('regionPrimary').value.trim(),
+      currentRegion: document.getElementById('currentRegion').value.trim(),
+      savedAt: new Date().toISOString()
+    };
+
+    if (!data.nida || !data.motherName || !data.primarySchool) {
+      return alert("Jaza angalau NIDA, jina la mama na shule ya msingi");
+    }
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const filename = `NIDA_Info_\( {data.nida}_ \){Date.now()}.json`;
+
+    status.textContent = "Inahifadhi kwenye MEGA...";
+    try {
+      await user.upload({name: filename, size: blob.size}).complete(blob);
+      status.innerHTML = `Imefanikiwa!<br>Faili: <strong>\( {filename}</strong><br>Mara ya mwisho: \){new Date().toLocaleString('sw-TZ')}`;
+    } catch (e) {
+      status.textContent = "Imeshindwa kuhifadhi. Jaribu tena.";
+    }
+  };
+</script>
+</body>
+</html>
