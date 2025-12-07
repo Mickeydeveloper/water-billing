@@ -3,46 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NIDA - Hifadhi & Tuma</title>
-  <script src="https://mega.nz/js/v4/mega.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>NIDA - Tuma WhatsApp, SMS & PDF</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: system-ui; background: #f0f9ff; }
-    .card { background: white; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.12); }
+    body { font-family: system-ui; background: #f0f9ff; padding: 20px; }
+    input { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ccc; border-radius: 12px; font-size: 16px; }
+    button { padding: 16px; margin: 10px 0; border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: bold; cursor: pointer; }
+    .save { background: #10b981; }
+    .wa { background: #25d366; }
+    .sms { background: #6366f1; }
+    .pdf { background: #ef4444; }
+    .share-pdf { background: #8b5cf6; }
   </style>
 </head>
-<body class="p-4 min-h-screen">
+<body>
 
-<div class="max-w-xl mx-auto pt-8">
-  <h1 class="text-3xl font-bold text-center text-indigo-800 mb-6">NIDA / TIN Info</h1>
+<h1 class="text-center text-3xl font-bold text-indigo-800 mb-6">NIDA / TIN Info</h1>
 
-  <div class="card p-6 space-y-5">
-    <input type="text" id="nida" placeholder="1. Namba ya NIDA" class="w-full p-4 rounded-xl border text-lg">
-    <input type="text" id="phone" placeholder="2. Namba ya simu" class="w-full p-4 rounded-xl border text-lg">
-    <input type="text" id="mother" placeholder="3. Majina matatu ya mama" class="w-full p-4 rounded-xl border text-lg">
-    <input type="text" id="primarySchool" placeholder="4. Shule ya msingi" class="w-full p-4 rounded-xl border text-lg">
-    <input type="text" id="year" placeholder="5. Mwaka uliomaliza darasa la saba" class="w-full p-4 rounded-xl border text-lg">
-    <input type="text" id="regionPrimary" placeholder="6. Wilaya uliyohitimu darasa la saba" class="w-full p-4 rounded-xl border text-lg">
-    <input type="text" id="currentRegion" placeholder="7. Wilaya unayoishi sasa" class="w-full p-4 rounded-xl border text-lg">
+<div class="bg-white p-6 rounded-2xl shadow-xl">
+  <input type="text" id="nida" placeholder="1. Namba ya NIDA">
+  <input type="text" id="phone" placeholder="2. Namba ya simu">
+  <input type="text" id="mother" placeholder="3. Majina matatu ya mama">
+  <input type="text" id="primarySchool" placeholder="4. Shule ya msingi">
+  <input type="text" id="year" placeholder="5. Mwaka uliomaliza darasa la saba">
+  <input type="text" id="regionPrimary" placeholder="6. Wilaya uliyohitimu darasa la saba">
+  <input type="text" id="currentRegion" placeholder="7. Wilaya unayoishi sasa">
 
-    <div class="grid grid-cols-1 gap-4 pt-6">
-      <button id="saveAll" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-5 rounded-xl text-xl">
-        Hifadhi MEGA + Tuma WhatsApp/SMS
-      </button>
-    </div>
-
-    <div id="status" class="text-center font-bold text-lg mt-4"></div>
-  </div>
+  <button class="save w-full" id="generate">Hifadhi & Tuma</button>
 </div>
 
+<div id="buttons"></div>
+
 <script>
-  let user = null;
-
-  // Auto-login if already logged in to MEGA
-  mega.ready.then(() => { if (mega.getUser()) user = mega.getUser(); });
-
-  document.getElementById('saveAll').onclick = async () => {
+  document.getElementById('generate').onclick = async () => {
     const data = {
       nida: document.getElementById('nida').value.trim(),
       phone: document.getElementById('phone').value.trim(),
@@ -54,71 +47,90 @@
     };
 
     if (!data.nida || !data.motherName || !data.primarySchool) {
-      return alert("Jaza angalau: NIDA, Mama, na Shule ya Msingi");
+      return alert("Jaza NIDA, jina la mama na shule ya msingi kwanza!");
     }
 
-    // 1. Save to MEGA (if logged in)
-    if (user) {
-      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-      const filename = `NIDA_\( {data.nida}_ \){Date.now()}.json`;
-      try { await user.upload({name: filename}).complete(blob); } catch(e) {}
-    }
+    // Create plain text message
+    const text = `TAARIFA ZA NIDA\n\n` +
+      `Namba ya NIDA: ${data.nida}\n` +
+      `Simu: ${data.phone}\n` +
+      `Majina ya Mama: ${data.motherName}\n` +
+      `Shule ya Msingi: ${data.primarySchool}\n` +
+      `Mwaka: ${data.yearCompleted}\n` +
+      `Wilaya ya Shule: ${data.regionPrimary}\n` +
+      `Wilaya Unayoishi: ${data.currentRegion}\n\n` +
+      `Imehifadhiwa: ${new Date().toLocaleString('sw-TZ')}`;
 
-    // 2. Generate beautiful PDF
+    // Generate PDF
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
+    doc.setFontSize(18);
     doc.text("TAARIFA ZA NIDA", 105, 20, null, null, "center");
-
     doc.setFontSize(14);
-    doc.setFont("helvetica", "normal");
     let y = 40;
-    for (const [key, value] of Object.entries(data)) {
-      if (value) {
-        const label = {
-          nida: "Namba ya NIDA",
-          phone: "Simu",
-          motherName: "Majina ya Mama",
-          primarySchool: "Shule ya Msingi",
-          yearCompleted: "Mwaka wa Darasa la Saba",
-          regionPrimary: "Wilaya ya Shule",
-          currentRegion: "Wilaya Unayoishi"
-        }[key];
-        doc.text(`\( {label}: \){value}`, 20, y);
+    Object.entries(data).forEach(([k, v]) => {
+      if (v) {
+        const labels = {
+          nida: "Namba ya NIDA", phone: "Simu", motherName: "Majina ya Mama",
+          primarySchool: "Shule ya Msingi", yearCompleted: "Mwaka", 
+          regionPrimary: "Wilaya ya Shule", currentRegion: "Wilaya Unayoishi"
+        };
+        doc.text(`\( {labels[k]}: \){v}`, 20, y);
         y += 12;
       }
-    }
-    doc.text(`Imehifadhiwa: ${new Date().toLocaleString('sw-TZ')}`, 20, y + 10);
-
+    });
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
 
-    // 3. Plain text for SMS
-    const textMsg = Object.entries(data)
-      .filter(([k,v]) => v)
-      .map(([k,v]) => {
-        const labels = {nida:"NIDA", phone:"Simu", motherName:"Mama", primarySchool:"Shule", yearCompleted:"Mwaka", regionPrimary:"Wilaya Shule", currentRegion:"Wilaya Sasa"};
-        return `\( {labels[k]}: \){v}`;
-      }).join("\n");
+    // Show working buttons
+    document.getElementById('buttons').innerHTML = `
+      <div class="mt-6 space-y-4">
+        <button class="wa w-full" onclick="window.location.href='https://wa.me/?text=${encodeURIComponent(text)}'">
+          Tuma WhatsApp (Text)
+        </button>
+        
+        <button class="share-pdf w-full" onclick="shareFile('\( {pdfUrl}', 'NIDA_Info_ \){data.nida}.pdf', 'application/pdf')">
+          Tuma PDF kwa WhatsApp / Apps Zingine
+        </button>
+        
+        <button class="sms w-full" onclick="window.location.href='sms:?body=${encodeURIComponent(text)}'">
+          Tuma SMS (Android)
+        </button>
+        
+        <button class="pdf w-full" onclick="downloadPDF()">
+          Pakua PDF (Hifadhi kwenye Simu)
+        </button>
+      </div>
+    `;
 
-    // 4. Show share buttons
-    document.getElementById('status').innerHTML = `
-      <div class="space-y-4 mt-6">
-        <a href="whatsapp://send?text=${encodeURIComponent(textMsg)}" 
-           class="block bg-green-500 text-white text-center py-4 rounded-xl font-bold text-xl">
-           Tuma WhatsApp (Text)
-        </a>
-        <a href="\( {pdfUrl}" download="NIDA_MyInfo_ \){data.nida}.pdf" 
-           class="block bg-blue-600 text-white text-center py-4 rounded-xl font-bold text-xl">
-           Pakua PDF
-        </a>
-        <a href="sms:?body=${encodeURIComponent(textMsg)}" 
-           class="block bg-gray-700 text-white text-center py-4 rounded-xl font-bold text-xl">
-           Tuma SMS
-        </a>
-      </div>`;
+    // Download PDF function
+    window.downloadPDF = () => {
+      const a = document.createElement('a');
+      a.href = pdfUrl;
+      a.download = `NIDA_\( {data.nida}_ \){new Date().toISOString().slice(0,10)}.pdf`;
+      a.click();
+    };
+
+    // Universal share function (works perfectly on Android)
+    window.shareFile = async (url, filename, type) => {
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const file = new File([blob], filename, { type });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Taarifa za NIDA' });
+        } else {
+          // Fallback: open WhatsApp with attachment via Web Share (most phones)
+          window.location.href = `https://wa.me/?text=${encodeURIComponent("Hii ni taarifa za NIDA")}`;
+          setTimeout(() => alert("Chagua PDF kutoka gallery yako"), 2000);
+        }
+      } catch (e) {
+        alert("Share haikufanikiwa. Tumia 'Pakua PDF' kisha tuma kwa mkono");
+      }
+    };
   };
 </script>
+
 </body>
 </html>
