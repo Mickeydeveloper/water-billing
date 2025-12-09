@@ -6,37 +6,166 @@
   <title>NIDA - Tuma WhatsApp, SMS & PDF</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: system-ui; background: #f0f9ff; padding: 20px; }
-    input { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ccc; border-radius: 12px; font-size: 16px; }
-    button { padding: 16px; margin: 10px 0; border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: bold; cursor: pointer; }
-    .save { background: #10b981; }
-    .wa { background: #25d366; }
-    .sms { background: #6366f1; }
-    .pdf { background: #ef4444; }
-    .share-pdf { background: #8b5cf6; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', system-ui; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 30px;
+    }
+    h1 {
+      text-align: center;
+      color: #1a489b;
+      margin-bottom: 10px;
+      font-size: 28px;
+      letter-spacing: -0.5px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
+      font-size: 13px;
+    }
+    input { 
+      width: 100%; 
+      padding: 14px 16px; 
+      margin: 10px 0; 
+      border: 2px solid #e0e7ff;
+      border-radius: 10px; 
+      font-size: 15px;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    button { 
+      width: 100%;
+      padding: 14px 20px; 
+      margin: 12px 0; 
+      border: none; 
+      border-radius: 10px; 
+      color: white; 
+      font-size: 16px; 
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    button:hover:not(:disabled) { 
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    button:active:not(:disabled) { 
+      transform: translateY(0);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .save { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .wa { background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); }
+    .sms { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+    .pdf { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+    .share-pdf { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+    #buttons { margin-top: 20px; }
+    .loading { opacity: 0.7; pointer-events: none; }
+    .error { 
+      color: #dc2626; 
+      font-size: 13px;
+      margin: 10px 0;
+      padding: 10px;
+      background: #fee2e2;
+      border-radius: 8px;
+      display: none;
+    }
+    .success {
+      color: #059669;
+      font-size: 13px;
+      margin: 10px 0;
+      padding: 10px;
+      background: #d1fae5;
+      border-radius: 8px;
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-<h1 class="text-center text-3xl font-bold text-indigo-800 mb-6">NIDA / TIN Info</h1>
+<div class="container">
+  <h1> TIN REGISTRATION </h1>
+  <p class="subtitle">Jaza Kama Ulivyojaza kwenye Nida</p>
 
-<div class="bg-white p-6 rounded-2xl shadow-xl">
-  <input type="text" id="nida" placeholder="1. Namba ya NIDA">
-  <input type="text" id="phone" placeholder="2. Namba ya simu">
-  <input type="text" id="mother" placeholder="3. Majina matatu ya mama">
-  <input type="text" id="primarySchool" placeholder="4. Shule ya msingi">
-  <input type="text" id="year" placeholder="5. Mwaka uliomaliza darasa la saba">
-  <input type="text" id="regionPrimary" placeholder="6. Wilaya uliyohitimu darasa la saba">
-  <input type="text" id="currentRegion" placeholder="7. Wilaya unayoishi sasa">
+  <div id="error" class="error"></div>
+  <div id="success" class="success"></div>
 
-  <button class="save w-full" id="generate">Hifadhi & Tuma</button>
+  <div>
+    <input type="text" id="nida" placeholder="1. Namba ya NIDA" maxlength="20">
+    <input type="tel" id="phone" placeholder="2. Namba ya simu" maxlength="15">
+    <input type="text" id="mother" placeholder="3. Majina matatu ya mama" maxlength="100">
+    <input type="text" id="primarySchool" placeholder="4. Shule ya msingi" maxlength="100">
+    <input type="text" id="year" placeholder="5. Mwaka uliomaliza darasa la saba" maxlength="4">
+    <input type="text" id="regionPrimary" placeholder="6. Wilaya uliyohitimu darasa la saba" maxlength="100">
+    <input type="text" id="currentRegion" placeholder="7. Wilaya unayoishi sasa" maxlength="100">
+
+    <button class="save" id="generate">💾 Hifadhi & Tuma</button>
+  </div>
+
+  <div id="buttons"></div>
 </div>
 
-<div id="buttons"></div>
-
 <script>
-  document.getElementById('generate').onclick = async () => {
-    const data = {
+  // Configuration
+  const CONFIG = {
+    PHONE_NUMBER: '255615944741',
+    MESSAGES_LANG: 'sw-TZ'
+  };
+
+  // Helper functions
+  function showError(message) {
+    const errorDiv = document.getElementById('error');
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+    setTimeout(() => { errorDiv.style.display = 'none'; }, 5000);
+  }
+
+  function showSuccess(message) {
+    const successDiv = document.getElementById('success');
+    successDiv.textContent = message;
+    successDiv.style.display = 'block';
+    setTimeout(() => { successDiv.style.display = 'none'; }, 4000);
+  }
+
+  function isValidData(data) {
+    if (!data.nida || data.nida.trim() === '') {
+      showError('❌ Jaza Namba ya NIDA');
+      return false;
+    }
+    if (!data.motherName || data.motherName.trim() === '') {
+      showError('❌ Jaza Jina la Mama');
+      return false;
+    }
+    if (!data.primarySchool || data.primarySchool.trim() === '') {
+      showError('❌ Jaza Shule ya Msingi');
+      return false;
+    }
+    return true;
+  }
+
+  // Generate data from form
+  function getFormData() {
+    return {
       nida: document.getElementById('nida').value.trim(),
       phone: document.getElementById('phone').value.trim(),
       motherName: document.getElementById('mother').value.trim(),
@@ -45,90 +174,225 @@
       regionPrimary: document.getElementById('regionPrimary').value.trim(),
       currentRegion: document.getElementById('currentRegion').value.trim(),
     };
+  }
 
-    if (!data.nida || !data.motherName || !data.primarySchool) {
-      return alert("Jaza NIDA, jina la mama na shule ya msingi kwanza!");
+  // Create text message
+  function createTextMessage(data) {
+    return `TAARIFA ZA NIDA\n\n` +
+      `📋 Namba ya NIDA: ${data.nida}\n` +
+      `📱 Simu: ${data.phone || 'Hakuna'}\n` +
+      `👩 Majina ya Mama: ${data.motherName}\n` +
+      `🏫 Shule ya Msingi: ${data.primarySchool}\n` +
+      `📅 Mwaka: ${data.yearCompleted || 'Hakuna'}\n` +
+      `📍 Wilaya ya Shule: ${data.regionPrimary || 'Hakuna'}\n` +
+      `🏠 Wilaya Unayoishi: ${data.currentRegion || 'Hakuna'}\n\n` +
+      `⏰ Imehifadhiwa: ${new Date().toLocaleString(CONFIG.MESSAGES_LANG)}\n` +
+      `🔗 Inayotoka: NIDA System`;
+  }
+
+  // Generate PDF
+  function generatePDF(data) {
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      // Add header background
+      doc.setFillColor(26, 72, 155);
+      doc.rect(0, 0, pageWidth, 35, 'F');
+      
+      // Add title
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont(undefined, 'bold');
+      doc.text("TAARIFA ZA NIDA", pageWidth / 2, 15, { align: 'center' });
+      doc.setFontSize(10);
+      doc.text("Information System", pageWidth / 2, 25, { align: 'center' });
+      
+      // Reset text color
+      doc.setTextColor(0, 0, 0);
+      
+      // Add content section
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      let y = 45;
+      
+      const fieldLabels = {
+        nida: "Namba ya NIDA",
+        phone: "Namba ya Simu",
+        motherName: "Majina ya Mama",
+        primarySchool: "Shule ya Msingi",
+        yearCompleted: "Mwaka uliomaliza Darasa la Saba",
+        regionPrimary: "Wilaya - Darasa la Saba",
+        currentRegion: "Wilaya Unayoishi Sasa"
+      };
+      
+      // Add separator line
+      doc.setDrawColor(26, 72, 155);
+      doc.setLineWidth(0.5);
+      doc.line(15, 40, pageWidth - 15, 40);
+      
+      // Add data fields
+      doc.setFontSize(11);
+      Object.entries(data).forEach(([k, v]) => {
+        if (v) {
+          // Label
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(26, 72, 155);
+          doc.text(fieldLabels[k] + ":", 20, y);
+          
+          // Value
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(0, 0, 0);
+          doc.text(v, 20, y + 6);
+          
+          // Separator
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(0.1);
+          doc.line(15, y + 10, pageWidth - 15, y + 10);
+          
+          y += 18;
+        }
+      });
+      
+      // Add timestamp and footer
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      const timestamp = new Date().toLocaleString(CONFIG.MESSAGES_LANG);
+      doc.text(`Imehifadhiwa: ${timestamp}`, 20, pageHeight - 15);
+      
+      // Add footer border
+      doc.setDrawColor(26, 72, 155);
+      doc.setLineWidth(0.5);
+      doc.line(15, pageHeight - 10, pageWidth - 15, pageHeight - 10);
+      
+      const pdfBlob = doc.output('blob');
+      return URL.createObjectURL(pdfBlob);
+    } catch (e) {
+      console.error('PDF Generation Error:', e);
+      showError('❌ Kosa katika kutengeneza PDF');
+      return null;
     }
+  }
 
-    // Create plain text message
-    const text = `TAARIFA ZA NIDA\n\n` +
-      `Namba ya NIDA: ${data.nida}\n` +
-      `Simu: ${data.phone}\n` +
-      `Majina ya Mama: ${data.motherName}\n` +
-      `Shule ya Msingi: ${data.primarySchool}\n` +
-      `Mwaka: ${data.yearCompleted}\n` +
-      `Wilaya ya Shule: ${data.regionPrimary}\n` +
-      `Wilaya Unayoishi: ${data.currentRegion}\n\n` +
-      `Imehifadhiwa: ${new Date().toLocaleString('sw-TZ')}`;
-
-    // Generate PDF
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("TAARIFA ZA NIDA", 105, 20, null, null, "center");
-    doc.setFontSize(14);
-    let y = 40;
-    Object.entries(data).forEach(([k, v]) => {
-      if (v) {
-        const labels = {
-          nida: "Namba ya NIDA", phone: "Simu", motherName: "Majina ya Mama",
-          primarySchool: "Shule ya Msingi", yearCompleted: "Mwaka", 
-          regionPrimary: "Wilaya ya Shule", currentRegion: "Wilaya Unayoishi"
-        };
-        doc.text(`\( {labels[k]}: \){v}`, 20, y);
-        y += 12;
-      }
-    });
-    const pdfBlob = doc.output('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-
-    // Show working buttons
-    document.getElementById('buttons').innerHTML = `
-      <div class="mt-6 space-y-4">
-        <button class="wa w-full" onclick="window.location.href='https://wa.me/?text=${encodeURIComponent(text)}'">
-          Tuma WhatsApp (Text)
-        </button>
-        
-        <button class="share-pdf w-full" onclick="shareFile('\( {pdfUrl}', 'NIDA_Info_ \){data.nida}.pdf', 'application/pdf')">
-          Tuma PDF kwa WhatsApp / Apps Zingine
-        </button>
-        
-        <button class="sms w-full" onclick="window.location.href='sms:?body=${encodeURIComponent(text)}'">
-          Tuma SMS (Android)
-        </button>
-        
-        <button class="pdf w-full" onclick="downloadPDF()">
-          Pakua PDF (Hifadhi kwenye Simu)
-        </button>
-      </div>
-    `;
-
-    // Download PDF function
-    window.downloadPDF = () => {
+  // Download PDF
+  function downloadPDF(pdfUrl, nida) {
+    try {
       const a = document.createElement('a');
       a.href = pdfUrl;
-      a.download = `NIDA_\( {data.nida}_ \){new Date().toISOString().slice(0,10)}.pdf`;
+      a.download = `NIDA_${nida}_${new Date().toISOString().slice(0,10)}.pdf`;
+      document.body.appendChild(a);
       a.click();
-    };
+      document.body.removeChild(a);
+      showSuccess('✅ PDF imehifadhiwa kwenye simu');
+    } catch (e) {
+      console.error('Download Error:', e);
+      showError('❌ Kosa katika kupakinisha PDF');
+    }
+  }
 
-    // Universal share function (works perfectly on Android)
-    window.shareFile = async (url, filename, type) => {
-      try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const file = new File([blob], filename, { type });
-        
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Taarifa za NIDA' });
-        } else {
-          // Fallback: open WhatsApp with attachment via Web Share (most phones)
-          window.location.href = `https://wa.me/?text=${encodeURIComponent("Hii ni taarifa za NIDA")}`;
-          setTimeout(() => alert("Chagua PDF kutoka gallery yako"), 2000);
-        }
-      } catch (e) {
-        alert("Share haikufanikiwa. Tumia 'Pakua PDF' kisha tuma kwa mkono");
+  // Send to WhatsApp (direct to specific number)
+  function sendToWhatsApp(message, pdfUrl = null) {
+    try {
+      const phoneNumber = CONFIG.PHONE_NUMBER;
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+      
+      window.open(whatsappUrl, '_blank');
+      showSuccess('✅ WhatsApp imefungua');
+      
+      if (pdfUrl) {
+        setTimeout(() => {
+          showError('💡 Tafadhali ambatanisha PDF kwa mkono kutoka gallery');
+        }, 1000);
       }
-    };
+    } catch (e) {
+      console.error('WhatsApp Error:', e);
+      showError('❌ Kosa katika kubukaana na WhatsApp');
+    }
+  }
+
+  // Share file
+  async function shareFile(url, filename, type) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch file');
+      
+      const blob = await response.blob();
+      const file = new File([blob], filename, { type });
+      
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ 
+          files: [file], 
+          title: 'Taarifa za NIDA',
+          text: 'Taarifa za NIDA'
+        });
+        showSuccess('✅ Faili limebagishwa');
+      } else {
+        sendToWhatsApp('', url);
+      }
+    } catch (e) {
+      console.error('Share Error:', e);
+      showError('❌ Tumia "Pakua PDF" kisha tuma kwa mkono');
+    }
+  }
+
+  // Main handler
+  document.getElementById('generate').onclick = async function() {
+    try {
+      this.disabled = true;
+      this.classList.add('loading');
+      
+      const data = getFormData();
+      
+      if (!isValidData(data)) {
+        this.disabled = false;
+        this.classList.remove('loading');
+        return;
+      }
+
+      // Generate PDF
+      const pdfUrl = generatePDF(data);
+      if (!pdfUrl) {
+        this.disabled = false;
+        this.classList.remove('loading');
+        return;
+      }
+
+      // Create message
+      const text = createTextMessage(data);
+
+      // Show buttons
+      document.getElementById('buttons').innerHTML = `
+        <div>
+          <button class="wa" onclick="sendToWhatsApp(\`${text}\`, '${pdfUrl}')">
+            💚 Tuma WhatsApp (Ujumbe)
+          </button>
+          
+          <button class="share-pdf" onclick="shareFile('${pdfUrl}', 'NIDA_${data.nida}.pdf', 'application/pdf')">
+            📤 Tuma PDF kwa WhatsApp
+          </button>
+          
+          <button class="sms" onclick="window.location.href='sms:${data.phone || CONFIG.PHONE_NUMBER}?body=${encodeURIComponent(text)}'">
+            📨 Tuma SMS
+          </button>
+          
+          <button class="pdf" onclick="downloadPDF('${pdfUrl}', '${data.nida}')">
+            📥 Pakua PDF
+          </button>
+        </div>
+      `;
+
+      showSuccess('✅ Taarifa zimehifadhiwa! Chagua njia ya kutuma');
+      this.disabled = false;
+      this.classList.remove('loading');
+    } catch (e) {
+      console.error('Main Error:', e);
+      showError('❌ Kosa lilijitokeza. Tafadhali jaribu tena');
+      this.disabled = false;
+      this.classList.remove('loading');
+    }
   };
 </script>
 
