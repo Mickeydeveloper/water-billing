@@ -7,27 +7,34 @@
   <meta name="author" content="Mickey Hamza">
   <title>Dashboard - Mickey Water Billing System</title>
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
   <style>
     :root {
-      --primary-color: #0077b6;
-      --secondary-color: #0099cc;
-      --success-color: #25a244;
-      --error-color: #ff6f61;
-      --background-color: #e0f7fa;
-      --text-color: #333;
-      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.1);
-      --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.15);
-      --border-radius: 12px;
-      --transition: all 0.3s ease-out;
+      --primary-color: #1e40af;
+      --secondary-color: #0ea5e9;
+      --success-color: #10b981;
+      --error-color: #ef4444;
+      --warning-color: #f59e0b;
+      --background-light: #f8fafc;
+      --background-dark: #0f172a;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --background-color: #1a1a2e;
-        --text-color: #e0e0e0;
-        --primary-color: #4da8da;
-        --secondary-color: #80ced7;
+        --background-light: #0f172a;
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --border-color: #1e293b;
+        --primary-color: #3b82f6;
+        --secondary-color: #06b6d4;
       }
     }
 
@@ -36,8 +43,8 @@
     }
 
     body {
-      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, var(--background-color) 0%, #b2f0e6 100%);
+      font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       margin: 0;
       padding: 20px;
       min-height: 100vh;
@@ -73,17 +80,19 @@
     }
 
     .dashboard {
-      background: #fff;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
       border-radius: var(--border-radius);
-      box-shadow: var(--shadow-md);
-      padding: 2rem;
-      max-width: 500px;
+      box-shadow: var(--shadow-lg);
+      padding: 2.5rem;
+      max-width: 550px;
       width: 100%;
       text-align: center;
       transform: translateZ(20px);
       transition: var(--transition);
       opacity: 0;
       visibility: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .dashboard.visible {
@@ -92,10 +101,14 @@
     }
 
     h1 {
-      color: var(--primary-color);
-      font-size: clamp(1.5rem, 5vw, 2rem);
-      margin-bottom: 1.5rem;
-      text-shadow: 1px 1px 0 #fff;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: clamp(1.8rem, 5vw, 2.2rem);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
     }
 
     .status-box {

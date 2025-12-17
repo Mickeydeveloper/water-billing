@@ -142,9 +142,17 @@
             <label for="monthFilter" style="font-weight:normal;">Chuja kwa Mwezi:</label>
             <select id="monthFilter">
                 <option value="">Rekodi Zote</option>
-                </select>
+            </select>
             
             <button class="clear-btn" id="clearRecordsBtn">Futa Rekodi Zote</button>
+        
+            <!-- MEGA quick config -->
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input id="mega-email" placeholder="mickidadyhamza@gmail.com" style="padding:8px; border-radius:6px;" />
+                <input id="mega-password" placeholder="Mickeydady29@" type="password" style="padding:8px; border-radius:6px;" />
+                <input id="mega-filename" placeholder="filename (records.json)" value="records.json" style="padding:8px; border-radius:6px; width:160px;" />
+                <button class="clear-btn" id="saveToMegaBtn">Save to MEGA</button>
+            </div>
         </div>
 
         <div id="recordsView">
@@ -313,7 +321,33 @@
             loadRecords();
             document.getElementById('clearRecordsBtn').onclick = clearRecords;
             document.getElementById('monthFilter').addEventListener('change', loadRecords);
+            document.getElementById('saveToMegaBtn').addEventListener('click', saveToMega);
+            // preload creds if present
+            const creds = JSON.parse(localStorage.getItem('megaCreds') || '{}');
+            if (creds.email) document.getElementById('mega-email').value = creds.email;
+            if (creds.filename) document.getElementById('mega-filename').value = creds.filename || 'records.json';
         });
+
+        function saveCredentialsToLocal(email, password, filename) {
+            localStorage.setItem('megaCreds', JSON.stringify({ email, password, filename }));
+        }
+
+        async function saveToMega() {
+            const email = document.getElementById('mega-email').value;
+            const password = document.getElementById('mega-password').value;
+            const filename = document.getElementById('mega-filename').value || 'records.json';
+            if (!email || !password) { alert('Tafadhali weka MEGA email na password.'); return; }
+            saveCredentialsToLocal(email, password, filename);
+            const content = JSON.stringify(getRecords());
+            try {
+                const resp = await fetch('/save-to-mega', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, filename, content }) });
+                const body = await resp.json();
+                if (!resp.ok) throw new Error(body.error || 'Unknown server error');
+                alert('Rekodi zimehifadhiwa kwenye MEGA.');
+            } catch (e) {
+                alert('Kosa wakati wa kuhifadhi kwenye MEGA: ' + e.message);
+            }
+        }
     </script>
 </body>
 </html>
