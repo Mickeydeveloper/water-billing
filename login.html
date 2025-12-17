@@ -3,15 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Passive AI Face Login</title>
+  <title>Secure Face Login</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
   <style>
-    /* ---------------------------------- */
-    /* ENHANCED BASIC STYLING */
-    /* ---------------------------------- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -23,31 +21,32 @@
 
     .container {
       text-align: center;
-      background: rgba(52, 73, 94, 0.95);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
-      padding: 40px;
+      padding: 3rem;
       border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      max-width: 400px;
+      max-width: 420px;
       width: 90%;
     }
 
     h1 {
       margin-bottom: 10px;
       font-size: 1.8em;
-      background: linear-gradient(45deg, #3498db, #2ecc71);
+      background: linear-gradient(135deg, #1e40af, #0ea5e9);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      font-weight: 700;
     }
 
     .caption {
-      color: #bdc3c7;
-      font-size: 0.85em;
-      margin-bottom: 20px;
-      opacity: 0.9;
+      color: #64748b;
+      font-size: 0.9em;
+      margin-bottom: 2rem;
+      font-weight: 500;
     }
 
     /* ---------------------------------- */
@@ -68,19 +67,22 @@
       display: none;
       margin: 15px auto;
       border-radius: 15px;
-      border: 2px solid #2ecc71;
-      box-shadow: 0 5px 20px rgba(46, 204, 113, 0.3);
+      border: 2px solid #0ea5e9;
+      box-shadow: 0 5px 20px rgba(14, 165, 233, 0.3);
       max-width: 100%;
     }
 
     .status {
-      margin: 20px 0;
+      margin: 2rem 0;
       font-weight: 600;
-      font-size: 1.1em;
-      min-height: 35px;
-      padding: 10px;
-      border-radius: 8px;
+      font-size: 1.05em;
+      min-height: 40px;
+      padding: 12px;
+      border-radius: 10px;
       transition: all 0.3s ease;
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.1), rgba(14, 165, 233, 0.1));
+      color: #1e293b;
+      border: 2px solid #e2e8f0;
     }
 
     button { display: none !important; }
@@ -90,11 +92,11 @@
     /* ---------------------------------- */
     @keyframes pulse-scan {
       0%, 100% { 
-        box-shadow: 0 0 5px rgba(52, 152, 219, 0.4);
+        box-shadow: 0 0 8px rgba(30, 64, 175, 0.5);
         transform: scale(1);
       }
       50% { 
-        box-shadow: 0 0 25px rgba(52, 152, 219, 0.8);
+        box-shadow: 0 0 30px rgba(30, 64, 175, 0.8);
         transform: scale(1.02);
       }
     }
@@ -127,8 +129,8 @@
     }
     .success { 
       animation: success-bounce 0.6s ease-out;
-      background: rgba(46, 204, 113, 0.2);
-      color: #2ecc71 !important;
+      background: rgba(16, 185, 129, 0.2) !important;
+      color: #10b981 !important;
     }
 
     /* Loading dots */
@@ -149,27 +151,29 @@
     /* ---------------------------------- */
     .progress-bar {
       width: 100%;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 2px;
+      height: 5px;
+      background: rgba(226, 232, 240, 0.3);
+      border-radius: 3px;
       overflow: hidden;
-      margin: 15px 0;
+      margin: 1.5rem 0;
       display: none;
     }
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #2ecc71, #27ae60);
+      background: linear-gradient(90deg, #0ea5e9, #06b6d4);
       width: 0%;
       transition: width 0.3s ease;
-      border-radius: 2px;
+      border-radius: 3px;
     }
 
-    /* MEGA Cloud branding */
+    /* Cloud branding */
     .mega-status {
-      font-size: 0.75em;
-      color: #9b59b6;
-      margin-top: 5px;
+      font-size: 0.85em;
+      color: #1e40af;
+      margin-top: 1rem;
+      font-weight: 500;
+      display: none;
     }
   </style>
 </head>
@@ -193,9 +197,10 @@
     <div class="progress-bar" id="progressBar">
       <div class="progress-fill" id="progressFill"></div>
     </div>
-    <div class="mega-status" id="megaStatus">Securing to MEGA Cloud</div>
+    <div class="mega-status" id="megaStatus"></div>
   </div>
 
+  <script src="mega-handler.js"></script>
   <script>
     // DOM Elements
     const video = document.getElementById('camera');
@@ -289,50 +294,24 @@
       // previewCtx.drawImage(captureCanvas, 0, 0);
       // previewCanvas.style.display = 'block';
       
-      statusText.textContent = "📸 Enhanced photo secured";
+      statusText.textContent = "📸 Enhanced photo captured";
       statusText.style.color = '#2ecc71';
       
-      // Proceed to MEGA upload
-      setTimeout(uploadToMega, 800);
+      // Proceed to login
+      setTimeout(completeSecureLogin, 800);
     }
 
-    // --- 4. MEGA CLOUD UPLOAD ---
-    async function uploadToMega() {
-      if (loginAttempted) return;
-      loginAttempted = true;
-      
-      // Show upload progress
-      progressBar.style.display = 'block';
-      megaStatus.style.display = 'block';
-      statusText.textContent = "🔒 Encrypting & uploading to MEGA Cloud";
-      
-      // Simulate upload progress
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 15;
-        if (progress > 100) progress = 100;
-        
-        progressFill.style.width = progress + '%';
-        
-        if (progress >= 100) {
-          clearInterval(interval);
-          completeSecureLogin();
-        }
-      }, 150);
-    }
-
-    // --- 5. COMPLETE SECURE LOGIN ---
-    function completeSecureLogin() {
-      statusText.textContent = "✅ Login successful! MEGA secured";
+    // --- 4. SIMPLE LOGIN (MEGA upload removed) ---
+    async function completeSecureLogin() {
+      statusText.textContent = "✅ Login successful!";
       statusText.className = 'status success';
-      megaStatus.textContent = "Photo saved securely in MEGA Cloud";
       
-      // Clean up
+      // Clean up camera
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
       
-      // Final redirect
+      // Redirect to main page
       setTimeout(() => {
         window.location.href = "main.html";
       }, 1200);

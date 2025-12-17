@@ -4,25 +4,171 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rekodi za Data Zilizoboreshwa - Graphy</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
-        h1 { color: #2c3e50; text-align: center; }
-        .controls { text-align: center; margin-bottom: 20px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
-        button { padding: 10px 15px; background-color: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .add-btn { background-color: #3498db; }
-        .reset-btn { background-color: #e74c3c; }
-        #data-table { width: 100%; border-collapse: collapse; margin-top: 20px; background-color: white; }
-        #data-table th, #data-table td { border: 1px solid #ddd; padding: 8px; text-align: left; min-width: 60px; }
-        #data-table th { background-color: #34495e; color: white; }
-        .editable { background-color: #ecf0f1; }
-        #status-message { text-align: center; margin-top: 10px; font-weight: bold; height: 20px; }
-        .mega-config { display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; }
-        .mega-config input { padding:6px; }
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #0ea5e9;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .add-btn {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+        
+        .add-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, var(--error-color), #dc2626);
+        }
+        
+        .reset-btn:hover {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+        }
+        
+        #data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        #data-table th, #data-table td {
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            text-align: left;
+            min-width: 60px;
+        }
+        
+        #data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        
+        .editable {
+            background-color: rgba(14, 165, 233, 0.05);
+        }
+        
+        #status-message {
+            text-align: center;
+            margin-top: 1rem;
+            font-weight: 600;
+            min-height: 25px;
+            color: var(--success-color);
+        }
+        
+        .mega-config {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding: 1.25rem;
+            background: rgba(14, 165, 233, 0.05);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .mega-config input {
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            color: var(--text-primary);
+        }
+        
+        .mega-config input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+        
+        .mega-config button {
+            padding: 0.75rem 1.25rem;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
-
-    <h1>📊 Rekodi za Data Zilizoboreshwa (Graphy)</h1>
+    <div class="container">
+        <h1>📊 Rekodi za Data Zilizoboreshwa (Graphy)</h1>
 
     <div class="controls">
         <button onclick="saveData()">Hifadhi Mabadiliko (Save)</button>
@@ -32,11 +178,12 @@
     </div>
 
     <div class="mega-config">
-        <input id="mega-email" placeholder="mickidadyhamza@gmail.com" />
-        <input id="mega-password" placeholder="Mickeydady29@" type="password" />
-        <input id="mega-filename" placeholder="filename (graphy.json)" value="graphy.json" />
-        <button onclick="saveCredentials()">Save Creds</button>
-        <button onclick="saveToMega()">Save to MEGA</button>
+        <input id="mega-email" placeholder="Email yako ya MEGA" />
+        <input id="mega-password" placeholder="Password ya MEGA" type="password" />
+        <input id="mega-filename" placeholder="Jina la faili (graphy.json)" value="graphy.json" />
+        <button onclick="megaSaveCredentials()">💾 Hifadhi Kredensho</button>
+        <button onclick="megaUploadData()">☁️ Hifadhi kwenye MEGA</button>
+        <button onclick="megaAutofill()" style="background: linear-gradient(135deg, #f59e0b, #f97316); font-size: 0.75rem;">⚡ Demo</button>
     </div>
 
     <div id="status-message"></div>
@@ -53,6 +200,7 @@
         </table>
     </div>
 
+    <script src="mega-handler.js"></script>
     <script>
         const initialData = [];
         const initialHeaders = [];
@@ -133,28 +281,48 @@
 
         function deleteColumnByIndex(colIndex) { const { data, headers } = getTableData(); if (colIndex < 0 || colIndex >= headers.length) return; const headerToRemove = headers[colIndex]; headers.splice(colIndex, 1); data.forEach(item => { delete item[headerToRemove]; }); renderTable(data, headers); saveData(); showMessage(`Safu '${headerToRemove}' imefutwa.`, 'orange'); }
 
-        // MEGA helpers
-        function saveCredentials() { const email = document.getElementById('mega-email').value; const password = document.getElementById('mega-password').value; const filename = document.getElementById('mega-filename').value || 'graphy.json'; localStorage.setItem('megaCreds', JSON.stringify({ email, password, filename })); showMessage('MEGA credentials saved (in browser localStorage).', 'green'); }
+        // Initialize MEGA handler
+        const megaHandler = new MegaHandler();
 
-        async function saveToMega() {
-            const creds = JSON.parse(localStorage.getItem('megaCreds') || '{}');
-            const email = creds.email || document.getElementById('mega-email').value;
-            const password = creds.password || document.getElementById('mega-password').value;
-            const filename = document.getElementById('mega-filename').value || creds.filename || 'graphy.json';
-            if (!email || !password) { showMessage('Tafadhali weka MEGA email na password.', 'red'); return; }
-            const { data, headers } = getTableData();
-            const content = JSON.stringify({ data, headers });
-            try {
-                const resp = await fetch('/save-to-mega', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, filename, content })
-                });
-                const body = await resp.json();
-                if (!resp.ok) throw new Error(body.error || 'Unknown server error');
-                showMessage('✅ Imehifadhiwa kwenye MEGA.', 'green');
-            } catch (e) {
-                showMessage('❌ MEGA save failed: ' + e.message, 'red');
+        // MEGA function: Auto-fill demo credentials
+        function megaAutofill() {
+            const result = megaHandler.autofillDemoCredentials();
+            const creds = megaHandler.getDemoCredentials();
+            document.getElementById('mega-email').value = creds.email;
+            document.getElementById('mega-password').value = creds.password;
+            showMessage(result.message, 'green');
+        }
+
+        // MEGA function: Save credentials
+        function megaSaveCredentials() {
+            const email = document.getElementById('mega-email').value.trim();
+            const password = document.getElementById('mega-password').value.trim();
+            
+            if (!email || !password) {
+                showMessage('Email na password ni lazima.', 'red');
+                return;
             }
+            
+            const result = megaHandler.saveCredentials(email, password);
+            showMessage(result.message, result.success ? 'green' : 'red');
+        }
+
+        // MEGA function: Upload data
+        async function megaUploadData() {
+            const filename = document.getElementById('mega-filename').value.trim() || 'graphy.json';
+            
+            if (!megaHandler.hasCredentials()) {
+                showMessage('Tafadhali hifadhi kredensho kwanza.', 'red');
+                return;
+            }
+            
+            const { data, headers } = getTableData();
+            const fileContent = { data, headers, uploadedAt: new Date().toISOString() };
+            
+            showMessage('Kupakia kwenye MEGA...', 'info');
+            const result = await megaHandler.uploadJSON(fileContent, filename);
+            
+            showMessage(result.message, result.success ? 'green' : 'red');
         }
 
         window.onload = loadData;

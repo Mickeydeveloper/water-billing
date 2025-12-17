@@ -5,91 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mickey Water Billing - Historia Kamili</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
     <style>
         :root {
-            --color-primary: #0077b6;
-            --color-secondary: #023e8a;
-            --color-delete: #dc3545;
-            --color-background-light: #e0f7fa;
-            --color-background-dark: #b2f0e6;
-            --color-text-dark: #333;
+            --primary-color: #1e40af;
+            --secondary-color: #0ea5e9;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --background-light: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
 
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, var(--color-background-light) 0%, var(--color-background-dark) 100%);
+            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
-            padding: 40px;
+            padding: 20px;
             min-height: 100vh;
-            color: var(--color-text-dark);
+            color: var(--text-primary);
         }
 
         .container {
             max-width: 1100px;
             margin: 0 auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 14px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         h1 {
             text-align: center;
-            color: var(--color-primary);
-            margin-bottom: 30px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+            font-weight: 700;
+            font-size: 1.8rem;
         }
 
         .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 1rem;
         }
         
         .controls a, .controls select, .controls button {
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-weight: bold;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
         }
 
         .back-btn {
-            background: #6c757d;
+            background: linear-gradient(135deg, #6366f1, #6b7280);
             color: #fff;
             text-decoration: none;
-            transition: background 0.2s;
+            border: none;
+            cursor: pointer;
         }
+
         .back-btn:hover {
-            background: #495057;
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
         
         .clear-btn {
-            background: var(--color-delete);
+            background: linear-gradient(135deg, var(--error-color), #dc2626);
             color: #fff;
             border: none;
             cursor: pointer;
-            transition: background 0.2s;
         }
+
         .clear-btn:hover {
-            background: #c82333;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
         
         /* Filter Styles */
         #monthFilter {
-            padding: 9px 15px;
-            border: 1px solid #ddd;
-            background: #f8f8f8;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            background: #fff;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        #monthFilter:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
         }
 
         /* Table Styles */
         .records-table-wrapper {
-            max-height: 60vh; 
+            max-height: 60vh;
             overflow-y: auto;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
+            box-shadow: var(--shadow-sm);
         }
         
         .records-table {
@@ -99,42 +131,62 @@
         }
 
         .records-table th, .records-table td {
-            padding: 12px 15px;
+            padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #eee;
-            background: #fff; /* Ensure cells have white background */
+            border-bottom: 1px solid var(--border-color);
+            background: #fff;
+            color: var(--text-primary);
         }
 
         .records-table th {
-            background-color: var(--color-primary);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: #fff;
-            font-weight: 600;
+            font-weight: 700;
             position: sticky;
             top: 0;
-            cursor: pointer; /* Indicate sortability */
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.85rem;
         }
 
         .records-table tr:hover {
-            background-color: #f5f5f5;
+            background-color: rgba(14, 165, 233, 0.05);
         }
 
         .records-table td:last-child {
-            font-weight: bold;
-            color: var(--color-secondary);
+            font-weight: 700;
+            color: var(--success-color);
         }
 
         .empty-message {
             text-align: center;
-            padding: 50px;
-            color: #999;
-            font-size: 1.2em;
+            padding: 3rem;
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, var(--error-color), #dc2626);
+            color: #fff;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            transform: scale(1.05);
         }
         
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Historia Kamili ya Ankara za Maji</h1>
+        <h1>📊 Historia Kamili ya Ankara za Maji</h1>
         
         <div class="controls">
             <a href="index.html" class="back-btn">← Rudi kwenye Ankara</a>
@@ -146,12 +198,13 @@
             
             <button class="clear-btn" id="clearRecordsBtn">Futa Rekodi Zote</button>
         
-            <!-- MEGA quick config -->
-            <div style="display:flex; gap:8px; align-items:center;">
-                <input id="mega-email" placeholder="mickidadyhamza@gmail.com" style="padding:8px; border-radius:6px;" />
-                <input id="mega-password" placeholder="Mickeydady29@" type="password" style="padding:8px; border-radius:6px;" />
-                <input id="mega-filename" placeholder="filename (records.json)" value="records.json" style="padding:8px; border-radius:6px; width:160px;" />
-                <button class="clear-btn" id="saveToMegaBtn">Save to MEGA</button>
+            <!-- MEGA storage section -->
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <input id="mega-email" placeholder="Email ya MEGA" style="padding:8px; border-radius:6px;" />
+                <input id="mega-password" placeholder="Password ya MEGA" type="password" style="padding:8px; border-radius:6px;" />
+                <input id="mega-filename" placeholder="Jina la faili (records.json)" value="records.json" style="padding:8px; border-radius:6px; width:160px;" />
+                <button class="clear-btn" id="saveToMegaBtn" style="background: linear-gradient(135deg, #0ea5e9, #06b6d4);">☁️ MEGA</button>
+                <button class="clear-btn" id="autoFillDemoBtn" style="background: linear-gradient(135deg, #f59e0b, #f97316); font-size: 0.8rem;">⚡ Demo</button>
             </div>
         </div>
 
@@ -160,6 +213,7 @@
         </div>
     </div>
     
+    <script src="mega-handler.js"></script>
     <script>
         const LOCAL_STORAGE_KEY = 'mickeyBillingRecords';
         let currentSortColumn = 'date';
@@ -315,37 +369,51 @@
                 });
             });
         }
+        // Initialize MEGA handler
+        const megaHandler = new MegaHandler();
 
         document.addEventListener('DOMContentLoaded', () => {
             populateMonthFilter();
             loadRecords();
             document.getElementById('clearRecordsBtn').onclick = clearRecords;
             document.getElementById('monthFilter').addEventListener('change', loadRecords);
-            document.getElementById('saveToMegaBtn').addEventListener('click', saveToMega);
+            document.getElementById('saveToMegaBtn').addEventListener('click', megaSaveToCloud);
+            document.getElementById('autoFillDemoBtn').addEventListener('click', megaAutofillDemo);
             // preload creds if present
-            const creds = JSON.parse(localStorage.getItem('megaCreds') || '{}');
+            const creds = megaHandler.getCredentials();
             if (creds.email) document.getElementById('mega-email').value = creds.email;
             if (creds.filename) document.getElementById('mega-filename').value = creds.filename || 'records.json';
         });
 
-        function saveCredentialsToLocal(email, password, filename) {
-            localStorage.setItem('megaCreds', JSON.stringify({ email, password, filename }));
+        function megaAutofillDemo() {
+            const result = megaHandler.autofillDemoCredentials();
+            const creds = megaHandler.getDemoCredentials();
+            document.getElementById('mega-email').value = creds.email;
+            document.getElementById('mega-password').value = creds.password;
+            alert(result.message);
         }
 
-        async function saveToMega() {
-            const email = document.getElementById('mega-email').value;
-            const password = document.getElementById('mega-password').value;
-            const filename = document.getElementById('mega-filename').value || 'records.json';
-            if (!email || !password) { alert('Tafadhali weka MEGA email na password.'); return; }
-            saveCredentialsToLocal(email, password, filename);
-            const content = JSON.stringify(getRecords());
-            try {
-                const resp = await fetch('/save-to-mega', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, filename, content }) });
-                const body = await resp.json();
-                if (!resp.ok) throw new Error(body.error || 'Unknown server error');
-                alert('Rekodi zimehifadhiwa kwenye MEGA.');
-            } catch (e) {
-                alert('Kosa wakati wa kuhifadhi kwenye MEGA: ' + e.message);
+        async function megaSaveToCloud() {
+            const email = document.getElementById('mega-email').value.trim();
+            const password = document.getElementById('mega-password').value.trim();
+            const filename = document.getElementById('mega-filename').value.trim() || 'records.json';
+            
+            if (!email || !password) {
+                alert('❌ Tafadhali weka MEGA email na password.');
+                return;
+            }
+            
+            // Save credentials
+            megaHandler.saveCredentials(email, password);
+            
+            // Upload records
+            const records = getRecords();
+            const result = await megaHandler.uploadJSON(records, filename);
+            
+            if (result.success) {
+                alert(result.message);
+            } else {
+                alert(result.message);
             }
         }
     </script>

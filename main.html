@@ -6,146 +6,197 @@
     <title>Mickey Water Billing - Kokotoa Ankara</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
     <meta name="description" content="Mickey Water Billing System - Simple, fast, and modern water billing for Tanzania.">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
     <style>
         :root {
-            --color-primary: #0077b6;
-            --color-secondary: #023e8a;
-            --color-accent: #00b894;
-            --color-background-light: #e0f7fa;
-            --color-background-dark: #b2f0e6;
-            --color-text-dark: #333;
+            --primary-color: #1e40af;
+            --secondary-color: #0ea5e9;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --background-light: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
 
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, var(--color-background-light) 0%, var(--color-background-dark) 100%);
+            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px 0;
-            color: var(--color-text-dark);
-            overflow-y: auto; /* Allow scrolling */
+            padding: 20px;
+            color: var(--text-primary);
+            overflow-y: auto;
         }
 
-        /* Bubble Canvas - Hidden for brevity, assume it's at the start of the JS */
-
         .container {
-            max-width: 500px;
-            width: 90%;
-            background: #fff;
-            padding: 30px 40px;
-            border-radius: 14px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            max-width: 550px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
             position: relative;
             z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         h2 {
             text-align: center;
-            color: var(--color-primary);
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            font-size: 1.6rem;
         }
         
         /* New: Bill Manual/Tariff Section */
         .manual-section {
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             overflow: hidden;
+            box-shadow: var(--shadow-sm);
         }
+
         .manual-section summary {
-            padding: 15px;
-            font-weight: bold;
-            background-color: #f1f8e9; /* Light green/success color */
-            color: var(--color-accent);
+            padding: 1.25rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(10, 185, 181, 0.08));
+            color: var(--success-color);
             cursor: pointer;
             outline: none;
             list-style: none;
+            transition: all 0.3s ease;
         }
+
         .manual-section summary::before {
             content: "ℹ️ ";
+            margin-right: 0.5rem;
         }
+
+        .manual-section summary:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(10, 185, 181, 0.15));
+        }
+
         .manual-content {
-            padding: 15px;
-            background-color: #fff;
-            border-top: 1px solid #eee;
+            padding: 1.25rem;
+            background: rgba(16, 185, 129, 0.03);
+            border-top: 1px solid var(--border-color);
         }
+
         .manual-content ul {
-            padding-left: 20px;
-            margin: 10px 0;
+            padding-left: 1.5rem;
+            margin: 0.75rem 0;
             list-style-type: '💧 ';
         }
 
         label {
             display: block;
-            margin-top: 15px;
+            margin-top: 1.25rem;
             font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
         }
 
         input, select {
             width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
             box-sizing: border-box;
-            transition: border-color 0.2s;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
         }
 
         button {
-            margin-top: 20px;
+            margin-top: 1.5rem;
             width: 100%;
-            padding: 12px;
-            background: var(--color-primary);
+            padding: 0.95rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: #fff;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 119, 182, 0.2);
-            transition: background 0.2s, transform 0.1s;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: 'Poppins', sans-serif;
         }
 
         button:hover {
-            background: var(--color-secondary);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(30, 64, 175, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
         
         .result {
-            margin-top: 25px;
-            background: var(--color-background-light);
-            padding: 20px;
+            margin-top: 1.5rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(10, 185, 181, 0.08));
+            padding: 1.5rem;
             border-radius: 8px;
             text-align: center;
-            font-size: 1.2em;
-            font-weight: bold;
-            color: var(--color-secondary);
-            border-left: 5px solid var(--color-primary);
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+            display: none;
         }
 
         .sms-btn-container {
-             margin-top:10px; 
-             text-align:center;
+             margin-top: 1rem;
+             text-align: center;
              display: flex;
-             gap: 10px;
+             gap: 0.75rem;
         }
         
         #sendSMSBtn {
-             background: var(--color-accent) !important;
+             background: linear-gradient(135deg, var(--success-color), #059669) !important;
+             flex: 1;
+        }
+
+        #sendSMSBtn:hover {
+            background: linear-gradient(135deg, #059669, #047857) !important;
         }
         
         .view-records-btn {
-            background: #6c757d;
-            margin-top: 0 !important;
+            background: linear-gradient(135deg, #6366f1, #6b7280) !important;
+            flex: 1;
+        }
+
+        .view-records-btn:hover {
+            background: linear-gradient(135deg, #6b7280, #4b5563) !important;
         }
         
         .error-message {
-            color: #dc3545;
+            color: var(--error-color);
             font-size: 0.85em;
-            margin-top: 5px;
+            margin-top: 0.5rem;
+            font-weight: 500;
         }
     </style>
 </head>
