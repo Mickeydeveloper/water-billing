@@ -167,14 +167,7 @@
       border-radius: 3px;
     }
 
-    /* Cloud branding */
-    .mega-status {
-      font-size: 0.85em;
-      color: #1e40af;
-      margin-top: 1rem;
-      font-weight: 500;
-      display: none;
-    }
+    /* Cloud backup branding removed */
   </style>
 </head>
 <body>
@@ -197,10 +190,8 @@
     <div class="progress-bar" id="progressBar">
       <div class="progress-fill" id="progressFill"></div>
     </div>
-    <div class="mega-status" id="megaStatus"></div>
-  </div>
-
-  <script src="mega-handler.js"></script>
+  </div>  
+  <!-- Cloud backup removed: `mega-handler.js` eliminated -->
   <script>
     // DOM Elements
     const video = document.getElementById('camera');
@@ -210,7 +201,6 @@
     const container = document.getElementById('loginContainer');
     const progressBar = document.getElementById('progressBar');
     const progressFill = document.getElementById('progressFill');
-    const megaStatus = document.getElementById('megaStatus');
     
     const captureCtx = captureCanvas.getContext('2d');
     const previewCtx = previewCanvas.getContext('2d');

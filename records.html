@@ -198,14 +198,7 @@
             
             <button class="clear-btn" id="clearRecordsBtn">Futa Rekodi Zote</button>
         
-            <!-- MEGA storage section -->
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <input id="mega-email" placeholder="Email ya MEGA" style="padding:8px; border-radius:6px;" />
-                <input id="mega-password" placeholder="Password ya MEGA" type="password" style="padding:8px; border-radius:6px;" />
-                <input id="mega-filename" placeholder="Jina la faili (records.json)" value="records.json" style="padding:8px; border-radius:6px; width:160px;" />
-                <button class="clear-btn" id="saveToMegaBtn" style="background: linear-gradient(135deg, #0ea5e9, #06b6d4);">☁️ MEGA</button>
-                <button class="clear-btn" id="autoFillDemoBtn" style="background: linear-gradient(135deg, #f59e0b, #f97316); font-size: 0.8rem;">⚡ Demo</button>
-            </div>
+            <!-- MEGA UI removed: cloud backup functionality has been disabled -->
         </div>
 
         <div id="recordsView">
@@ -213,11 +206,14 @@
         </div>
     </div>
     
-    <script src="mega-handler.js"></script>
     <script>
+        // MEGA integration removed — no cloud backup available
         const LOCAL_STORAGE_KEY = 'mickeyBillingRecords';
         let currentSortColumn = 'date';
         let sortDirection = 'desc';
+
+        function megaAutofillDemo() { alert('Cloud backup removed.'); }
+        async function megaSaveToCloud() { alert('Cloud backup removed.'); }
 
         /**
          * Loads all records from localStorage.
@@ -369,53 +365,14 @@
                 });
             });
         }
-        // Initialize MEGA handler
-        const megaHandler = new MegaHandler();
-
         document.addEventListener('DOMContentLoaded', () => {
             populateMonthFilter();
             loadRecords();
             document.getElementById('clearRecordsBtn').onclick = clearRecords;
             document.getElementById('monthFilter').addEventListener('change', loadRecords);
-            document.getElementById('saveToMegaBtn').addEventListener('click', megaSaveToCloud);
-            document.getElementById('autoFillDemoBtn').addEventListener('click', megaAutofillDemo);
-            // preload creds if present
-            const creds = megaHandler.getCredentials();
-            if (creds.email) document.getElementById('mega-email').value = creds.email;
-            if (creds.filename) document.getElementById('mega-filename').value = creds.filename || 'records.json';
         });
 
-        function megaAutofillDemo() {
-            const result = megaHandler.autofillDemoCredentials();
-            const creds = megaHandler.getDemoCredentials();
-            document.getElementById('mega-email').value = creds.email;
-            document.getElementById('mega-password').value = creds.password;
-            alert(result.message);
-        }
 
-        async function megaSaveToCloud() {
-            const email = document.getElementById('mega-email').value.trim();
-            const password = document.getElementById('mega-password').value.trim();
-            const filename = document.getElementById('mega-filename').value.trim() || 'records.json';
-            
-            if (!email || !password) {
-                alert('❌ Tafadhali weka MEGA email na password.');
-                return;
-            }
-            
-            // Save credentials
-            megaHandler.saveCredentials(email, password);
-            
-            // Upload records
-            const records = getRecords();
-            const result = await megaHandler.uploadJSON(records, filename);
-            
-            if (result.success) {
-                alert(result.message);
-            } else {
-                alert(result.message);
-            }
-        }
     </script>
 </body>
 </html>
