@@ -3,12 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Dashboard for Mickey Water Billing System">
+  <meta name="description" content="Dashboard - Mickey Water Billing System">
   <meta name="author" content="Mickey Hamza">
-  <title>Dashboard - Mickey Water Billing System</title>
-  <link rel="icon" type="image/png" href="favicon.png">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Dashboard - Water Billing System</title>
+  
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+  
   <style>
+    /* ============================================
+       RESET & VARIABLES
+       ============================================ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     :root {
       --primary-color: #1e40af;
       --secondary-color: #0ea5e9;
@@ -38,10 +50,9 @@
       }
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
+    /* ============================================
+       BODY & LAYOUT
+       ============================================ */
     body {
       font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -52,54 +63,43 @@
       align-items: center;
       justify-content: center;
       overflow-x: hidden;
+      color: var(--text-primary);
     }
 
-    .video-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 100;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
-    }
-
-    .video-container.hidden {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
+    /* ============================================
+       DASHBOARD CONTAINER
+       ============================================ */
     .dashboard {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
       border-radius: var(--border-radius);
       box-shadow: var(--shadow-lg);
-      padding: 2.5rem;
-      max-width: 550px;
+      padding: clamp(1.5rem, 5vw, 2.5rem);
+      max-width: 600px;
       width: 100%;
       text-align: center;
-      transform: translateZ(20px);
       transition: var(--transition);
       opacity: 0;
       visibility: hidden;
       border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: fadeInUp 0.5s ease-out 0.2s forwards;
     }
 
-    .dashboard.visible {
-      opacity: 1;
-      visibility: visible;
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        visibility: visible;
+      }
     }
 
+    /* ============================================
+       HEADER SECTION
+       ============================================ */
     h1 {
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       -webkit-background-clip: text;
@@ -111,369 +111,407 @@
       letter-spacing: -0.5px;
     }
 
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      font-weight: 500;
+    }
+
+    /* ============================================
+       STATUS BOXES
+       ============================================ */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
     .status-box {
       background: #f0faff;
       border: 2px solid var(--primary-color);
-      border-radius: var(--border-radius);
-      padding: 1rem;
-      margin-bottom: 1.5rem;
+      border-radius: 12px;
+      padding: 1.5rem;
       box-shadow: var(--shadow-sm);
       transition: var(--transition);
     }
 
     .status-box:hover {
       box-shadow: var(--shadow-md);
-      transform: scale(1.02);
+      transform: translateY(-4px);
+      border-color: var(--secondary-color);
     }
 
-    .status-box p {
-      margin: 0.5rem 0;
-      font-size: 1rem;
-      color: var(--text-color);
+    .status-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
     }
 
-    .status-box strong {
-      color: var(--primary-color);
+    .status-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
       font-weight: 600;
-      min-width: 120px;
-      display: inline-block;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
     }
 
-    .icon {
-      vertical-align: middle;
-      margin-right: 0.5rem;
+    .status-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
     }
 
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 0.9rem;
-      margin: 0.5rem 0;
+    /* ============================================
+       INFORMATION SECTION
+       ============================================ */
+    .info-section {
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+
+    .info-section h3 {
+      color: var(--success-color);
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .info-section ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .info-section li {
+      padding: 0.5rem 0;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .info-section li::before {
+      content: "✓";
+      color: var(--success-color);
+      font-weight: 700;
+      min-width: 1.5rem;
+    }
+
+    /* ============================================
+       BUTTON GRID
+       ============================================ */
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    a.btn,
+    button {
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #fff;
       border: none;
       border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 0.95rem;
+      font-weight: 700;
       cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
       transition: var(--transition);
-      text-shadow: 0.5px 0.5px 0 #fff;
+      text-decoration: none;
+      display: inline-block;
+      font-family: 'Poppins', sans-serif;
     }
 
-    .btn:hover, .btn:focus {
-      transform: scale(1.03);
-      box-shadow: var(--shadow-md);
-      outline: none;
+    a.btn:hover,
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(30, 64, 175, 0.3);
     }
 
-    .btn--primary {
-      background: var(--primary-color);
-      color: #fff;
+    a.btn:active,
+    button:active {
+      transform: translateY(0);
     }
 
-    .btn--primary:hover, .btn--primary:focus {
-      background: #023e8a;
+    .btn-secondary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
     }
 
-    .btn--success {
-      background: var(--success-color);
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #8b5cf6, #a855f7) !important;
     }
 
-    .btn--success:hover, .btn--success:focus {
-      background: #1e7a33;
+    .btn-success {
+      background: linear-gradient(135deg, var(--success-color), #059669) !important;
     }
 
-    .btn--error {
-      background: var(--error-color);
+    .btn-success:hover {
+      background: linear-gradient(135deg, #059669, #047857) !important;
     }
 
-    .btn--error:hover, .btn--error:focus {
-      background: #e05e52;
+    /* ============================================
+       FOOTER
+       ============================================ */
+    .footer {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 0.85rem;
     }
 
-    .water-fact {
-      margin-top: 1.5rem;
-      font-size: 1rem;
-      color: var(--primary-color);
-      background: #e0f7fa;
-      border-radius: var(--border-radius);
-      padding: 1rem;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .hacker-action {
-      margin-top: 1.5rem;
-      padding: 1rem;
-      background: #222;
-      color: #0f0;
-      font-family: 'Courier New', monospace;
-      border-radius: var(--border-radius);
-      font-size: 1rem;
-      box-shadow: var(--shadow-sm);
-      text-align: center;
-      min-height: 2.5rem;
-    }
-
-    .server-float {
-      position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-      border-radius: 50%;
-      color: #fff;
-      font-weight: 600;
-      text-align: center;
+    .footer-links {
       display: flex;
-      align-items: center;
       justify-content: center;
-      box-shadow: var(--shadow-md);
-      z-index: 10;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--primary-color);
+      text-decoration: none;
       transition: var(--transition);
     }
 
-    .server-float:hover {
-      transform: scale(1.1);
-      box-shadow: var(--shadow-md);
+    .footer-links a:hover {
+      text-decoration: underline;
     }
 
-    .server-float--syncing {
-      background: linear-gradient(45deg, var(--success-color), #2ecc71);
-      animation: pulseSync 0.5s ease-in-out;
+    /* ============================================
+       ANIMATIONS
+       ============================================ */
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
     }
 
-    .server-float--error {
-      background: linear-gradient(45deg, var(--error-color), #e05e52);
+    .loading {
+      animation: pulse 1.5s ease-in-out infinite;
     }
 
-    @keyframes pulseSync {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-
-    .wave-container {
-      width: 100%;
-      height: 60px;
-      overflow: hidden;
-      margin-bottom: 1rem;
-      will-change: transform;
-    }
-
-    .wave-container svg {
-      width: 100%;
-      height: 100%;
-    }
-
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
     @media (max-width: 480px) {
+      body {
+        padding: 15px;
+      }
+
       .dashboard {
         padding: 1.5rem;
-        max-width: 100%;
       }
 
       h1 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
       }
 
-      .btn {
-        font-size: 0.9rem;
-        padding: 0.8rem;
+      .status-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
       }
 
-      .server-float {
-        width: 60px;
-        height: 60px;
-        font-size: 0.8rem;
+      .button-grid {
+        grid-template-columns: 1fr;
       }
-    }
 
-    .btn:focus {
-      outline: 2px solid var(--primary-color);
-      outline-offset: 2px;
+      .status-box {
+        padding: 1rem;
+      }
+
+      .status-value {
+        font-size: 1.25rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="video-container" id="videoContainer" role="region" aria-label="Introductory video">
-    <video id="introVideo" autoplay muted playsinline aria-describedby="videoError">
-      <source src="https://files.catbox.moe/e204ki.mp4" type="video/mp4">
-      <p id="videoError">Your browser does not support the video tag. <a href="#" onclick="showDashboard()">Skip to dashboard</a>.</p>
-    </video>
-  </div>
+  <div class="dashboard" id="dashboard">
+    <!-- Header -->
+    <h1>💧 Water Billing System</h1>
+    <p class="subtitle">Management Dashboard</p>
 
-  <div class="server-float" id="serverFloat" role="status" aria-live="polite">
-    <span>Mickey<br>Server</span>
-  </div>
+    <!-- Status Grid -->
+    <div class="status-grid">
+      <div class="status-box">
+        <div class="status-icon">📋</div>
+        <div class="status-label">Total Bills</div>
+        <div class="status-value" id="totalBills">0</div>
+      </div>
 
-  <main class="dashboard" id="dashboard" role="main">
-    <header>
-      <h1>Mickey Water Billing System</h1>
-    </header>
+      <div class="status-box">
+        <div class="status-icon">💰</div>
+        <div class="status-label">Total Revenue</div>
+        <div class="status-value" id="totalRevenue">TZS 0</div>
+      </div>
 
-    <div class="wave-container">
-      <svg viewBox="0 0 500 60" preserveAspectRatio="none">
-        <path id="wavePath" d="M0,30 Q125,60 250,30 T500,30 V60 H0 Z" fill="#00b894" opacity="0.18">
-          <animate attributeName="d" dur="3s" repeatCount="indefinite"
-            values="M0,30 Q125,60 250,30 T500,30 V60 H0 Z;
-                    M0,35 Q125,20 250,35 T500,35 V60 H0 Z;
-                    M0,30 Q125,60 250,30 T500,30 V60 H0 Z" />
-        </path>
-      </svg>
+      <div class="status-box">
+        <div class="status-icon">📊</div>
+        <div class="status-label">Avg. Bill</div>
+        <div class="status-value" id="avgBill">TZS 0</div>
+      </div>
+
+      <div class="status-box">
+        <div class="status-icon">💧</div>
+        <div class="status-label">Total Usage</div>
+        <div class="status-value" id="totalUsage">0 units</div>
+      </div>
     </div>
 
-    <section class="status-box" aria-label="System Status">
-      <p><span class="icon">🌐</span><strong>Web Status:</strong> <span id="webStatus">Checking...</span></p>
-      <p><span class="icon">📍</span><strong>Public IP:</strong> <span id="publicIp">Syncing...</span></p>
-      <p><span class="icon">📡</span><strong>Internet Provider:</strong> <span id="internetProvider">Syncing...</span></p>
-      <p><span class="icon">🔋</span><strong>Local Battery:</strong> <span id="battery">Checking...</span></p>
-    </section>
+    <!-- Information Section -->
+    <div class="info-section">
+      <h3>📌 Quick Guide</h3>
+      <ul>
+        <li>Create and calculate water bills</li>
+        <li>Send bills via SMS directly</li>
+        <li>View complete billing history</li>
+        <li>Generate monthly reports</li>
+        <li>Export data for analysis</li>
+      </ul>
+    </div>
 
-    <button class="btn btn--primary" onclick="window.location.href='login.html'" aria-label="Open Login Page">Open Login</button>
-    <button class="btn btn--success" onclick="window.location.href='records.html'" aria-label="Open Records Page">Open Records</button>
-    <button class="btn btn--error" onclick="window.location.href='botweb.html'" aria-label="Open BotWeb Page"><span class="icon">🤖</span>Open BotWeb</button>
+    <!-- Action Buttons -->
+    <div class="button-grid">
+      <a href="main.html" class="btn">📝 Create Bill</a>
+      <a href="records.html" class="btn btn-success">📊 View History</a>
+      <button class="btn btn-secondary" onclick="refreshStats()">🔄 Refresh</button>
+    </div>
 
-    <div class="water-fact" id="waterFact" role="complementary">Loading fun water fact...</div>
-    <div class="hacker-action" id="hackerAction" role="log" aria-live="polite"></div>
-  </main>
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-links">
+        <a href="main.html">Billing</a>
+        <a href="records.html">History</a>
+        <a href="#" onclick="showAbout(); return false;">About</a>
+      </div>
+      <p>&copy; 2026 Mickey Water Billing System. All rights reserved.</p>
+    </div>
+  </div>
 
   <script>
-    // Utility: Debounce function
-    function debounce(fn, wait) {
-      let timeout;
-      return function (...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fn.apply(this, args), wait);
-      };
+    /**
+     * Dashboard - Statistics and Quick Access
+     * Features:
+     * - Display billing statistics
+     * - Quick navigation
+     * - Real-time data updates
+     */
+
+    // ============================================
+    // CONSTANTS
+    // ============================================
+    const LOCAL_STORAGE_KEY = 'mickeyBillingRecords';
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+
+    /**
+     * Get all records from localStorage
+     */
+    function getRecords() {
+      try {
+        return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+      } catch (err) {
+        console.error('Error loading records:', err);
+        return [];
+      }
     }
 
-    // Video handling
-    function showDashboard() {
-      const videoContainer = document.getElementById('videoContainer');
-      const dashboard = document.getElementById('dashboard');
-      videoContainer.classList.add('hidden');
-      dashboard.classList.add('visible');
-    }
-
-    function handleVideo() {
-      const video = document.getElementById('introVideo');
-      video.addEventListener('ended', showDashboard);
-      video.addEventListener('error', () => {
-        console.error('Video failed to load');
-        showDashboard();
+    /**
+     * Format currency
+     */
+    function formatCurrency(value) {
+      return Number(value).toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
       });
     }
 
-    // Water facts
-    const facts = [
-      "About 71% of the Earth's surface is water-covered.",
-      "Water expands when it freezes, unlike most liquids.",
-      "The human brain is about 75% water.",
-      "Tanzania's Lake Victoria is the largest lake in Africa by area!",
-      "Water can dissolve more substances than any other liquid."
-    ];
+    /**
+     * Calculate and display statistics
+     */
+    function updateStats() {
+      const records = getRecords();
 
-    function showRandomFact() {
-      const fact = facts[Math.floor(Math.random() * facts.length)];
-      document.getElementById('waterFact').textContent = `💧 ${fact}`;
-      setTimeout(showRandomFact, 12000);
-    }
-
-    // Web status
-    function updateWebStatus() {
-      document.getElementById('webStatus').textContent = navigator.onLine ? 'Online' : 'Offline';
-    }
-
-    // Battery status
-    async function updateBatteryStatus() {
-      try {
-        if (navigator.getBattery) {
-          const battery = await navigator.getBattery();
-          const updateBattery = () => {
-            const level = `${Math.round(battery.level * 100)}% ${battery.charging ? '(Charging)' : ''}`;
-            document.getElementById('battery').textContent = level;
-          };
-          updateBattery();
-          battery.addEventListener('levelchange', updateBattery);
-          battery.addEventListener('chargingchange', updateBattery);
-        } else {
-          document.getElementById('battery').textContent = 'Not supported';
-        }
-      } catch (error) {
-        console.error('Battery API error:', error);
-        document.getElementById('battery').textContent = 'Error';
+      if (records.length === 0) {
+        document.getElementById('totalBills').textContent = '0';
+        document.getElementById('totalRevenue').textContent = 'TZS 0';
+        document.getElementById('avgBill').textContent = 'TZS 0';
+        document.getElementById('totalUsage').textContent = '0 units';
+        return;
       }
+
+      const totalRevenue = records.reduce((sum, r) => sum + (r.total || 0), 0);
+      const avgBill = records.length > 0 ? totalRevenue / records.length : 0;
+      const totalUsage = records.reduce((sum, r) => sum + (r.usage || 0), 0);
+
+      document.getElementById('totalBills').textContent = records.length;
+      document.getElementById('totalRevenue').textContent = 'TZS ' + formatCurrency(totalRevenue);
+      document.getElementById('avgBill').textContent = 'TZS ' + formatCurrency(avgBill);
+      document.getElementById('totalUsage').textContent = totalUsage + ' units';
     }
 
-    // Network details
-    const syncNetworkDetails = debounce(async () => {
-      const publicIpEl = document.getElementById('publicIp');
-      const internetProviderEl = document.getElementById('internetProvider');
-      const serverFloat = document.getElementById('serverFloat');
+    /**
+     * Show about information
+     */
+    function showAbout() {
+      alert(`Mickey Water Billing System v1.0
+      
+A modern water billing solution for Tanzania.
 
-      publicIpEl.textContent = 'Syncing...';
-      internetProviderEl.textContent = 'Syncing...';
-      serverFloat.classList.add('server-float--syncing');
+Features:
+• Face recognition login
+• Bill calculation & SMS
+• Complete billing history
+• Monthly reports & exports
+• Secure data storage
 
-      try {
-        const response = await fetch('https://ipinfo.io/json');
-        const data = await response.json();
-        publicIpEl.textContent = data.ip || 'Unknown';
-        internetProviderEl.textContent = data.org || 'Unknown Provider';
-        publicIpEl.style.color = 'var(--primary-color)';
-        internetProviderEl.style.color = 'var(--primary-color)';
-        setTimeout(() => serverFloat.classList.remove('server-float--syncing'), 500);
-      } catch (error) {
-        console.error('Error fetching network details:', error);
-        publicIpEl.textContent = 'Failed to sync';
-        internetProviderEl.textContent = 'Failed to sync';
-        serverFloat.classList.add('server-float--error');
-        setTimeout(() => serverFloat.classList.remove('server-float--error'), 500);
-      }
-    }, 1000);
-
-    // Hacker action effect
-    const hackerTexts = [
-      'Initializing dashboard systems..._',
-      'Water meter data sync initiated..._',
-      'Accessing central billing server..._',
-      'All core systems nominal!_',
-      'Tip: Water flows, code runs!_',
-      'Lead: Mickey "Hacker" Hamza_'
-    ];
-
-    function typeHackerAction() {
-      const hackerAction = document.getElementById('hackerAction');
-      let hackerIndex = 0;
-      let charIndex = 0;
-
-      function type() {
-        if (charIndex <= hackerTexts[hackerIndex].length) {
-          hackerAction.textContent = hackerTexts[hackerIndex].slice(0, charIndex) + (charIndex % 2 ? '_' : '');
-          charIndex++;
-          requestAnimationFrame(type);
-        } else {
-          setTimeout(() => {
-            hackerIndex = (hackerIndex + 1) % hackerTexts.length;
-            charIndex = 0;
-            type();
-          }, 1200);
-        }
-      }
-      type();
+Developed by: Mickey Hamza
+© 2026 All Rights Reserved`);
     }
 
-    // Initialize
-    function init() {
-      handleVideo();
-      updateWebStatus();
-      window.addEventListener('online', updateWebStatus);
-      window.addEventListener('offline', updateWebStatus);
-      updateBatteryStatus();
-      syncNetworkDetails();
-      showRandomFact();
-      typeHackerAction();
+    /**
+     * Refresh statistics
+     */
+    function refreshStats() {
+      const dashboard = document.getElementById('dashboard');
+      dashboard.classList.add('loading');
+
+      setTimeout(() => {
+        updateStats();
+        dashboard.classList.remove('loading');
+      }, 500);
     }
 
-    init();
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+
+    // Show dashboard with animation
+    const dashboard = document.getElementById('dashboard');
+    setTimeout(() => {
+      dashboard.style.opacity = '1';
+      dashboard.style.visibility = 'visible';
+    }, 100);
+
+    // Load initial statistics
+    updateStats();
+
+    // Refresh stats when storage changes
+    window.addEventListener('storage', updateStats);
+
+    console.log('Dashboard initialized successfully');
   </script>
 </body>
-      </html>
+</html>

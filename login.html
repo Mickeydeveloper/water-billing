@@ -3,11 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secure Face Login</title>
+  <meta name="description" content="Secure Face Recognition Login - Mickey Water Billing System">
+  <meta name="author" content="Mickey Hamza">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Secure Face Login - Water Billing System</title>
+  
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+  
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+    /* ============================================
+       RESET & VARIABLES
+       ============================================ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #1e40af;
+      --secondary-color: #0ea5e9;
+      --success-color: #10b981;
+      --error-color: #ef4444;
+      --warning-color: #f59e0b;
+      --background-light: #f8fafc;
+      --background-dark: #0f172a;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ============================================
+       BODY & LAYOUT
+       ============================================ */
     body {
       font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
@@ -15,43 +47,94 @@
       align-items: center;
       min-height: 100vh;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #ecf0f1;
+      color: var(--text-primary);
       overflow: hidden;
+      padding: 20px;
     }
 
-    .container {
+    /* ============================================
+       CONTAINER
+       ============================================ */
+    .login-container {
       text-align: center;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
       padding: 3rem;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-lg);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      max-width: 420px;
-      width: 90%;
+      max-width: 480px;
+      width: 100%;
+      transition: var(--transition);
     }
 
+    .login-container.error {
+      border-color: var(--error-color);
+      background: rgba(255, 255, 255, 0.98);
+    }
+
+    /* ============================================
+       HEADER SECTION
+       ============================================ */
     h1 {
-      margin-bottom: 10px;
-      font-size: 1.8em;
-      background: linear-gradient(135deg, #1e40af, #0ea5e9);
+      margin-bottom: 0.75rem;
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       font-weight: 700;
+      letter-spacing: -0.5px;
     }
 
-    .caption {
-      color: #64748b;
-      font-size: 0.9em;
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
       margin-bottom: 2rem;
       font-weight: 500;
     }
 
-    /* ---------------------------------- */
-    /* COMPLETELY HIDE CAMERA ELEMENTS */
-    /* ---------------------------------- */
+    /* ============================================
+       STATUS & MESSAGES
+       ============================================ */
+    .status {
+      margin: 2rem 0;
+      padding: 1rem;
+      font-weight: 600;
+      font-size: 1rem;
+      min-height: 50px;
+      border-radius: 10px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.1), rgba(14, 165, 233, 0.1));
+      color: var(--primary-color);
+      border: 2px solid rgba(30, 64, 175, 0.2);
+    }
+
+    .status.success {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(10, 185, 181, 0.1));
+      color: var(--success-color);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .status.error {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.1));
+      color: var(--error-color);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .status.warning {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.1));
+      color: var(--warning-color);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    /* ============================================
+       HIDDEN CAMERA ELEMENTS
+       ============================================ */
     video, canvas {
       display: none !important;
       position: fixed;
@@ -59,101 +142,62 @@
       left: -9999px;
       width: 320px !important;
       height: 240px !important;
-      z-index: -1;
+      z-index: -999;
     }
 
-    /* Show ONLY the final enhanced preview (optional) */
-    #previewCanvas {
-      display: none;
-      margin: 15px auto;
-      border-radius: 15px;
-      border: 2px solid #0ea5e9;
-      box-shadow: 0 5px 20px rgba(14, 165, 233, 0.3);
-      max-width: 100%;
-    }
-
-    .status {
-      margin: 2rem 0;
-      font-weight: 600;
-      font-size: 1.05em;
-      min-height: 40px;
-      padding: 12px;
-      border-radius: 10px;
-      transition: all 0.3s ease;
-      background: linear-gradient(135deg, rgba(30, 64, 175, 0.1), rgba(14, 165, 233, 0.1));
-      color: #1e293b;
-      border: 2px solid #e2e8f0;
-    }
-
-    button { display: none !important; }
-
-    /* ---------------------------------- */
-    /* ENHANCED ANIMATIONS */
-    /* ---------------------------------- */
+    /* ============================================
+       ANIMATIONS
+       ============================================ */
     @keyframes pulse-scan {
-      0%, 100% { 
+      0%, 100% {
         box-shadow: 0 0 8px rgba(30, 64, 175, 0.5);
         transform: scale(1);
       }
-      50% { 
+      50% {
         box-shadow: 0 0 30px rgba(30, 64, 175, 0.8);
         transform: scale(1.02);
       }
     }
 
-    @keyframes photo-flash {
-      0% { 
-        opacity: 0; 
-        background: rgba(255, 255, 255, 0.8);
-      }
-      50% { 
-        opacity: 1; 
-        background: rgba(255, 255, 255, 1);
-      }
-      100% { 
-        opacity: 0; 
-        background: transparent;
-      }
-    }
-
     @keyframes success-bounce {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+      50% { transform: translateY(-8px); }
     }
 
-    .scanning { animation: pulse-scan 2s infinite ease-in-out; }
-    .flash { 
-      animation: photo-flash 0.4s ease-out;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
-    .success { 
+
+    .scanning {
+      animation: pulse-scan 2s infinite ease-in-out;
+    }
+
+    .success {
       animation: success-bounce 0.6s ease-out;
-      background: rgba(16, 185, 129, 0.2) !important;
-      color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.15) !important;
+      color: var(--success-color) !important;
+      border-color: var(--success-color) !important;
     }
 
-    /* Loading dots */
-    .loading-dots::after {
-      content: '';
-      animation: dots 1.5s infinite;
+    .spinner {
+      display: inline-block;
+      width: 1.2rem;
+      height: 1.2rem;
+      border: 3px solid rgba(30, 64, 175, 0.2);
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
 
-    @keyframes dots {
-      0%, 20% { content: ''; }
-      40% { content: '.'; }
-      60% { content: '..'; }
-      80%, 100% { content: '...'; }
-    }
-
-    /* ---------------------------------- */
-    /* PROGRESS BAR FOR UPLOAD */
-    /* ---------------------------------- */
+    /* ============================================
+       PROGRESS BAR
+       ============================================ */
     .progress-bar {
       width: 100%;
-      height: 5px;
+      height: 4px;
       background: rgba(226, 232, 240, 0.3);
-      border-radius: 3px;
+      border-radius: 2px;
       overflow: hidden;
       margin: 1.5rem 0;
       display: none;
@@ -161,154 +205,283 @@
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #0ea5e9, #06b6d4);
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
       width: 0%;
       transition: width 0.3s ease;
-      border-radius: 3px;
+      border-radius: 2px;
     }
 
-    /* Cloud backup branding removed */
+    /* ============================================
+       BUTTON STYLES
+       ============================================ */
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    button {
+      flex: 1;
+      padding: 0.9rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: 'Poppins', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #fff;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(30, 64, 175, 0.3);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .btn-group {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container" id="loginContainer">
-    <h1>Passive AI Login 🕵️</h1>
-    <div class="caption">Scanning for authorized user...</div>
+  <div class="login-container" id="loginContainer">
+    <h1>🔐 Secure Login</h1>
+    <p class="subtitle">Face Recognition Authentication</p>
 
-    <!-- COMPLETELY HIDDEN CAMERA -->
-    <video id="camera" autoplay muted></video>
-    
-    <!-- HIDDEN CAPTURE CANVAS -->
+    <!-- HIDDEN CAMERA & CANVAS -->
+    <video id="camera" autoplay muted playsinline></video>
     <canvas id="captureCanvas"></canvas>
-    
-    <!-- ENHANCED PREVIEW (OPTIONAL - CAN BE HIDDEN) -->
     <canvas id="previewCanvas"></canvas>
 
-    <div class="status" id="status">Initializing secure camera...</div>
-    
-    <!-- UPLOAD PROGRESS -->
+    <!-- STATUS MESSAGE -->
+    <div class="status" id="status">
+      <span class="spinner"></span>
+      <span id="statusText">Initializing secure camera...</span>
+    </div>
+
+    <!-- PROGRESS BAR -->
     <div class="progress-bar" id="progressBar">
       <div class="progress-fill" id="progressFill"></div>
     </div>
-  </div>  
-  <!-- Cloud backup removed: `mega-handler.js` eliminated -->
+
+    <!-- ACTION BUTTONS -->
+    <div class="btn-group" id="buttonGroup">
+      <button class="btn-primary" id="retryBtn" onclick="location.reload()">Retry</button>
+      <button class="btn-primary" id="mainMenuBtn" onclick="window.location.href='main.html'">Skip to Main</button>
+    </div>
+  </div>
+
   <script>
-    // DOM Elements
+    /**
+     * Secure Face Recognition Login System
+     * - Initializes device camera
+     * - Simulates face recognition AI
+     * - Provides secure authentication flow
+     */
+
+    // ============================================
+    // DOM ELEMENTS
+    // ============================================
     const video = document.getElementById('camera');
     const captureCanvas = document.getElementById('captureCanvas');
     const previewCanvas = document.getElementById('previewCanvas');
-    const statusText = document.getElementById('status');
+    const statusText = document.getElementById('statusText');
+    const statusDiv = document.getElementById('status');
     const container = document.getElementById('loginContainer');
     const progressBar = document.getElementById('progressBar');
     const progressFill = document.getElementById('progressFill');
-    
+    const retryBtn = document.getElementById('retryBtn');
+    const mainMenuBtn = document.getElementById('mainMenuBtn');
+
+    // Canvas contexts
     const captureCtx = captureCanvas.getContext('2d');
     const previewCtx = previewCanvas.getContext('2d');
-    
-    // Set canvas dimensions
-    [captureCanvas, previewCanvas].forEach(c => {
-      c.width = 320;
-      c.height = 240;
-    });
 
+    // Set canvas dimensions
+    captureCanvas.width = previewCanvas.width = 320;
+    captureCanvas.height = previewCanvas.height = 240;
+
+    // State variables
     let loginAttempted = false;
     let stream = null;
 
-    // --- 1. SECURE CAMERA INITIALIZATION ---
-    async function initCamera() {
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    function updateStatus(message, className = '') {
+      statusText.textContent = message;
+      statusDiv.className = `status ${className}`;
+    }
+
+    function showButtons() {
+      retryBtn.style.display = 'block';
+      mainMenuBtn.style.display = 'block';
+    }
+
+    // ============================================
+    // MAIN FUNCTIONS
+    // ============================================
+
+    /**
+     * 1. Initialize camera and request permissions
+     */
+    async function initializeCamera() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
             width: { ideal: 320 },
             height: { ideal: 240 },
             facingMode: 'user'
-          }
+          },
+          audio: false
         });
+
         video.srcObject = stream;
-        
-        statusText.textContent = "Camera secured. Scanning";
-        statusText.className = 'status scanning';
-        
+        updateStatus('Camera secured. Scanning', 'scanning');
+
         video.onloadedmetadata = () => {
-          video.play();
-          setTimeout(simulateAIScan, 1500);
+          video.play().catch(err => {
+            console.error('Play error:', err);
+            handleCameraError('Failed to play video stream');
+          });
+          setTimeout(simulateFaceDetection, 1500);
         };
+
       } catch (err) {
-        statusText.style.color = '#e74c3c';
-        statusText.textContent = "🚨 Secure camera access denied";
-        console.error("Camera Error:", err);
+        handleCameraError(err.message);
       }
     }
 
-    // --- 2. AI SCAN SIMULATION ---
-    function simulateAIScan() {
+    /**
+     * 2. Simulate AI face detection
+     */
+    function simulateFaceDetection() {
       if (loginAttempted) return;
-      
+
       setTimeout(() => {
-        statusText.textContent = "✅ Face verified! Enhancing image";
-        statusText.style.color = '#f39c12';
-        container.classList.remove('scanning');
-        
-        setTimeout(captureAndEnhance, 1200);
+        updateStatus('✓ Face detected. Verifying...', 'scanning');
+        setTimeout(captureAndEnhancePhoto, 1200);
       }, 1800);
     }
 
-    // --- 3. CAPTURE & ENHANCE PHOTO ---
-    function captureAndEnhance() {
+    /**
+     * 3. Capture and enhance photo
+     */
+    function captureAndEnhancePhoto() {
       if (loginAttempted) return;
-      
-      // Capture raw image
-      captureCtx.drawImage(video, 0, 0, 320, 240);
-      
-      // ENHANCE THE IMAGE
-      const imageData = captureCtx.getImageData(0, 0, 320, 240);
-      const data = imageData.data;
-      
-      // Apply enhancements
-      for (let i = 0; i < data.length; i += 4) {
-        // Increase brightness (+20%)
-        data[i] = Math.min(255, data[i] * 1.2);
-        data[i + 1] = Math.min(255, data[i + 1] * 1.2);
-        data[i + 2] = Math.min(255, data[i + 2] * 1.2);
-        
-        // Slight contrast boost
-        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-        data[i] = Math.min(255, data[i] + (data[i] - avg) * 0.1);
-        data[i + 1] = Math.min(255, data[i + 1] + (data[i + 1] - avg) * 0.1);
-        data[i + 2] = Math.min(255, data[i + 2] + (data[i + 2] - avg) * 0.1);
+
+      try {
+        // Capture raw image
+        captureCtx.drawImage(video, 0, 0, 320, 240);
+
+        // Apply image enhancements
+        const imageData = captureCtx.getImageData(0, 0, 320, 240);
+        const data = imageData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+          // Brightness boost (+15%)
+          data[i] = Math.min(255, data[i] * 1.15);
+          data[i + 1] = Math.min(255, data[i + 1] * 1.15);
+          data[i + 2] = Math.min(255, data[i + 2] * 1.15);
+
+          // Contrast enhancement
+          const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+          data[i] = Math.min(255, data[i] + (data[i] - avg) * 0.08);
+          data[i + 1] = Math.min(255, data[i + 1] + (data[i + 1] - avg) * 0.08);
+          data[i + 2] = Math.min(255, data[i + 2] + (data[i + 2] - avg) * 0.08);
+        }
+
+        captureCtx.putImageData(imageData, 0, 0);
+        updateStatus('📸 Photo captured. Enhancing...', '');
+        setTimeout(completeLogin, 800);
+
+      } catch (err) {
+        console.error('Capture error:', err);
+        handleCameraError('Failed to capture photo');
       }
-      
-      captureCtx.putImageData(imageData, 0, 0);
-      
-      // Optional: Show enhanced preview
-      // previewCtx.drawImage(captureCanvas, 0, 0);
-      // previewCanvas.style.display = 'block';
-      
-      statusText.textContent = "📸 Enhanced photo captured";
-      statusText.style.color = '#2ecc71';
-      
-      // Proceed to login
-      setTimeout(completeSecureLogin, 800);
     }
 
-    // --- 4. SIMPLE LOGIN (MEGA upload removed) ---
-    async function completeSecureLogin() {
-      statusText.textContent = "✅ Login successful!";
-      statusText.className = 'status success';
-      
-      // Clean up camera
+    /**
+     * 4. Complete login and redirect
+     */
+    function completeLogin() {
+      loginAttempted = true;
+
+      // Stop camera stream
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
-      
-      // Redirect to main page
-      setTimeout(() => {
-        window.location.href = "main.html";
-      }, 1200);
+
+      updateStatus('✓ Login successful! Redirecting...', 'success');
+      progressBar.style.display = 'block';
+
+      // Simulate progress
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 30;
+        if (progress > 100) progress = 100;
+        progressFill.style.width = progress + '%';
+
+        if (progress === 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            window.location.href = 'main.html';
+          }, 500);
+        }
+      }, 200);
     }
 
-    // --- INITIATE ---
-    initCamera();
+    /**
+     * Error handling for camera issues
+     */
+    function handleCameraError(message) {
+      loginAttempted = true;
+      console.error('Camera Error:', message);
+
+      container.classList.add('error');
+      updateStatus(`⚠️ ${message}`, 'error');
+      showButtons();
+
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    }
+
+    // ============================================
+    // INITIALIZE
+    // ============================================
+    initializeCamera();
   </script>
 </body>
 </html>

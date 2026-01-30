@@ -1,363 +1,685 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mickey Water Billing - Kokotoa Ankara</title>
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
-    <meta name="description" content="Mickey Water Billing System - Simple, fast, and modern water billing for Tanzania.">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
-    <style>
-        :root {
-            --primary-color: #1e40af;
-            --secondary-color: #0ea5e9;
-            --success-color: #10b981;
-            --error-color: #ef4444;
-            --warning-color: #f59e0b;
-            --background-light: #f8fafc;
-            --border-color: #e2e8f0;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Water Billing System - Calculate and manage water bills">
+  <meta name="author" content="Mickey Hamza">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Water Billing System - Billing Calculator</title>
+  
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+  
+  <style>
+    /* ============================================
+       RESET & VARIABLES
+       ============================================ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: var(--text-primary);
-            overflow-y: auto;
-        }
+    :root {
+      --primary-color: #1e40af;
+      --secondary-color: #0ea5e9;
+      --success-color: #10b981;
+      --error-color: #ef4444;
+      --warning-color: #f59e0b;
+      --background-light: #f8fafc;
+      --background-dark: #0f172a;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-        .container {
-            max-width: 550px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-            position: relative;
-            z-index: 1;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background-light: #0f172a;
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --border-color: #1e293b;
+        --primary-color: #3b82f6;
+        --secondary-color: #06b6d4;
+      }
+    }
 
-        h2 {
-            text-align: center;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1.5rem;
-            font-weight: 700;
-            font-size: 1.6rem;
-        }
-        
-        /* New: Bill Manual/Tariff Section */
-        .manual-section {
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-        }
+    /* ============================================
+       BODY & LAYOUT
+       ============================================ */
+    body {
+      font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--text-primary);
+      overflow-y: auto;
+    }
 
-        .manual-section summary {
-            padding: 1.25rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(10, 185, 181, 0.08));
-            color: var(--success-color);
-            cursor: pointer;
-            outline: none;
-            list-style: none;
-            transition: all 0.3s ease;
-        }
+    /* ============================================
+       CONTAINER
+       ============================================ */
+    .container {
+      max-width: 580px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 2.5rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      z-index: 1;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
 
-        .manual-section summary::before {
-            content: "ℹ️ ";
-            margin-right: 0.5rem;
-        }
+    /* ============================================
+       HEADER
+       ============================================ */
+    h2 {
+      text-align: center;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+      font-size: clamp(1.4rem, 5vw, 1.8rem);
+    }
 
-        .manual-section summary:hover {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(10, 185, 181, 0.15));
-        }
+    /* ============================================
+       INFORMATION SECTION
+       ============================================ */
+    .info-section {
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      background: rgba(16, 185, 129, 0.02);
+    }
 
-        .manual-content {
-            padding: 1.25rem;
-            background: rgba(16, 185, 129, 0.03);
-            border-top: 1px solid var(--border-color);
-        }
+    .info-section summary {
+      padding: 1.25rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(10, 185, 181, 0.08));
+      color: var(--success-color);
+      cursor: pointer;
+      outline: none;
+      list-style: none;
+      transition: var(--transition);
+      user-select: none;
+    }
 
-        .manual-content ul {
-            padding-left: 1.5rem;
-            margin: 0.75rem 0;
-            list-style-type: '💧 ';
-        }
+    .info-section summary:hover {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(10, 185, 181, 0.15));
+    }
 
-        label {
-            display: block;
-            margin-top: 1.25rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-        }
+    .info-section summary::before {
+      content: "ℹ️ ";
+      margin-right: 0.5rem;
+    }
 
-        input, select {
-            width: 100%;
-            padding: 0.75rem;
-            margin-top: 0.5rem;
-            border-radius: 8px;
-            border: 2px solid var(--border-color);
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.95rem;
-            color: var(--text-primary);
-        }
+    .info-content {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-        }
+    .info-content p {
+      margin: 1rem 0;
+      line-height: 1.6;
+    }
 
-        button {
-            margin-top: 1.5rem;
-            width: 100%;
-            padding: 0.95rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: var(--shadow-md);
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-family: 'Poppins', sans-serif;
-        }
+    .info-content strong {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(30, 64, 175, 0.3);
-        }
+    .info-content ol,
+    .info-content ul {
+      margin-left: 1.5rem;
+      margin-top: 0.75rem;
+    }
 
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .result {
-            margin-top: 1.5rem;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(10, 185, 181, 0.08));
-            padding: 1.5rem;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 1.1em;
-            font-weight: 700;
-            color: var(--success-color);
-            border-left: 4px solid var(--success-color);
-            display: none;
-        }
+    .info-content li {
+      margin: 0.5rem 0;
+    }
 
-        .sms-btn-container {
-             margin-top: 1rem;
-             text-align: center;
-             display: flex;
-             gap: 0.75rem;
-        }
-        
-        #sendSMSBtn {
-             background: linear-gradient(135deg, var(--success-color), #059669) !important;
-             flex: 1;
-        }
+    /* ============================================
+       FORM STYLES
+       ============================================ */
+    form {
+      display: flex;
+      flex-direction: column;
+    }
 
-        #sendSMSBtn:hover {
-            background: linear-gradient(135deg, #059669, #047857) !important;
-        }
-        
-        .view-records-btn {
-            background: linear-gradient(135deg, #6366f1, #6b7280) !important;
-            flex: 1;
-        }
+    label {
+      display: block;
+      margin-top: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
 
-        .view-records-btn:hover {
-            background: linear-gradient(135deg, #6b7280, #4b5563) !important;
-        }
-        
-        .error-message {
-            color: var(--error-color);
-            font-size: 0.85em;
-            margin-top: 0.5rem;
-            font-weight: 500;
-        }
-    </style>
+    label:first-of-type {
+      margin-top: 0;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 0.85rem;
+      margin-top: 0.5rem;
+      border-radius: 8px;
+      border: 2px solid var(--border-color);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      background: var(--background-light);
+      transition: var(--transition);
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    input:invalid {
+      border-color: var(--error-color);
+    }
+
+    .error-message {
+      color: var(--error-color);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      font-weight: 500;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    /* ============================================
+       BUTTON STYLES
+       ============================================ */
+    button {
+      margin-top: 1.75rem;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      transition: var(--transition);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(30, 64, 175, 0.3);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn-sms {
+      background: linear-gradient(135deg, var(--success-color), #059669) !important;
+    }
+
+    .btn-sms:hover:not(:disabled) {
+      background: linear-gradient(135deg, #059669, #047857) !important;
+    }
+
+    .btn-records {
+      background: linear-gradient(135deg, #6366f1, #6b7280) !important;
+    }
+
+    .btn-records:hover:not(:disabled) {
+      background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+    }
+
+    /* ============================================
+       RESULT SECTION
+       ============================================ */
+    .result {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 1.1em;
+      font-weight: 700;
+      display: none;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result-success {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(10, 185, 181, 0.1));
+      color: var(--success-color);
+      border-left: 4px solid var(--success-color);
+    }
+
+    .result-error {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.1));
+      color: var(--error-color);
+      border-left: 4px solid var(--error-color);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ============================================
+       ACTION BUTTONS HIDDEN BY DEFAULT
+       ============================================ */
+    #actionButtons {
+      display: none !important;
+    }
+
+    #actionButtons.show {
+      display: grid !important;
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 480px) {
+      .container {
+        padding: 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.4rem;
+      }
+
+      label {
+        margin-top: 1rem;
+      }
+
+      .button-group {
+        grid-template-columns: 1fr;
+      }
+
+      input,
+      select {
+        padding: 0.75rem;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Mickey Water Billing System</h2>
+  <div class="container">
+    <h2>💧 Water Billing Calculator</h2>
 
-        <details class="manual-section">
-            <summary>Mwongozo wa Ankara na Viwango (Bill Manual & Tariffs)</summary>
-            <div class="manual-content">
-                <p><strong>Viwango vya Maji (Water Taarifa):</strong></p>
-                <ul>
-                    <li><strong>Matumizi ya Kawaida:</strong> TZS <span id="defaultRate">2000</span> kwa unit (Kiwango cha kuweka).</li>
-                    <li><strong>Ada ya Kudumu:</strong> TZS <span id="defaultFixed">0</span> (Inaweza kubadilishwa).</li>
-                </ul>
-                <p><strong>Maelekezo:</strong></p>
-                <ol>
-                    <li>Jaza Kisoma cha Awali na Kisoma cha Sasa kwenye mita.</li>
-                    <li>Weka Bei kwa Unit na Ada ya Kudumu (Fixed Charge).</li>
-                    <li>Bonyeza "Kokotoa" ili kupata Jumla.</li>
-                    <li>Rekodi yako itahifadhiwa kiotomatiki na inaweza kuonekana kwenye 'Historia'.</li>
-                </ol>
-            </div>
-        </details>
-        
-        <form id="billingForm">
-            <label for="name">Jina la Mteja (Customer Name)</label>
-            <input type="text" id="name" required>
-            
-            <label for="phone">Namba ya WhatsApp/SMS (mf. 2557XXXXXXXXX)</label>
-            <input type="tel" id="phone" pattern="255[0-9]{9}" placeholder="2557XXXXXXXXX" required>
-            <div id="phone-error" class="error-message"></div>
+    <!-- Information Section -->
+    <details class="info-section" open>
+      <summary>Billing Information & Instructions</summary>
+      <div class="info-content">
+        <p><strong>Water Tariff Rates:</strong></p>
+        <ul>
+          <li><strong>Standard Rate:</strong> TZS <span id="defaultRate">2000</span>/unit</li>
+          <li><strong>Fixed Charge:</strong> TZS <span id="defaultFixed">0</span></li>
+        </ul>
 
-            <label for="prev">Kisoma cha Awali (Previous Reading - unit)</label>
-            <input type="number" id="prev" min="0" value="0" required>
-            
-            <label for="curr">Kisoma cha Sasa (Current Reading - unit)</label>
-            <input type="number" id="curr" min="0" required>
-            <div id="curr-error" class="error-message"></div>
+        <p><strong>How to Calculate Your Bill:</strong></p>
+        <ol>
+          <li>Enter your previous meter reading</li>
+          <li>Enter your current meter reading</li>
+          <li>Set the rate per unit (if different from default)</li>
+          <li>Add any fixed charges if applicable</li>
+          <li>Click "Calculate" to get your bill</li>
+          <li>Send the bill via SMS or view billing history</li>
+        </ol>
 
-            <label for="rate">Bei kwa unit (Rate per unit - TZS)</label>
-            <input type="number" id="rate" min="1" value="2000" required>
-            
-            <label for="fixed">Ada ya Kudumu (Fixed Charge - TZS)</label>
-            <input type="number" id="fixed" min="0" value="0" required>
-            
-            <button type="submit">Kokotoa na Hifadhi Ankara</button>
-        </form>
-        
-        <div class="sms-btn-container" id="actionButtons" style="display:none;">
-            <button id="sendSMSBtn" style="flex:1;">Tuma Ankara kwa SMS</button>
-            <button class="view-records-btn" style="flex:1;" onclick="window.location.href='records.html';">Angalia Historia Kamili</button>
-        </div>
-        
-        <div class="result" id="result" role="alert" style="display:none;"></div>
+        <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+          <strong>Formula:</strong><br>
+          Total Bill = (Current - Previous) × Rate/unit + Fixed Charge
+        </p>
+      </div>
+    </details>
+
+    <!-- Billing Form -->
+    <form id="billingForm">
+      <label for="name">Customer Name *</label>
+      <input type="text" id="name" placeholder="e.g., John Doe" required>
+      <div id="name-error" class="error-message"></div>
+
+      <label for="phone">Phone Number (WhatsApp/SMS) *</label>
+      <input type="tel" id="phone" placeholder="e.g., 255712345678" pattern="255[0-9]{9}" required>
+      <div id="phone-error" class="error-message"></div>
+
+      <label for="prev">Previous Meter Reading (units) *</label>
+      <input type="number" id="prev" min="0" value="0" placeholder="0" required>
+
+      <label for="curr">Current Meter Reading (units) *</label>
+      <input type="number" id="curr" min="0" placeholder="Enter current reading" required>
+      <div id="curr-error" class="error-message"></div>
+
+      <label for="rate">Rate per Unit (TZS) *</label>
+      <input type="number" id="rate" min="1" value="2000" required>
+
+      <label for="fixed">Fixed Charge (TZS)</label>
+      <input type="number" id="fixed" min="0" value="0">
+
+      <button type="submit">Calculate Bill</button>
+    </form>
+
+    <!-- Result Section -->
+    <div class="result result-success" id="result" role="alert"></div>
+
+    <!-- Action Buttons -->
+    <div class="button-group" id="actionButtons">
+      <button type="button" class="btn-sms" id="sendSMSBtn">📱 Send via SMS</button>
+      <button type="button" class="btn-records" id="viewRecordsBtn">📊 View History</button>
     </div>
-    
-    <script>
-        const LOCAL_STORAGE_KEY = 'mickeyBillingRecords';
-        
-        /**
-         * Loads all records from localStorage.
-         * @returns {Array} List of billing records.
-         */
-        function getRecords() {
-            return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-        }
+  </div>
 
-        /**
-         * Saves a new record to localStorage.
-         * @param {object} record - The billing record object.
-         */
-        function saveRecord(record) {
-            let records = getRecords();
-            records.push(record);
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(records));
-        }
+  <script>
+    /**
+     * Water Billing Calculator System
+     * Features:
+     * - Form validation
+     * - Bill calculation
+     * - SMS sending
+     * - Local storage for records
+     * - Error handling
+     */
 
-        // Simpler animation for total count
-        function displayTotal(total) {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `<strong>Jumla: TZS ${total.toLocaleString('en-US')}</strong>`; 
-        }
+    // ============================================
+    // CONSTANTS & CONFIG
+    // ============================================
+    const LOCAL_STORAGE_KEY = 'mickeyBillingRecords';
+    const PHONE_REGEX = /^255\d{9}$/;
+    const MIN_NAME_LENGTH = 2;
+    const MAX_NAME_LENGTH = 50;
 
-        document.getElementById('billingForm').onsubmit = function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value.trim();
-            const phoneInput = document.getElementById('phone');
-            const prevInput = document.getElementById('prev');
-            const currInput = document.getElementById('curr');
-            
-            // Clear previous errors
-            document.getElementById('phone-error').textContent = '';
-            document.getElementById('curr-error').textContent = '';
-            
-            let isValid = true;
-            const phoneRegex = /^255\d{9}$/;
+    // ============================================
+    // DOM ELEMENTS
+    // ============================================
+    const billingForm = document.getElementById('billingForm');
+    const nameInput = document.getElementById('name');
+    const phoneInput = document.getElementById('phone');
+    const prevInput = document.getElementById('prev');
+    const currInput = document.getElementById('curr');
+    const rateInput = document.getElementById('rate');
+    const fixedInput = document.getElementById('fixed');
+    const resultDiv = document.getElementById('result');
+    const actionButtons = document.getElementById('actionButtons');
+    const sendSMSBtn = document.getElementById('sendSMSBtn');
+    const viewRecordsBtn = document.getElementById('viewRecordsBtn');
 
-            if (!phoneRegex.test(phoneInput.value.trim())) {
-                document.getElementById('phone-error').textContent = 'Namba lazima iwe na tarakimu 12 na ianze na 255 (mf. 2557XXXXXXXXX).';
-                isValid = false;
-            }
+    let currentRecord = null;
 
-            const prev = parseFloat(prevInput.value);
-            const curr = parseFloat(currInput.value);
-            
-            if (curr < prev) {
-                document.getElementById('curr-error').textContent = 'Kisoma cha sasa lazima kiwe kikubwa au sawa na cha awali.';
-                isValid = false;
-            }
-            
-            if (!isValid) return;
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
 
-            const rate = parseFloat(document.getElementById('rate').value);
-            const fixed = parseFloat(document.getElementById('fixed').value);
-            
-            const usage = curr - prev;
-            const amount = usage * rate;
-            const total = amount + fixed;
-            
-            // 1. Create the final bill message
-            const billMsg = `ANKARA YA MAJI\nJina: ${name}\nMatumizi: ${usage} unit\nBei: TZS ${rate.toLocaleString('en-US')}/unit\nAda ya Kudumu: TZS ${fixed.toLocaleString('en-US')}\nJumla: TZS ${total.toLocaleString('en-US')}\nAsante.`;
-            
-            // 2. Display result
-            document.getElementById('result').style.display = 'block';
-            displayTotal(total); // Using simpler display function
-            
-            // 3. Setup action buttons
-            const smsBtn = document.getElementById('sendSMSBtn');
-            document.getElementById('actionButtons').style.display = 'flex';
-            
-            smsBtn.onclick = function() {
-                const phone = phoneInput.value.trim();
-                window.open(`sms:${phone}?body=${encodeURIComponent(billMsg)}`, '_self'); 
-            };
-            
-            // 4. Store record
-            const now = new Date();
-            const record = {
-                id: Date.now(), 
-                name, 
-                phone: phoneInput.value.trim(), 
-                prev, 
-                curr, 
-                usage, 
-                rate, 
-                fixed, 
-                total: parseFloat(total.toFixed(2)),
-                date: now.toISOString(),
-                // Store month and year for filtering in records.html
-                monthYear: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}` 
-            };
-            saveRecord(record);
-        };
-        
-        // Initial setup for the tariff manual 
-        document.getElementById('defaultRate').textContent = parseFloat(document.getElementById('rate').value).toLocaleString('en-US');
-        document.getElementById('defaultFixed').textContent = parseFloat(document.getElementById('fixed').value).toLocaleString('en-US');
-    </script>
+    /**
+     * Get all stored billing records
+     * @returns {Array} Array of billing records
+     */
+    function getRecords() {
+      try {
+        return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+      } catch (err) {
+        console.error('Error reading records:', err);
+        return [];
+      }
+    }
+
+    /**
+     * Save a new billing record
+     * @param {Object} record - Record to save
+     */
+    function saveRecord(record) {
+      try {
+        const records = getRecords();
+        records.push(record);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(records));
+      } catch (err) {
+        console.error('Error saving record:', err);
+        showError('Failed to save record. Storage limit may be exceeded.');
+      }
+    }
+
+    /**
+     * Display success message
+     * @param {string} message - Message to display
+     */
+    function showSuccess(message) {
+      resultDiv.textContent = message;
+      resultDiv.className = 'result result-success show';
+    }
+
+    /**
+     * Display error message
+     * @param {string} message - Error message
+     */
+    function showError(message) {
+      resultDiv.textContent = '⚠️ ' + message;
+      resultDiv.className = 'result result-error show';
+    }
+
+    /**
+     * Clear error messages
+     */
+    function clearErrors() {
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.textContent = '';
+        el.classList.remove('show');
+      });
+    }
+
+    /**
+     * Format currency value
+     * @param {number} value - Value to format
+     * @returns {string} Formatted string
+     */
+    function formatCurrency(value) {
+      return Number(value).toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      });
+    }
+
+    /**
+     * Display field-specific error
+     * @param {string} fieldId - Element ID
+     * @param {string} message - Error message
+     */
+    function displayFieldError(fieldId, message) {
+      const errorEl = document.getElementById(`${fieldId}-error`);
+      if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.add('show');
+      }
+    }
+
+    // ============================================
+    // VALIDATION FUNCTIONS
+    // ============================================
+
+    /**
+     * Validate all form inputs
+     * @returns {boolean} True if valid
+     */
+    function validateForm() {
+      clearErrors();
+      let isValid = true;
+
+      // Validate name
+      const name = nameInput.value.trim();
+      if (name.length < MIN_NAME_LENGTH || name.length > MAX_NAME_LENGTH) {
+        displayFieldError('name', `Name must be between ${MIN_NAME_LENGTH} and ${MAX_NAME_LENGTH} characters`);
+        isValid = false;
+      }
+
+      // Validate phone
+      if (!PHONE_REGEX.test(phoneInput.value.trim())) {
+        displayFieldError('phone', 'Phone must be 12 digits starting with 255 (e.g., 255712345678)');
+        isValid = false;
+      }
+
+      // Validate current >= previous
+      const prev = parseFloat(prevInput.value);
+      const curr = parseFloat(currInput.value);
+
+      if (isNaN(prev) || isNaN(curr)) {
+        displayFieldError('curr', 'Please enter valid readings');
+        isValid = false;
+      } else if (curr < prev) {
+        displayFieldError('curr', 'Current reading must be >= previous reading');
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    // ============================================
+    // CALCULATION & DISPLAY
+    // ============================================
+
+    /**
+     * Calculate and display bill
+     */
+    function calculateBill() {
+      if (!validateForm()) return;
+
+      const name = nameInput.value.trim();
+      const phone = phoneInput.value.trim();
+      const prev = parseFloat(prevInput.value);
+      const curr = parseFloat(currInput.value);
+      const rate = parseFloat(rateInput.value);
+      const fixed = parseFloat(fixedInput.value);
+
+      // Calculate values
+      const usage = curr - prev;
+      const amount = usage * rate;
+      const total = amount + fixed;
+
+      // Create bill message
+      const billMessage = `BILL STATEMENT
+Customer: ${name}
+Phone: ${phone}
+Usage: ${usage} units
+Rate: TZS ${formatCurrency(rate)}/unit
+Fixed Charge: TZS ${formatCurrency(fixed)}
+Total Due: TZS ${formatCurrency(total)}
+Thank you!`;
+
+      // Create record object
+      const now = new Date();
+      currentRecord = {
+        id: Date.now(),
+        name,
+        phone,
+        prev,
+        curr,
+        usage,
+        rate,
+        fixed,
+        total: parseFloat(total.toFixed(2)),
+        billMessage,
+        date: now.toISOString(),
+        monthYear: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+      };
+
+      // Save and display
+      saveRecord(currentRecord);
+      showSuccess(`✓ Bill Calculated: TZS ${formatCurrency(total)}`);
+      actionButtons.classList.add('show');
+    }
+
+    // ============================================
+    // EVENT LISTENERS
+    // ============================================
+
+    /**
+     * Form submission handler
+     */
+    billingForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      calculateBill();
+    });
+
+    /**
+     * Send SMS handler
+     */
+    sendSMSBtn.addEventListener('click', () => {
+      if (!currentRecord) return;
+
+      const { phone, billMessage } = currentRecord;
+      const encodedMessage = encodeURIComponent(billMessage);
+      
+      // Open SMS with pre-filled message
+      window.open(`sms:${phone}?body=${encodedMessage}`, '_self');
+    });
+
+    /**
+     * View history handler
+     */
+    viewRecordsBtn.addEventListener('click', () => {
+      window.location.href = 'records.html';
+    });
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+
+    // Update default rate display
+    document.getElementById('defaultRate').textContent = formatCurrency(rateInput.value);
+    document.getElementById('defaultFixed').textContent = formatCurrency(fixedInput.value);
+
+    // Update display when rate/fixed changes
+    rateInput.addEventListener('change', () => {
+      document.getElementById('defaultRate').textContent = formatCurrency(rateInput.value);
+    });
+
+    fixedInput.addEventListener('change', () => {
+      document.getElementById('defaultFixed').textContent = formatCurrency(fixedInput.value);
+    });
+
+    console.log('Water Billing Calculator initialized successfully');
+  </script>
 </body>
 </html>
-
-
