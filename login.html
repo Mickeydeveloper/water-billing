@@ -3,171 +3,233 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mickey Music Writer & Player</title>
+  <title>Mickey Studio - Search & Write</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   
   <style>
     :root {
-      --primary-color: #764ba2;
-      --secondary-color: #667eea;
-      --background-dark: #0f172a;
+      --primary: #8b5cf6;
+      --secondary: #ec4899;
       --glass: rgba(255, 255, 255, 0.1);
-      --border-radius: 16px;
+      --glass-dark: rgba(0, 0, 0, 0.3);
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
       color: white;
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
       padding: 20px;
     }
 
-    .app-container {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(15px);
-      padding: 2rem;
-      border-radius: var(--border-radius);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    .container {
       width: 100%;
-      max-width: 800px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      max-width: 900px;
+      animation: fadeIn 0.8s ease-in;
     }
 
-    h1 { text-align: center; margin-bottom: 20px; font-weight: 700; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* SEHEMU YA KICHEZA MUZIKI */
-    .player-section {
-      background: rgba(0, 0, 0, 0.2);
-      padding: 20px;
-      border-radius: 12px;
+    /* MODERN PLAYER STYLE */
+    .player-card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 30px;
+      margin-bottom: 25px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
       margin-bottom: 20px;
+    }
+
+    input, textarea {
+      background: var(--glass-dark);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 15px;
+      color: white;
+      font-family: inherit;
+      width: 100%;
+      transition: 0.3s;
+    }
+
+    input:focus { border-color: var(--primary); outline: none; background: rgba(0,0,0,0.5); }
+
+    .btn-search {
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      border: none;
+      border-radius: 12px;
+      padding: 0 25px;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* AUDIO CONTROLS CUSTOM */
+    .audio-wrapper {
+      margin-top: 20px;
       text-align: center;
     }
 
-    input[type="text"], textarea {
+    audio {
       width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-      font-family: inherit;
+      height: 45px;
+      filter: invert(100%) hue-rotate(180deg) brightness(1.5); /* Inafanya audio player iwe nyeupe/purple */
     }
 
-    textarea { height: 150px; resize: none; }
+    /* LYRICS WRITER */
+    .writer-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 24px;
+      padding: 30px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
 
-    .btn {
-      background: var(--primary-color);
-      color: white;
+    textarea { height: 250px; line-height: 1.6; font-size: 1.1rem; }
+
+    .action-btns {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .btn-icon {
+      padding: 12px 20px;
+      border-radius: 10px;
       border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       transition: 0.3s;
-      margin: 5px;
     }
 
-    .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+    .save { background: #10b981; color: white; }
+    .download { background: #3b82f6; color: white; }
+    .btn-icon:hover { transform: scale(1.05); opacity: 0.9; }
 
-    audio { width: 100%; margin-top: 10px; border-radius: 8px; }
+    .status-msg { font-size: 0.85rem; margin-top: 10px; color: #cbd5e1; }
 
-    .lyrics-view {
-      background: white;
-      color: #333;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 10px;
-      white-space: pre-wrap;
-      max-height: 200px;
-      overflow-y: auto;
-      display: none;
-    }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <h1>🎵 Mickey Music Studio</h1>
+<div class="container">
+  
+  <div class="player-card">
+    <h2 style="margin-bottom: 15px;"><i class="fas fa-play-circle"></i> Music Player</h2>
+    <div class="search-box">
+      <input type="text" id="songQuery" placeholder="Tafuta wimbo au weka jina...">
+      <button class="btn-search" onclick="searchSong()">
+        <i class="fas fa-search" id="searchIcon"></i> Search
+      </button>
+    </div>
 
-    <div class="player-section">
-      <h3>Music Player</h3>
-      <input type="text" id="songUrl" placeholder="Weka URL ya wimbo (mp3 link)...">
-      <audio id="audioPlayer" controls>
-        <source src="" type="audio/mpeg">
-        Your browser does not support the audio element.
+    <div id="songInfo" style="display: none; margin-bottom: 10px;">
+      <p id="playingTitle" style="font-weight: 600; color: var(--secondary);"></p>
+    </div>
+
+    <div class="audio-wrapper">
+      <audio id="mainAudio" controls>
+        <source id="audioSource" src="" type="audio/mpeg">
       </audio>
-      <div style="margin-top: 10px;">
-        <button class="btn" onclick="playSong()">Play Song</button>
-      </div>
+      <div id="loader" class="status-msg">Weka jina la wimbo uanze kutafuta...</div>
     </div>
-
-    <div class="writer-section">
-      <h3>Lyrics Writer</h3>
-      <input type="text" id="songTitle" placeholder="Jina la wimbo...">
-      <textarea id="lyricsInput" placeholder="Anza kuandika mashairi yako hapa..."></textarea>
-      
-      <div style="display: flex; justify-content: space-between;">
-        <button class="btn" onclick="saveLyrics()">Save Lyrics</button>
-        <button class="btn" style="background: #10b981;" onclick="downloadLyrics()">Download .txt</button>
-      </div>
-    </div>
-
-    <div id="lyricsDisplay" class="lyrics-view"></div>
   </div>
 
-  <script>
-    // 1. Kazi ya kucheza wimbo
-    function playSong() {
-      const url = document.getElementById('songUrl').value;
-      const player = document.getElementById('audioPlayer');
-      
-      if(url) {
-        player.src = url;
-        player.play();
+  <div class="writer-card">
+    <h2 style="margin-bottom: 15px;"><i class="fas fa-pen-nib"></i> Lyrics Writer</h2>
+    <input type="text" id="lyricsTitle" placeholder="Jina la wimbo wako..." style="margin-bottom: 15px;">
+    <textarea id="lyricsArea" placeholder="Anza kuandika mashairi hapa..."></textarea>
+    
+    <div class="action-btns">
+      <button class="btn-icon save" onclick="saveToScreen()"><i class="fas fa-eye"></i> Preview</button>
+      <button class="btn-icon download" onclick="downloadFile()"><i class="fas fa-download"></i> Download</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // MPANGILIO WA API (Unganisha na Backend yako hapa)
+  const API_URL = "https://api-aswin-sparky.koyeb.app/api/downloader/song?search="; 
+
+  async function searchSong() {
+    const query = document.getElementById('songQuery').value;
+    const loader = document.getElementById('loader');
+    const searchIcon = document.getElementById('searchIcon');
+    const audio = document.getElementById('mainAudio');
+    const source = document.getElementById('audioSource');
+
+    if (!query) {
+      alert("Andika jina la wimbo kwanza!");
+      return;
+    }
+
+    // Onyesha inatafuta
+    loader.innerHTML = "🔎 Inatafuta... Tafadhali subiria...";
+    searchIcon.className = "fas fa-spinner fa-spin";
+
+    try {
+      // Kutuma ombi kwenye API (Tunatumia link ya mfano uliotoa)
+      const response = await fetch(`${API_URL}${encodeURIComponent(query)}`);
+      const result = await response.json();
+
+      // Angalia kama data imepatikana kulingana na muundo wa API yako
+      const downloadUrl = result.data?.url || result.url;
+      const title = result.data?.title || query;
+
+      if (downloadUrl) {
+        source.src = downloadUrl;
+        audio.load();
+        audio.play();
+        
+        document.getElementById('songInfo').style.display = "block";
+        document.getElementById('playingTitle').innerText = "Now Playing: " + title;
+        loader.innerHTML = "✅ Wimbo umepatikana na unacheza!";
       } else {
-        alert("Tafadhali weka link ya wimbo!");
+        loader.innerHTML = "❌ Wimbo haujapatikana. Jaribu mwingine.";
       }
+    } catch (error) {
+      console.error(error);
+      loader.innerHTML = "❌ Hitilafu imetokea kwenye mawasiliano na Seva.";
+    } finally {
+      searchIcon.className = "fas fa-search";
     }
+  }
 
-    // 2. Kazi ya kuhifadhi maneno (ndani ya browser)
-    function saveLyrics() {
-      const title = document.getElementById('songTitle').value;
-      const content = document.getElementById('lyricsInput').value;
-      const display = document.getElementById('lyricsDisplay');
+  // Sehemu ya Lyrics
+  function downloadFile() {
+    const text = document.getElementById('lyricsArea').value;
+    const title = document.getElementById('lyricsTitle').value || "wimbo_wangu";
+    if(!text) return alert("Andika mashairi kwanza!");
 
-      if(!title || !content) {
-        alert("Jaza kichwa cha habari na maneno!");
-        return;
-      }
+    const blob = new Blob([text], { type: 'text/plain' });
+    const anchor = document.createElement('a');
+    anchor.download = `${title}.txt`;
+    anchor.href = window.URL.createObjectURL(blob);
+    anchor.click();
+  }
 
-      display.style.display = "block";
-      display.innerText = `WIMBO: ${title}\n\n${content}`;
-      alert("Yamehifadhiwa kwenye kioo!");
-    }
+  function saveToScreen() {
+      alert("Mabadiliko yamehifadhiwa kwenye kioo!");
+  }
+</script>
 
-    // 3. Kazi ya Kudownload kama file
-    function downloadLyrics() {
-      const title = document.getElementById('songTitle').value || "wimbo";
-      const content = document.getElementById('lyricsInput').value;
-
-      if(!content) {
-        alert("Andika kitu kabla ya kudownload!");
-        return;
-      }
-
-      const element = document.createElement('a');
-      const file = new Blob([content], {type: 'text/plain'});
-      element.href = URL.createObjectURL(file);
-      element.download = `${title}.txt`;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-    }
-  </script>
 </body>
 </html>
