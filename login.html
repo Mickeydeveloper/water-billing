@@ -1,487 +1,173 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sw">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Secure Face Recognition Login - Mickey Water Billing System">
-  <meta name="author" content="Mickey Hamza">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Secure Face Login - Water Billing System</title>
-  
+  <title>Mickey Music Writer & Player</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
   
   <style>
-    /* ============================================
-       RESET & VARIABLES
-       ============================================ */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     :root {
-      --primary-color: #1e40af;
-      --secondary-color: #0ea5e9;
-      --success-color: #10b981;
-      --error-color: #ef4444;
-      --warning-color: #f59e0b;
-      --background-light: #f8fafc;
+      --primary-color: #764ba2;
+      --secondary-color: #667eea;
       --background-dark: #0f172a;
-      --text-primary: #1e293b;
-      --text-secondary: #64748b;
-      --border-color: #e2e8f0;
-      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
-      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+      --glass: rgba(255, 255, 255, 0.1);
       --border-radius: 16px;
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* ============================================
-       BODY & LAYOUT
-       ============================================ */
     body {
-      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: var(--text-primary);
-      overflow: hidden;
       padding: 20px;
     }
 
-    /* ============================================
-       CONTAINER
-       ============================================ */
-    .login-container {
-      text-align: center;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      padding: 3rem;
+    .app-container {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      padding: 2rem;
       border-radius: var(--border-radius);
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 800px;
       border: 1px solid rgba(255, 255, 255, 0.2);
-      max-width: 480px;
+    }
+
+    h1 { text-align: center; margin-bottom: 20px; font-weight: 700; }
+
+    /* SEHEMU YA KICHEZA MUZIKI */
+    .player-section {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    input[type="text"], textarea {
       width: 100%;
-      transition: var(--transition);
-    }
-
-    .login-container.error {
-      border-color: var(--error-color);
-      background: rgba(255, 255, 255, 0.98);
-    }
-
-    /* ============================================
-       HEADER SECTION
-       ============================================ */
-    h1 {
-      margin-bottom: 0.75rem;
-      font-size: clamp(1.5rem, 5vw, 2rem);
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-
-    .subtitle {
-      color: var(--text-secondary);
-      font-size: 0.95rem;
-      margin-bottom: 2rem;
-      font-weight: 500;
-    }
-
-    /* ============================================
-       STATUS & MESSAGES
-       ============================================ */
-    .status {
-      margin: 2rem 0;
-      padding: 1rem;
-      font-weight: 600;
-      font-size: 1rem;
-      min-height: 50px;
-      border-radius: 10px;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      background: linear-gradient(135deg, rgba(30, 64, 175, 0.1), rgba(14, 165, 233, 0.1));
-      color: var(--primary-color);
-      border: 2px solid rgba(30, 64, 175, 0.2);
-    }
-
-    .status.success {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(10, 185, 181, 0.1));
-      color: var(--success-color);
-      border-color: rgba(16, 185, 129, 0.3);
-    }
-
-    .status.error {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.1));
-      color: var(--error-color);
-      border-color: rgba(239, 68, 68, 0.3);
-    }
-
-    .status.warning {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.1));
-      color: var(--warning-color);
-      border-color: rgba(245, 158, 11, 0.3);
-    }
-
-    /* ============================================
-       HIDDEN CAMERA ELEMENTS
-       ============================================ */
-    video, canvas {
-      display: none !important;
-      position: fixed;
-      top: -9999px;
-      left: -9999px;
-      width: 320px !important;
-      height: 240px !important;
-      z-index: -999;
-    }
-
-    /* ============================================
-       ANIMATIONS
-       ============================================ */
-    @keyframes pulse-scan {
-      0%, 100% {
-        box-shadow: 0 0 8px rgba(30, 64, 175, 0.5);
-        transform: scale(1);
-      }
-      50% {
-        box-shadow: 0 0 30px rgba(30, 64, 175, 0.8);
-        transform: scale(1.02);
-      }
-    }
-
-    @keyframes success-bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    .scanning {
-      animation: pulse-scan 2s infinite ease-in-out;
-    }
-
-    .success {
-      animation: success-bounce 0.6s ease-out;
-      background: rgba(16, 185, 129, 0.15) !important;
-      color: var(--success-color) !important;
-      border-color: var(--success-color) !important;
-    }
-
-    .spinner {
-      display: inline-block;
-      width: 1.2rem;
-      height: 1.2rem;
-      border: 3px solid rgba(30, 64, 175, 0.2);
-      border-top-color: var(--primary-color);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    /* ============================================
-       PROGRESS BAR
-       ============================================ */
-    .progress-bar {
-      width: 100%;
-      height: 4px;
-      background: rgba(226, 232, 240, 0.3);
-      border-radius: 2px;
-      overflow: hidden;
-      margin: 1.5rem 0;
-      display: none;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-      width: 0%;
-      transition: width 0.3s ease;
-      border-radius: 2px;
-    }
-
-    /* ============================================
-       BUTTON STYLES
-       ============================================ */
-    .btn-group {
-      display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-
-    button {
-      flex: 1;
-      padding: 0.9rem 1.5rem;
-      font-size: 0.95rem;
-      font-weight: 600;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
       border: none;
+      outline: none;
+      font-family: inherit;
+    }
+
+    textarea { height: 150px; resize: none; }
+
+    .btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 20px;
       border-radius: 8px;
       cursor: pointer;
-      transition: var(--transition);
-      font-family: 'Poppins', sans-serif;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-weight: 600;
+      transition: 0.3s;
+      margin: 5px;
+    }
+
+    .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    audio { width: 100%; margin-top: 10px; border-radius: 8px; }
+
+    .lyrics-view {
+      background: white;
+      color: #333;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
       display: none;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: #fff;
-      box-shadow: var(--shadow-md);
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(30, 64, 175, 0.3);
-    }
-
-    .btn-primary:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* ============================================
-       RESPONSIVE
-       ============================================ */
-    @media (max-width: 480px) {
-      .login-container {
-        padding: 2rem;
-      }
-
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      .btn-group {
-        flex-direction: column;
-        gap: 0.75rem;
-      }
     }
   </style>
 </head>
 <body>
-  <div class="login-container" id="loginContainer">
-    <h1>🔐 Secure Login</h1>
-    <p class="subtitle">Face Recognition Authentication</p>
 
-    <!-- HIDDEN CAMERA & CANVAS -->
-    <video id="camera" autoplay muted playsinline></video>
-    <canvas id="captureCanvas"></canvas>
-    <canvas id="previewCanvas"></canvas>
+  <div class="app-container">
+    <h1>🎵 Mickey Music Studio</h1>
 
-    <!-- STATUS MESSAGE -->
-    <div class="status" id="status">
-      <span class="spinner"></span>
-      <span id="statusText">Initializing secure camera...</span>
+    <div class="player-section">
+      <h3>Music Player</h3>
+      <input type="text" id="songUrl" placeholder="Weka URL ya wimbo (mp3 link)...">
+      <audio id="audioPlayer" controls>
+        <source src="" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+      <div style="margin-top: 10px;">
+        <button class="btn" onclick="playSong()">Play Song</button>
+      </div>
     </div>
 
-    <!-- PROGRESS BAR -->
-    <div class="progress-bar" id="progressBar">
-      <div class="progress-fill" id="progressFill"></div>
+    <div class="writer-section">
+      <h3>Lyrics Writer</h3>
+      <input type="text" id="songTitle" placeholder="Jina la wimbo...">
+      <textarea id="lyricsInput" placeholder="Anza kuandika mashairi yako hapa..."></textarea>
+      
+      <div style="display: flex; justify-content: space-between;">
+        <button class="btn" onclick="saveLyrics()">Save Lyrics</button>
+        <button class="btn" style="background: #10b981;" onclick="downloadLyrics()">Download .txt</button>
+      </div>
     </div>
 
-    <!-- ACTION BUTTONS -->
-    <div class="btn-group" id="buttonGroup">
-      <button class="btn-primary" id="retryBtn" onclick="location.reload()">Retry</button>
-      <button class="btn-primary" id="mainMenuBtn" onclick="window.location.href='main.html'">Skip to Main</button>
-    </div>
+    <div id="lyricsDisplay" class="lyrics-view"></div>
   </div>
 
   <script>
-    /**
-     * Secure Face Recognition Login System
-     * - Initializes device camera
-     * - Simulates face recognition AI
-     * - Provides secure authentication flow
-     */
-
-    // ============================================
-    // DOM ELEMENTS
-    // ============================================
-    const video = document.getElementById('camera');
-    const captureCanvas = document.getElementById('captureCanvas');
-    const previewCanvas = document.getElementById('previewCanvas');
-    const statusText = document.getElementById('statusText');
-    const statusDiv = document.getElementById('status');
-    const container = document.getElementById('loginContainer');
-    const progressBar = document.getElementById('progressBar');
-    const progressFill = document.getElementById('progressFill');
-    const retryBtn = document.getElementById('retryBtn');
-    const mainMenuBtn = document.getElementById('mainMenuBtn');
-
-    // Canvas contexts
-    const captureCtx = captureCanvas.getContext('2d');
-    const previewCtx = previewCanvas.getContext('2d');
-
-    // Set canvas dimensions
-    captureCanvas.width = previewCanvas.width = 320;
-    captureCanvas.height = previewCanvas.height = 240;
-
-    // State variables
-    let loginAttempted = false;
-    let stream = null;
-
-    // ============================================
-    // UTILITY FUNCTIONS
-    // ============================================
-    function updateStatus(message, className = '') {
-      statusText.textContent = message;
-      statusDiv.className = `status ${className}`;
-    }
-
-    function showButtons() {
-      retryBtn.style.display = 'block';
-      mainMenuBtn.style.display = 'block';
-    }
-
-    // ============================================
-    // MAIN FUNCTIONS
-    // ============================================
-
-    /**
-     * 1. Initialize camera and request permissions
-     */
-    async function initializeCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 320 },
-            height: { ideal: 240 },
-            facingMode: 'user'
-          },
-          audio: false
-        });
-
-        video.srcObject = stream;
-        updateStatus('Camera secured. Scanning', 'scanning');
-
-        video.onloadedmetadata = () => {
-          video.play().catch(err => {
-            console.error('Play error:', err);
-            handleCameraError('Failed to play video stream');
-          });
-          setTimeout(simulateFaceDetection, 1500);
-        };
-
-      } catch (err) {
-        handleCameraError(err.message);
+    // 1. Kazi ya kucheza wimbo
+    function playSong() {
+      const url = document.getElementById('songUrl').value;
+      const player = document.getElementById('audioPlayer');
+      
+      if(url) {
+        player.src = url;
+        player.play();
+      } else {
+        alert("Tafadhali weka link ya wimbo!");
       }
     }
 
-    /**
-     * 2. Simulate AI face detection
-     */
-    function simulateFaceDetection() {
-      if (loginAttempted) return;
+    // 2. Kazi ya kuhifadhi maneno (ndani ya browser)
+    function saveLyrics() {
+      const title = document.getElementById('songTitle').value;
+      const content = document.getElementById('lyricsInput').value;
+      const display = document.getElementById('lyricsDisplay');
 
-      setTimeout(() => {
-        updateStatus('✓ Face detected. Verifying...', 'scanning');
-        setTimeout(captureAndEnhancePhoto, 1200);
-      }, 1800);
-    }
-
-    /**
-     * 3. Capture and enhance photo
-     */
-    function captureAndEnhancePhoto() {
-      if (loginAttempted) return;
-
-      try {
-        // Capture raw image
-        captureCtx.drawImage(video, 0, 0, 320, 240);
-
-        // Apply image enhancements
-        const imageData = captureCtx.getImageData(0, 0, 320, 240);
-        const data = imageData.data;
-
-        for (let i = 0; i < data.length; i += 4) {
-          // Brightness boost (+15%)
-          data[i] = Math.min(255, data[i] * 1.15);
-          data[i + 1] = Math.min(255, data[i + 1] * 1.15);
-          data[i + 2] = Math.min(255, data[i + 2] * 1.15);
-
-          // Contrast enhancement
-          const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-          data[i] = Math.min(255, data[i] + (data[i] - avg) * 0.08);
-          data[i + 1] = Math.min(255, data[i + 1] + (data[i + 1] - avg) * 0.08);
-          data[i + 2] = Math.min(255, data[i + 2] + (data[i + 2] - avg) * 0.08);
-        }
-
-        captureCtx.putImageData(imageData, 0, 0);
-        updateStatus('📸 Photo captured. Enhancing...', '');
-        setTimeout(completeLogin, 800);
-
-      } catch (err) {
-        console.error('Capture error:', err);
-        handleCameraError('Failed to capture photo');
-      }
-    }
-
-    /**
-     * 4. Complete login and redirect
-     */
-    function completeLogin() {
-      loginAttempted = true;
-
-      // Stop camera stream
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if(!title || !content) {
+        alert("Jaza kichwa cha habari na maneno!");
+        return;
       }
 
-      updateStatus('✓ Login successful! Redirecting...', 'success');
-      progressBar.style.display = 'block';
-
-      // Simulate progress
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 30;
-        if (progress > 100) progress = 100;
-        progressFill.style.width = progress + '%';
-
-        if (progress === 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            window.location.href = 'main.html';
-          }, 500);
-        }
-      }, 200);
+      display.style.display = "block";
+      display.innerText = `WIMBO: ${title}\n\n${content}`;
+      alert("Yamehifadhiwa kwenye kioo!");
     }
 
-    /**
-     * Error handling for camera issues
-     */
-    function handleCameraError(message) {
-      loginAttempted = true;
-      console.error('Camera Error:', message);
+    // 3. Kazi ya Kudownload kama file
+    function downloadLyrics() {
+      const title = document.getElementById('songTitle').value || "wimbo";
+      const content = document.getElementById('lyricsInput').value;
 
-      container.classList.add('error');
-      updateStatus(`⚠️ ${message}`, 'error');
-      showButtons();
-
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if(!content) {
+        alert("Andika kitu kabla ya kudownload!");
+        return;
       }
-    }
 
-    // ============================================
-    // INITIALIZE
-    // ============================================
-    initializeCamera();
+      const element = document.createElement('a');
+      const file = new Blob([content], {type: 'text/plain'});
+      element.href = URL.createObjectURL(file);
+      element.download = `${title}.txt`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
   </script>
 </body>
 </html>
