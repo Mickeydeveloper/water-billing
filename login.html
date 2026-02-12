@@ -6,7 +6,7 @@
   <title>Mickey Spotify Clone & Writer</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  
+
   <style>
     :root {
       --spotify-green: #1DB954;
@@ -36,57 +36,68 @@
       align-items: center;
       padding: 20px;
       overflow-y: auto;
-      padding-bottom: 120px; /* Space for player */
+      padding-bottom: 150px;
     }
 
-    /* EQUALIZER ANIMATION AREA */
+    /* EQUALIZER */
     .equalizer-container {
       width: 100%;
       max-width: 600px;
-      height: 100px;
+      height: 120px;
       display: flex;
       align-items: flex-end;
       justify-content: center;
       gap: 3px;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 10px;
     }
 
     .bar {
-      width: 8px;
-      background: linear-gradient(to top, var(--spotify-green), #8ef8b3);
-      border-radius: 4px 4px 0 0;
-      transition: height 0.05s ease;
+      width: 10px;
+      background: var(--spotify-green);
+      border-radius: 5px 5px 0 0;
+      transition: height 0.1s ease;
+      box-shadow: 0 0 10px rgba(29, 185, 84, 0.3);
     }
 
-    /* WRITER SECTION */
+    /* WRITER CARD */
     .writer-card {
       width: 100%;
       max-width: 700px;
       background: var(--spotify-light-black);
       padding: 25px;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
     }
 
     input, textarea {
       background: #3e3e3e;
-      border: none;
+      border: 1px solid transparent;
       border-radius: 8px;
       padding: 15px;
       color: white;
       width: 100%;
       margin-bottom: 15px;
       font-family: inherit;
+      transition: 0.3s;
     }
 
-    textarea { height: 250px; resize: none; font-size: 1rem; border-left: 4px solid var(--spotify-green); }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--spotify-green);
+      background: #454545;
+    }
 
-    /* SPOTIFY MINI PLAYER (BOTTOM) */
+    textarea { height: 200px; resize: none; font-size: 1rem; border-left: 5px solid var(--spotify-green); }
+
+    /* PLAYER */
     .spotify-player {
       position: fixed;
       bottom: 0;
       width: 100%;
-      background: #181818;
+      background: #121212;
       border-top: 1px solid #282828;
       padding: 15px 30px;
       display: flex;
@@ -95,30 +106,46 @@
       z-index: 100;
     }
 
-    .song-details { display: flex; align-items: center; gap: 15px; width: 30%; }
-    .song-icon { width: 50px; height: 50px; background: #282828; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--spotify-green); }
+    .song-details { display: flex; align-items: center; gap: 15px; width: 25%; }
+    .song-icon { width: 55px; height: 55px; background: #282828; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--spotify-green); border: 1px solid #333; }
+
+    .player-controls { width: 45%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .control-btns { display: flex; align-items: center; gap: 20px; }
+    .control-btns i { cursor: pointer; color: var(--text-gray); transition: 0.2s; }
+    .control-btns i:hover { color: var(--text-white); }
     
-    .player-controls { width: 40%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .control-btns { display: flex; align-items: center; gap: 25px; font-size: 20px; }
-    .play-btn { font-size: 35px; cursor: pointer; transition: 0.2s; }
-    .play-btn:hover { transform: scale(1.1); color: var(--spotify-green); }
+    .play-btn { font-size: 45px !important; color: white !important; }
+    .play-btn:hover { transform: scale(1.05); color: var(--spotify-green) !important; }
 
-    .progress-container { width: 100%; display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-gray); }
-    .progress-bar { flex: 1; height: 4px; background: #4f4f4f; border-radius: 2px; cursor: pointer; position: relative; }
-    .progress-fill { width: 0%; height: 100%; background: var(--spotify-green); border-radius: 2px; }
+    .progress-container { width: 100%; display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-gray); }
+    .progress-bar { flex: 1; height: 5px; background: #4f4f4f; border-radius: 5px; cursor: pointer; position: relative; }
+    .progress-fill { width: 0%; height: 100%; background: var(--spotify-green); border-radius: 5px; transition: width 0.1s linear; }
 
+    .search-area { width: 25%; display: flex; align-items: center; gap: 10px; }
     .search-input-mini {
       background: #282828;
-      padding: 8px 15px;
-      border-radius: 20px;
-      border: 1px solid #3e3e3e;
+      padding: 10px 18px;
+      border-radius: 25px;
+      border: 1px solid #333;
       color: white;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
+      width: 100%;
     }
 
+    .btn-save {
+      background: var(--spotify-green);
+      color: black;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 25px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn-save:hover { transform: translateY(-2px); background: #1ed760; }
+
     @media (max-width: 768px) {
-      .spotify-player { padding: 10px; }
-      .song-details { display: none; }
+      .song-details, .search-area { display: none; }
       .player-controls { width: 100%; }
     }
   </style>
@@ -126,17 +153,16 @@
 <body>
 
 <div class="main-content">
-  <div class="equalizer-container" id="equalizer">
-    </div>
+  <div class="equalizer-container" id="equalizer"></div>
 
   <div class="writer-card">
-    <h3 style="margin-bottom: 15px; color: var(--spotify-green);"><i class="fas fa-feather"></i> Lyrics Studio</h3>
-    <input type="text" id="lyricsTitle" placeholder="Kichwa cha wimbo...">
-    <textarea id="lyricsArea" placeholder="Anza kuandika mashairi yako hapa..."></textarea>
-    
+    <h3 style="margin-bottom: 20px; color: var(--spotify-green);"><i class="fas fa-feather-alt"></i> Studio Writer</h3>
+    <input type="text" id="lyricsTitle" placeholder="Kichwa cha wimbo (mf. 'Mapenzi Motomoto')">
+    <textarea id="lyricsArea" placeholder="Andika mashairi yako hapa..."></textarea>
+
     <div style="text-align: right;">
-      <button onclick="downloadFile()" style="background: var(--spotify-green); color: black; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 700; cursor: pointer;">
-        <i class="fas fa-download"></i> Save Song
+      <button onclick="downloadFile()" class="btn-save">
+        <i class="fas fa-file-download"></i> Save to Device
       </button>
     </div>
   </div>
@@ -144,121 +170,146 @@
 
 <div class="spotify-player">
   <div class="song-details">
-    <div class="song-icon"><i class="fas fa-music"></i></div>
-    <div>
-      <div id="playingName" style="font-size: 0.9rem; font-weight: 600;">Subiri wimbo...</div>
-      <div style="font-size: 0.75rem; color: var(--text-gray);">Mickey Studio</div>
+    <div class="song-icon" id="songIcon"><i class="fas fa-compact-disc fa-spin" style="animation-play-state: paused;"></i></div>
+    <div style="overflow: hidden;">
+      <div id="playingName" style="font-size: 0.9rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis;">Hakuna wimbo</div>
+      <div style="font-size: 0.7rem; color: var(--text-gray);">Mickey Glitch Engine</div>
     </div>
   </div>
 
   <div class="player-controls">
     <div class="control-btns">
-      <i class="fas fa-random" style="font-size: 14px; color: var(--text-gray);"></i>
-      <i class="fas fa-step-backward"></i>
+      <i class="fas fa-random" title="Shuffle"></i>
+      <i class="fas fa-undo" onclick="skip(-10)" title="Back 10s"></i>
       <i class="fas fa-play-circle play-btn" id="masterPlay" onclick="togglePlay()"></i>
-      <i class="fas fa-step-forward"></i>
-      <i class="fas fa-redo" style="font-size: 14px; color: var(--text-gray);"></i>
+      <i class="fas fa-redo" onclick="skip(10)" title="Forward 10s"></i>
+      <i class="fas fa-retweet" title="Repeat"></i>
     </div>
     <div class="progress-container">
       <span id="currentTime">0:00</span>
-      <div class="progress-bar" onclick="seek(event)">
+      <div class="progress-bar" id="progBar" onclick="seek(event)">
         <div class="progress-fill" id="progressFill"></div>
       </div>
       <span id="duration">0:00</span>
     </div>
   </div>
 
-  <div style="width: 30%; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
-    <input type="text" id="songSearch" class="search-input-mini" placeholder="Tafuta wimbo..." onkeypress="handleSearch(event)">
-    <i class="fas fa-volume-up" style="color: var(--text-gray);"></i>
+  <div class="search-area">
+    <input type="text" id="songSearch" class="search-input-mini" placeholder="Tafuta & Play..." onkeypress="handleSearch(event)">
   </div>
 </div>
 
-<audio id="audioSource"></audio>
+<audio id="audioSource" crossorigin="anonymous"></audio>
 
 <script>
   const audio = document.getElementById('audioSource');
   const playBtn = document.getElementById('masterPlay');
   const progressFill = document.getElementById('progressFill');
   const equalizer = document.getElementById('equalizer');
-  
-  // 1. Create Equalizer Bars
-  for (let i = 0; i < 40; i++) {
+  const discIcon = document.querySelector('#songIcon i');
+
+  // 1. Generate Equalizer Bars
+  for (let i = 0; i < 45; i++) {
     const bar = document.createElement('div');
     bar.className = 'bar';
-    bar.style.height = '10px';
+    bar.style.height = '8px';
     equalizer.appendChild(bar);
   }
   const bars = document.querySelectorAll('.bar');
 
-  // 2. Audio Visualizer Logic
+  // 2. Visualizer setup
   let audioCtx, analyser, dataArray;
-  
+
   function initVisualizer() {
     if (audioCtx) return;
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaElementSource(audio);
-    analyser = audioCtx.createAnalyser();
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
-    analyser.fftSize = 128;
-    const bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    animate();
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioCtx.createMediaElementSource(audio);
+      analyser = audioCtx.createAnalyser();
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      analyser.fftSize = 128;
+      dataArray = new Uint8Array(analyser.frequencyBinCount);
+      animate();
+    } catch (e) {
+      console.log("Visualizer blocked or failed");
+    }
   }
 
   function animate() {
     requestAnimationFrame(animate);
-    if (analyser) {
-      analyser.getByteFrequencyData(dataArray);
-      for (let i = 0; i < bars.length; i++) {
-        const val = dataArray[i] || 0;
-        const height = Math.max(10, (val / 255) * 100);
-        bars[i].style.height = height + 'px';
-      }
+    if (!analyser || audio.paused) {
+        bars.forEach(b => b.style.height = '8px');
+        return;
+    }
+    analyser.getByteFrequencyData(dataArray);
+    for (let i = 0; i < bars.length; i++) {
+      const val = dataArray[i % dataArray.length];
+      const height = Math.max(8, (val / 255) * 110);
+      bars[i].style.height = height + 'px';
+      // Rangi kubadilika kulingana na mdundo
+      bars[i].style.background = `linear-gradient(to top, #1DB954, rgb(30, ${val}, 100))`;
     }
   }
 
-  // 3. Play/Pause Logic
+  // 3. Playback Controls
   function togglePlay() {
-    if (!audio.src) return alert("Tafuta wimbo kwanza!");
+    if (!audio.src) return alert("Tafuta wimbo kwanza kwenye box la kulia!");
+    
     initVisualizer();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
     if (audio.paused) {
-      audio.play();
+      audio.play().catch(e => console.log("Play failed"));
       playBtn.className = "fas fa-pause-circle play-btn";
+      discIcon.style.animationPlayState = "running";
     } else {
       audio.pause();
       playBtn.className = "fas fa-play-circle play-btn";
+      discIcon.style.animationPlayState = "paused";
     }
   }
 
-  // 4. Search API Logic
+  function skip(time) {
+    audio.currentTime += time;
+  }
+
+  // 4. API Search
   async function handleSearch(e) {
     if (e.key === 'Enter') {
-      const query = e.target.value;
+      const query = e.target.value.trim();
+      if(!query) return;
+
       const status = document.getElementById('playingName');
       status.innerText = "🔎 Inatafuta...";
       
       try {
-        const response = await fetch(`https://api-aswin-sparky.koyeb.app/api/downloader/song?search=${encodeURIComponent(query)}`);
-        const result = await response.json();
-        const link = result.data?.url || result.url;
+        const res = await fetch(`https://api-aswin-sparky.koyeb.app/api/downloader/song?search=${encodeURIComponent(query)}`);
+        const result = await res.json();
         
-        if (link) {
-          audio.src = link;
-          status.innerText = result.data?.title || query;
-          togglePlay();
+        // Jaribu kupata link sahihi kulingana na muundo wa API
+        const audioUrl = result.data?.url || result.url || (result.data && result.data.downloadUrl);
+        const title = result.data?.title || result.title || query;
+
+        if (audioUrl) {
+          audio.src = audioUrl;
+          status.innerText = title;
+          audio.play();
+          playBtn.className = "fas fa-pause-circle play-btn";
+          discIcon.style.animationPlayState = "running";
+          initVisualizer();
         } else {
-          status.innerText = "❌ Wimbo haujapatikana";
+          status.innerText = "⚠️ Wimbo haukupatikana";
         }
       } catch (err) {
-        status.innerText = "❌ Hitilafu ya seva";
+        status.innerText = "❌ Hitilafu ya Seva";
       }
     }
   }
 
-  // 5. Progress Bar Updates
+  // 5. Progress Logic
   audio.ontimeupdate = () => {
+    if (isNaN(audio.duration)) return;
     const pct = (audio.currentTime / audio.duration) * 100;
     progressFill.style.width = pct + "%";
     document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
@@ -266,28 +317,32 @@
   };
 
   function formatTime(sec) {
-    if (!sec) return "0:00";
-    let min = Math.floor(sec / 60);
+    let m = Math.floor(sec / 60);
     let s = Math.floor(sec % 60);
-    return min + ":" + (s < 10 ? "0" + s : s);
+    return m + ":" + (s < 10 ? "0" + s : s);
   }
 
   function seek(e) {
-    const rect = e.target.getBoundingClientRect();
+    const bar = document.getElementById('progBar');
+    const rect = bar.getBoundingClientRect();
     const x = e.clientX - rect.left;
-    const width = rect.width;
-    audio.currentTime = (x / width) * audio.duration;
+    audio.currentTime = (x / rect.width) * audio.duration;
   }
 
+  // 6. Writer Logic
   function downloadFile() {
     const text = document.getElementById('lyricsArea').value;
-    const title = document.getElementById('lyricsTitle').value || "wimbo_wangu";
-    if(!text) return alert("Andika mashairi!");
+    const title = document.getElementById('lyricsTitle').value.trim() || "Mickey_Lyrics";
+    if(!text) return alert("Tafadhali andika mashairi kwanza!");
+    
     const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    a.href = url;
     a.download = title + ".txt";
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
   }
 </script>
 
