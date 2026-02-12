@@ -3,266 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mickey Glitch - Ultra Music Player</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap">
+  <title>Mickey Ultra Player Fix</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    :root {
-      --primary: #00f2fe;
-      --secondary: #4facfe;
-      --bg: #0b0e14;
-      --card-bg: rgba(255, 255, 255, 0.05);
-      --text: #ffffff;
-    }
-
+    :root { --primary: #00f2fe; --bg: #0b0e14; --text: #ffffff; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Outfit', sans-serif;
-      background: radial-gradient(circle at top right, #1a2a6c, #b21f1f, #fdbb2d);
-      background-attachment: fixed;
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
+      background: #0f172a;
       color: var(--text);
       height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-    }
-
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .main-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      backdrop-filter: blur(10px);
     }
-
-    /* EQUALIZER */
-    .eq-box {
-      display: flex;
-      align-items: flex-end;
-      gap: 4px;
-      height: 80px;
-      margin-bottom: 30px;
-    }
-
-    .eq-bar {
-      width: 6px;
-      background: var(--primary);
-      border-radius: 10px;
-      height: 5px;
-      transition: 0.1s;
-    }
-
-    /* CONVERTER CARD */
     .glass-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 40px;
-      border-radius: 30px;
-      width: 100%;
-      max-width: 500px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      padding: 30px;
+      border-radius: 25px;
+      width: 90%;
+      max-width: 450px;
       text-align: center;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
-
-    h1 { font-weight: 800; margin-bottom: 10px; font-size: 1.8rem; letter-spacing: -1px; }
-
-    .input-wrapper {
-      position: relative;
-      margin-top: 25px;
-    }
-
     .url-input {
       width: 100%;
-      padding: 18px 25px;
+      padding: 15px 20px;
       border-radius: 50px;
       border: none;
       background: rgba(255,255,255,0.1);
       color: white;
-      font-size: 1rem;
+      margin: 20px 0;
       outline: none;
-      border: 2px solid transparent;
-      transition: 0.3s;
     }
-
-    .url-input:focus { border-color: var(--primary); background: rgba(255,255,255,0.15); }
-
-    .btn-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .main-btn {
-      flex: 1;
+    .btn {
+      width: 100%;
       padding: 15px;
       border-radius: 50px;
       border: none;
+      background: var(--primary);
       font-weight: 700;
       cursor: pointer;
-      transition: 0.3s;
-      text-transform: uppercase;
     }
-
-    .convert-btn { background: linear-gradient(to right, var(--primary), var(--secondary)); color: #000; }
-    .dl-btn { background: #fff; color: #000; display: none; width: 60px; flex: none; border-radius: 50%; }
-    .main-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
-
-    /* PLAYER BAR */
     .player-bar {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      max-width: 800px;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(15px);
-      border-radius: 100px;
-      padding: 15px 30px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .album-art {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: linear-gradient(45deg, var(--primary), var(--secondary));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: spin 4s linear infinite;
-      animation-play-state: paused;
-    }
-
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-    .track-info { flex: 1; min-width: 0; }
-    .track-name { font-weight: 600; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    .controls { display: flex; align-items: center; gap: 15px; }
-    .play-trigger { font-size: 2.2rem; cursor: pointer; color: var(--primary); }
-
-    .progress-wrap {
+      margin-top: 30px;
       width: 100%;
-      height: 4px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 2px;
-      margin-top: 5px;
-      cursor: pointer;
-      position: relative;
+      display: none;
     }
-
-    .progress-fill { height: 100%; background: var(--primary); width: 0%; border-radius: 2px; }
-
-    @media (max-width: 600px) {
-      .track-info { display: none; }
-      .glass-card { padding: 25px; }
-    }
+    .play-icon { font-size: 3rem; cursor: pointer; color: var(--primary); }
+    .status { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; }
   </style>
 </head>
 <body>
 
-<div class="main-container">
-  <div class="eq-box" id="eq"></div>
-
-  <div class="glass-card">
-    <h1>MICKEY GLITCH</h1>
-    <p style="opacity: 0.7; font-size: 0.9rem;">Copy & Paste music link to play</p>
-    
-    <div class="input-wrapper">
-      <input type="text" id="url" class="url-input" placeholder="YouTube or Spotify link...">
-    </div>
-
-    <div class="btn-group">
-      <button class="main-btn convert-btn" onclick="fetchMusic()" id="actionBtn">Convert & Play</button>
-      <button class="main-btn dl-btn" id="dlBtn" onclick="downloadMp3()"><i class="fas fa-download"></i></button>
-    </div>
-  </div>
-</div>
-
-<div class="player-bar">
-  <div class="album-art" id="art"><i class="fas fa-music"></i></div>
+<div class="glass-card">
+  <h2>MICKEY PLAYER</h2>
+  <p class="status" id="status">Paste Link and Play</p>
   
-  <div class="track-info">
-    <div class="track-name" id="tName">Waiting for link...</div>
-    <div class="progress-wrap" onclick="seek(event)">
-      <div class="progress-fill" id="fill"></div>
-    </div>
-  </div>
+  <input type="text" id="url" class="url-input" placeholder="YouTube or Spotify link...">
+  <button class="btn" onclick="fetchMusic()" id="actionBtn">PROCESS & PLAY</button>
 
-  <div class="controls">
-    <span style="font-size: 0.7rem;" id="time">0:00</span>
-    <i class="fas fa-play-circle play-trigger" id="playIcon" onclick="toggle()"></i>
+  <div class="player-bar" id="playerArea">
+    <div id="songTitle" style="margin-bottom: 10px; font-weight: bold;"></div>
+    <i class="fas fa-play-circle play-icon" id="playBtn" onclick="toggle()"></i>
+    <div style="margin-top:10px;">
+       <span id="curr">0:00</span> / <span id="dur">0:00</span>
+    </div>
   </div>
 </div>
 
-<audio id="player" crossorigin="anonymous"></audio>
+<audio id="player" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
   const audio = document.getElementById('player');
   const btn = document.getElementById('actionBtn');
-  const fill = document.getElementById('fill');
-  const art = document.getElementById('art');
-
-  // Create Equalizer
-  const eq = document.getElementById('eq');
-  for(let i=0; i<30; i++) {
-    let b = document.createElement('div');
-    b.className = 'eq-bar';
-    eq.appendChild(b);
-  }
-  const bars = document.querySelectorAll('.eq-bar');
-
-  let context, analyser, src, data;
+  const status = document.getElementById('status');
 
   async function fetchMusic() {
     const val = document.getElementById('url').value;
-    if(!val) return alert("Paste a link first!");
+    if(!val) return alert("Weka link!");
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
+    status.innerText = "Processing link... please wait";
 
     try {
+      // Tunatumia API hii ambayo ni thabiti zaidi kwa Direct Links
       const res = await fetch(`https://api-aswin-sparky.koyeb.app/api/downloader/song?search=${encodeURIComponent(val)}`);
       const json = await res.json();
-      const mp3 = json.data?.url || json.url;
+      
+      // Baadhi ya API zinarudisha "url" au "downloadUrl" au ndani ya "data"
+      const mp3 = json.data?.url || json.url || (json.data && json.data.download);
 
       if(mp3) {
+        // FIXED: Baadhi ya browser zinahitaji kuanzishwa kwa audio kupitia user interaction
         audio.src = mp3;
-        document.getElementById('tName').innerText = json.data?.title || "Playing Music";
-        document.getElementById('dlBtn').style.display = 'block';
-        audio.play();
-        updateUI(true);
-        startVisuals();
+        audio.load(); // Lazimisha kupakia upya
+        
+        document.getElementById('songTitle').innerText = json.data?.title || "Music Loaded";
+        document.getElementById('playerArea').style.display = "block";
+        
+        // Jaribu kucheza
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(_ => {
+                updateUI(true);
+                status.innerText = "Playing now ✅";
+            }).catch(error => {
+                status.innerText = "Click the Play button manually";
+                updateUI(false);
+            });
+        }
       } else {
-        alert("Could not convert this link.");
+        status.innerText = "❌ Could not get Audio. Try another link.";
       }
     } catch (e) {
-      alert("Server Error. Try again.");
+      status.innerText = "❌ Connection Error";
+      console.error(e);
     } finally {
       btn.disabled = false;
-      btn.innerText = "Convert & Play";
     }
   }
 
   function toggle() {
-    if(!audio.src) return;
     if(audio.paused) {
       audio.play();
       updateUI(true);
@@ -273,52 +139,19 @@
   }
 
   function updateUI(playing) {
-    document.getElementById('playIcon').className = playing ? "fas fa-pause-circle play-trigger" : "fas fa-play-circle play-trigger";
-    art.style.animationPlayState = playing ? "running" : "paused";
-  }
-
-  function startVisuals() {
-    if(context) return;
-    context = new AudioContext();
-    analyser = context.createAnalyser();
-    src = context.createMediaElementSource(audio);
-    src.connect(analyser);
-    analyser.connect(context.destination);
-    data = new Uint8Array(analyser.frequencyBinCount);
-    loop();
-  }
-
-  function loop() {
-    requestAnimationFrame(loop);
-    if(audio.paused) return;
-    analyser.getByteFrequencyData(data);
-    bars.forEach((b, i) => {
-      let h = (data[i] / 255) * 80;
-      b.style.height = Math.max(5, h) + 'px';
-      b.style.background = `hsl(${h * 2}, 100%, 50%)`;
-    });
+    document.getElementById('playBtn').className = playing ? "fas fa-pause-circle play-icon" : "fas fa-play-circle play-icon";
   }
 
   audio.ontimeupdate = () => {
-    const p = (audio.currentTime / audio.duration) * 100;
-    fill.style.width = p + "%";
-    let m = Math.floor(audio.currentTime / 60);
-    let s = Math.floor(audio.currentTime % 60);
-    document.getElementById('time').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+    document.getElementById('curr').innerText = format(audio.currentTime);
+    document.getElementById('dur').innerText = format(audio.duration);
   };
 
-  function seek(e) {
-    const w = e.target.clientWidth;
-    const x = e.offsetX;
-    audio.currentTime = (x / w) * audio.duration;
-  }
-
-  function downloadMp3() {
-    if(!audio.src) return;
-    const a = document.createElement('a');
-    a.href = audio.src;
-    a.download = "Mickey_Music.mp3";
-    a.click();
+  function format(s) {
+    if(isNaN(s)) return "0:00";
+    let m = Math.floor(s/60);
+    let sec = Math.floor(s%60);
+    return `${m}:${sec < 10 ? '0'+sec : sec}`;
   }
 </script>
 
