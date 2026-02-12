@@ -1,158 +1,244 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mickey Ultra Player Fix</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mickey Ultra Player v4</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --accent: #00d2ff;
+            --glass: rgba(255, 255, 255, 0.1);
+            --bg: #0f172a;
+        }
 
-  <style>
-    :root { --primary: #00f2fe; --bg: #0b0e14; --text: #ffffff; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Outfit', sans-serif;
-      background: #0f172a;
-      color: var(--text);
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(15px);
-      padding: 30px;
-      border-radius: 25px;
-      width: 90%;
-      max-width: 450px;
-      text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .url-input {
-      width: 100%;
-      padding: 15px 20px;
-      border-radius: 50px;
-      border: none;
-      background: rgba(255,255,255,0.1);
-      color: white;
-      margin: 20px 0;
-      outline: none;
-    }
-    .btn {
-      width: 100%;
-      padding: 15px;
-      border-radius: 50px;
-      border: none;
-      background: var(--primary);
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .player-bar {
-      margin-top: 30px;
-      width: 100%;
-      display: none;
-    }
-    .play-icon { font-size: 3rem; cursor: pointer; color: var(--primary); }
-    .status { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; }
-  </style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .player-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 210, 255, 0.3);
+        }
+
+        .action-btn:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* CUSTOM AUDIO PLAYER */
+        .audio-container {
+            margin-top: 35px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .song-info {
+            margin-bottom: 20px;
+        }
+
+        .song-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 5px;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Stylize the default audio tag */
+        audio {
+            width: 100%;
+            height: 45px;
+            border-radius: 30px;
+            filter: invert(100%) hue-rotate(180deg) brightness(1.5); /* Inverts colors to match dark theme */
+        }
+
+        .status-msg {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .loader {
+            display: none;
+            margin: 10px auto;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
 
-<div class="glass-card">
-  <h2>MICKEY PLAYER</h2>
-  <p class="status" id="status">Paste Link and Play</p>
-  
-  <input type="text" id="url" class="url-input" placeholder="YouTube or Spotify link...">
-  <button class="btn" onclick="fetchMusic()" id="actionBtn">PROCESS & PLAY</button>
-
-  <div class="player-bar" id="playerArea">
-    <div id="songTitle" style="margin-bottom: 10px; font-weight: bold;"></div>
-    <i class="fas fa-play-circle play-icon" id="playBtn" onclick="toggle()"></i>
-    <div style="margin-top:10px;">
-       <span id="curr">0:00</span> / <span id="dur">0:00</span>
+<div class="player-card">
+    <div class="logo">MICKEY GLITCH v4</div>
+    
+    <div class="input-group">
+        <input type="text" id="urlInput" placeholder="Paste YouTube/Spotify link here...">
     </div>
-  </div>
+
+    <button class="action-btn" id="fetchBtn" onclick="getAudio()">
+        <i class="fas fa-play-circle"></i> Start Playing
+    </button>
+
+    <div class="loader" id="loader"></div>
+    <div class="status-msg" id="status">Weka link uanze kusikiliza</div>
+
+    <div class="audio-container" id="playerArea">
+        <div class="song-info">
+            <span class="song-title" id="songTitle">Sauti Inacheza...</span>
+        </div>
+        <audio id="mainAudio" controls crossorigin="anonymous">
+            Mstari huu hauonekani kama browser yako inakubali audio.
+        </audio>
+        <div style="margin-top: 20px;">
+            <a id="dlLink" href="#" download style="color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: bold;">
+                <i class="fas fa-download"></i> Download MP3
+            </a>
+        </div>
+    </div>
 </div>
 
-<audio id="player" crossorigin="anonymous" preload="auto"></audio>
-
 <script>
-  const audio = document.getElementById('player');
-  const btn = document.getElementById('actionBtn');
-  const status = document.getElementById('status');
+    const audio = document.getElementById('mainAudio');
+    const status = document.getElementById('status');
+    const loader = document.getElementById('loader');
+    const fetchBtn = document.getElementById('fetchBtn');
+    const playerArea = document.getElementById('playerArea');
 
-  async function fetchMusic() {
-    const val = document.getElementById('url').value;
-    if(!val) return alert("Weka link!");
-
-    btn.disabled = true;
-    status.innerText = "Processing link... please wait";
-
-    try {
-      // Tunatumia API hii ambayo ni thabiti zaidi kwa Direct Links
-      const res = await fetch(`https://api-aswin-sparky.koyeb.app/api/downloader/song?search=${encodeURIComponent(val)}`);
-      const json = await res.json();
-      
-      // Baadhi ya API zinarudisha "url" au "downloadUrl" au ndani ya "data"
-      const mp3 = json.data?.url || json.url || (json.data && json.data.download);
-
-      if(mp3) {
-        // FIXED: Baadhi ya browser zinahitaji kuanzishwa kwa audio kupitia user interaction
-        audio.src = mp3;
-        audio.load(); // Lazimisha kupakia upya
-        
-        document.getElementById('songTitle').innerText = json.data?.title || "Music Loaded";
-        document.getElementById('playerArea').style.display = "block";
-        
-        // Jaribu kucheza
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(_ => {
-                updateUI(true);
-                status.innerText = "Playing now ✅";
-            }).catch(error => {
-                status.innerText = "Click the Play button manually";
-                updateUI(false);
-            });
+    async function getAudio() {
+        const url = document.getElementById('urlInput').value.trim();
+        if(!url) {
+            alert("Tafadhali weka link kwanza!");
+            return;
         }
-      } else {
-        status.innerText = "❌ Could not get Audio. Try another link.";
-      }
-    } catch (e) {
-      status.innerText = "❌ Connection Error";
-      console.error(e);
-    } finally {
-      btn.disabled = false;
+
+        // Reset UI
+        fetchBtn.disabled = true;
+        loader.style.display = "block";
+        status.innerText = "Inatafuta audio... Subiri kidogo";
+        playerArea.style.display = "none";
+
+        try {
+            // Tunatumia API thabiti zaidi
+            const res = await fetch(`https://api-aswin-sparky.koyeb.app/api/downloader/song?search=${encodeURIComponent(url)}`);
+            const result = await res.json();
+
+            // Tafuta link ya download (mp3)
+            const mp3Url = result.data?.url || result.url || (result.data && result.data.download);
+            const title = result.data?.title || "Mickey Music";
+
+            if(mp3Url) {
+                // SOLUTION: Tunatumia audio.src kisha .load() kuhakikisha browser inavuta data mpya
+                audio.src = mp3Url;
+                audio.load();
+                
+                document.getElementById('songTitle').innerText = title;
+                document.getElementById('dlLink').href = mp3Url;
+                
+                // Onyesha Player
+                playerArea.style.display = "block";
+                loader.style.display = "none";
+                status.innerText = "Tayari! Enjoy your music.";
+                
+                // Jaribu kucheza kiotomatiki
+                audio.play().catch(() => {
+                    status.innerText = "Bonyeza 'Play' kwenye kicheza muziki hapo juu.";
+                });
+
+            } else {
+                throw new Error("No MP3 link found");
+            }
+        } catch (e) {
+            console.error(e);
+            loader.style.display = "none";
+            status.innerText = "❌ Hitilafu: Link hii imekataliwa. Jaribu nyingine.";
+        } finally {
+            fetchBtn.disabled = false;
+        }
     }
-  }
 
-  function toggle() {
-    if(audio.paused) {
-      audio.play();
-      updateUI(true);
-    } else {
-      audio.pause();
-      updateUI(false);
-    }
-  }
-
-  function updateUI(playing) {
-    document.getElementById('playBtn').className = playing ? "fas fa-pause-circle play-icon" : "fas fa-play-circle play-icon";
-  }
-
-  audio.ontimeupdate = () => {
-    document.getElementById('curr').innerText = format(audio.currentTime);
-    document.getElementById('dur').innerText = format(audio.duration);
-  };
-
-  function format(s) {
-    if(isNaN(s)) return "0:00";
-    let m = Math.floor(s/60);
-    let sec = Math.floor(s%60);
-    return `${m}:${sec < 10 ? '0'+sec : sec}`;
-  }
+    // Hakikisha volume ipo juu kila mara
+    audio.volume = 1.0;
 </script>
 
 </body>
