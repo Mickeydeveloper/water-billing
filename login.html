@@ -2,138 +2,51 @@
 <html lang="sw">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mickey Glitch v4 - Direct API</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Mickey Glitch v4</title>
     <style>
-        :root { --primary: #00d2ff; --bg: #0f172a; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        .container {
-            background: #1e293b;
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-        h2 { color: var(--primary); margin-bottom: 20px; font-weight: 800; }
-        input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid #334155;
-            background: #0f172a;
-            color: white;
-            margin-bottom: 15px;
-            outline: none;
-        }
-        .play-btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: none;
-            background: var(--primary);
-            color: #000;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-        .play-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .player-box {
-            margin-top: 25px;
-            display: none;
-            border-top: 1px solid #334155;
-            padding-top: 20px;
-        }
-        audio {
-            width: 100%;
-            height: 40px;
-            margin-top: 10px;
-            filter: invert(100%) hue-rotate(180deg); /* Inapendezesha player iwe dark */
-        }
-        .info { font-size: 13px; color: #94a3b8; margin-top: 10px; }
-        #title { font-size: 14px; font-weight: 600; color: #f8fafc; }
+        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
+        .box { background: #1e293b; padding: 20px; border-radius: 15px; max-width: 400px; margin: auto; }
+        input { width: 80%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none; }
+        button { padding: 10px 20px; background: #00d2ff; border: none; cursor: pointer; font-weight: bold; }
+        #player { display: none; margin-top: 20px; }
+        img { width: 100%; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>MICKEY GLITCH v4</h2>
-    <input type="text" id="linkInput" placeholder="Bandika link hapa...">
-    <button class="play-btn" id="startBtn" onclick="playMusic()">START PLAYING</button>
-    
-    <div id="msg" class="info">Ingiza link ya YouTube au Spotify</div>
+<div class="box">
+    <h2>MICKEY GLITCH V4</h2>
+    <input type="text" id="search" placeholder="Andika jina la wimbo...">
+    <button onclick="tafutaWimbo()">TAFUTA</button>
 
-    <div class="player-box" id="pBox">
-        <p id="title">Inapakia...</p>
-        <audio id="mAudio" controls></audio>
-        <div style="margin-top: 15px;">
-            <a id="download" href="#" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 13px; font-weight: bold;">
-                <i class="fas fa-download"></i> Pakua Wimbo
-            </a>
-        </div>
+    <div id="player">
+        <img id="thumb" src="">
+        <h4 id="title"></h4>
+        <p id="author"></p>
+        <audio id="audio" controls autoplay></audio>
     </div>
 </div>
 
 <script>
-    async function playMusic() {
-        const input = document.getElementById('linkInput').value.trim();
-        const btn = document.getElementById('startBtn');
-        const msg = document.getElementById('msg');
-        const audio = document.getElementById('mAudio');
-        const pBox = document.getElementById('pBox');
+    async function tafutaWimbo() {
+        const q = document.getElementById('search').value;
+        const player = document.getElementById('player');
+        
+        // 1. Inaita API yetu ya Node.js (yt-search)
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
 
-        if (!input) return alert("Weka Link!");
-
-        // 1. Maandalizi
-        btn.disabled = true;
-        btn.innerText = "CHUKUA API...";
-        msg.innerText = "Inatafuta audio, subiri kidogo...";
-        pBox.style.display = "none";
-
-        try {
-            // 2. Kuchukua data kutoka API moja kwa moja
-            const response = await fetch(`https://api-aswin-sparky.koyeb.app/api/downloader/song?search=${encodeURIComponent(input)}`);
-            const result = await response.json();
-
-            // API hii inarudisha link ndani ya result.data.url
-            const directUrl = result.data?.url || result.url;
-
-            if (directUrl) {
-                // 3. Set audio src na kuipakia
-                audio.src = directUrl;
-                audio.load(); // Muhimu ili audio isome muda (metadata)
-                
-                document.getElementById('title').innerText = result.data?.title || "Mickey Music Playback";
-                document.getElementById('download').href = directUrl;
-
-                pBox.style.display = "block";
-                msg.innerText = "✅ Tayari! Bonyeza Play kusikiliza.";
-                
-                // Jaribu ku-play moja kwa moja (Baadhi ya browser zitazuia hadi ubonyeze wewe)
-                audio.play().catch(() => {
-                    msg.innerText = "Bonyeza button ya Play hapo juu.";
-                });
-
-            } else {
-                msg.innerText = "❌ Hitilafu: Link haikupatikana.";
-            }
-        } catch (err) {
-            msg.innerText = "❌ API imegoma. Jaribu tena.";
-            console.error(err);
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "START PLAYING";
+        if(data.url) {
+            document.getElementById('title').innerText = data.title;
+            document.getElementById('thumb').src = data.thumbnail;
+            document.getElementById('author').innerText = data.author.name;
+            
+            // 2. Tunatumia API ya aswin-sparky ku-play (kama ulivyofanya mwanzo)
+            const audioRes = await fetch(`https://api-aswin-sparky.koyeb.app/api/downloader/song?search=${encodeURIComponent(data.url)}`);
+            const audioData = await audioRes.json();
+            
+            document.getElementById('audio').src = audioData.data.url;
+            player.style.display = 'block';
         }
     }
 </script>
