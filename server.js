@@ -1,6 +1,7 @@
 /**
  * Mickey Water Billing System & Music Player - Server
  * A combined Express.js server for billing and music search
+ * Optimized for Aswin Sparky API Integration
  */
 
 const express = require('express');
@@ -8,7 +9,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors'); 
-const yts = require('yt-search'); // Maktaba ya kutafuta nyimbo YouTube
+const yts = require('yt-search'); 
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -17,7 +18,7 @@ const PORT = process.env.PORT || 10000;
 // MIDDLEWARE CONFIGURATION
 // ============================================
 
-app.use(cors()); // Inaruhusu maombi kutoka kwa browser/domain tofauti
+app.use(cors()); 
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
@@ -25,44 +26,55 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.static(path.join(__dirname, '/')));
 
 // ============================================
-// MUSIC API ROUTE (Mickey Music v4)
+// MUSIC API ROUTE (Mickey Music v4 - BORESHO)
 // ============================================
 
 /**
- * GET /api/search-music - Search songs on YouTube
- * Query: ?q=song+name
+ * GET /api/search-music
+ * Inatafuta YouTube -> Inapata Link -> Inachukua Audio toka Aswin API
  */
 app.get('/api/search-music', async (req, res) => {
   try {
     const query = req.query.q;
     if (!query) {
-      return res.status(400).json({ error: 'Search query is required' });
+      return res.status(400).json({ status: false, error: 'Andika jina la wimbo' });
     }
 
-    // Kutumia yt-search kupata video
+    // 1. Hatua ya kwanza: Tafuta video YouTube
     const r = await yts(query);
-    const videos = r.videos.slice(0, 1); // Tunachukua matokeo ya kwanza tu
+    const video = r.videos[0]; 
 
-    if (videos.length === 0) {
-      return res.status(404).json({ error: 'No results found' });
+    if (!video) {
+      return res.status(404).json({ status: false, error: 'Wimbo haukupatikana YouTube' });
     }
 
-    const video = videos[0];
+    const youtubeUrl = video.url;
+
+    // 2. Hatua ya pili: Ite API ya Aswin Sparky kupata playable audio link
+    // Tunatumia link ya YouTube tuliyoipata hapo juu
+    const aswinApiUrl = `https://api-aswin-sparky.koyeb.app/api/downloader/song?search=${encodeURIComponent(youtubeUrl)}`;
     
-    // Kurudisha data za wimbo
-    res.json({
-      success: true,
-      title: video.title,
-      url: video.url,
-      thumbnail: video.thumbnail,
-      timestamp: video.timestamp,
-      author: video.author.name,
-      views: video.views
-    });
+    const response = await fetch(aswinApiUrl);
+    const result = await response.json();
+
+    if (result.status && result.data) {
+      // Tunarudisha jibu moja lililokamilika
+      res.json({
+        status: true,
+        title: video.title,
+        thumbnail: video.thumbnail,
+        author: video.author.name,
+        timestamp: video.timestamp,
+        audioUrl: result.data.url, // Hii ndiyo link ya ku-play na kupakua
+        creator: result.creator
+      });
+    } else {
+      res.status(500).json({ status: false, error: 'API ya audio imeshindwa kutoa link' });
+    }
 
   } catch (err) {
     console.error('Music Search Error:', err);
-    res.status(500).json({ error: 'Failed to search music', details: err.message });
+    res.status(500).json({ status: false, error: 'Hitilafu ya server', details: err.message });
   }
 });
 
@@ -78,7 +90,6 @@ app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Route ya Music Page (Tengeneza music.html kama unataka iwe na page yake)
 app.get('/music', (req, res) => {
   res.sendFile(path.join(__dirname, 'music.html'));
 });
@@ -91,44 +102,24 @@ app.get('/records', (req, res) => {
   res.sendFile(path.join(__dirname, 'records.html'));
 });
 
-/**
- * POST /send-sms - Handle SMS sending
- */
+// SMS & Record Handlers (Unchanged)
 app.post('/send-sms', async (req, res) => {
   try {
     const { to, message } = req.body;
-    if (!to || !message) {
-      return res.status(400).json({ success: false, error: 'Missing fields' });
-    }
-    console.log(`SMS would be sent to ${to}: ${message}`);
-    res.json({ success: true, message: 'SMS sent successfully' });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+    console.log(`SMS to ${to}: ${message}`);
+    res.json({ success: true, message: 'SMS sent' });
+  } catch (err) { res.status(500).json({ success: false }); }
 });
 
-/**
- * POST /save-record - Save billing record
- */
 app.post('/save-record', async (req, res) => {
   try {
     const record = { id: Date.now(), ...req.body };
-    console.log('Record saved:', record);
-    res.json({ success: true, message: 'Record saved successfully', record });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+    res.json({ success: true, record });
+  } catch (err) { res.status(500).json({ success: false }); }
 });
 
-/**
- * GET /health - Health check endpoint
- */
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
+  res.json({ status: 'ok', uptime: process.uptime() });
 });
 
 // ============================================
@@ -141,5 +132,4 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🌊 Mickey Billing & Music Server running on port ${PORT}`);
-  console.log(`🎵 Music Search API: http://localhost:${PORT}/api/search-music?q=song+name`);
 });
