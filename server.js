@@ -144,14 +144,20 @@ app.post('/auth/google', async (req, res) => {
     const name = payload.name;
     const picture = payload.picture;
 
-    // Create JWT token
+    // Validate user data
+    if (!userId || !email) {
+      throw new Error('Invalid token payload: missing userId or email');
+    }
+
+    // Create JWT token with better claims
     const jwtToken = jwt.sign(
       {
         userId,
         email,
         name,
         picture,
-        provider: 'google'
+        provider: 'google',
+        iat: Date.now()
       },
       JWT_SECRET,
       { expiresIn: '7d' }
@@ -164,12 +170,15 @@ app.post('/auth/google', async (req, res) => {
     userData.name = name;
     userData.picture = picture;
     userData.lastLogin = new Date().toISOString();
+    userData.loginCount = (userData.loginCount || 0) + 1;
     if (!userData.records) {
       userData.records = [];
     }
 
     // Save user data
     saveUserData(userId, userData);
+
+    console.log(`✓ User authenticated: ${email}`);
 
     res.json({
       success: true,
@@ -341,10 +350,10 @@ app.post('/save-record', verifyToken, async (req, res) => {
       });
     }
 
-    // Create record object
+    // Create record object with better structure
     const record = {
       id: Date.now(),
-      name: name.trim(),
+      name: name.trim().substring(0, 100),
       phone: phone.trim(),
       prev: parseFloat(prev),
       curr: parseFloat(curr),
@@ -352,7 +361,9 @@ app.post('/save-record', verifyToken, async (req, res) => {
       rate: parseFloat(rate),
       fixed: parseFloat(fixed),
       total: parseFloat(total),
-      date: date || new Date().toISOString()
+      date: date || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      userId // Track which user created this record
     };
 
     // Load user data and add record
@@ -361,6 +372,7 @@ app.post('/save-record', verifyToken, async (req, res) => {
       userData.records = [];
     }
     userData.records.push(record);
+    userData.lastModified = new Date().toISOString();
 
     // Save user data
     const saved = saveUserData(userId, userData);
@@ -368,14 +380,18 @@ app.post('/save-record', verifyToken, async (req, res) => {
     if (!saved) {
       return res.status(500).json({
         success: false,
-        error: 'Failed to save record'
+        error: 'Failed to save record',
+        message: 'Unable to write data to storage'
       });
     }
+
+    console.log(`✓ Record saved: ${record.name} - TZS ${record.total}`);
 
     res.json({ 
       success: true,
       message: 'Record saved successfully',
-      record 
+      record,
+      totalRecords: userData.records.length
     });
 
   } catch (err) {
@@ -395,13 +411,26 @@ app.get('/get-records', verifyToken, (req, res) => {
   try {
     const userId = req.user.userId;
     const userData = loadUserData(userId);
+    const records = userData.records || [];
+
+    // Calculate summary statistics
+    const stats = {
+      totalRecords: records.length,
+      totalRevenue: records.reduce((sum, r) => sum + (r.total || 0), 0),
+      totalUsage: records.reduce((sum, r) => sum + (r.usage || 0), 0),
+      averageBill: records.length > 0 ? records.reduce((sum, r) => sum + (r.total || 0), 0) / records.length : 0
+    };
+
+    console.log(`✓ Retrieved ${records.length} records for user ${userData.email}`);
 
     res.json({
       success: true,
-      records: userData.records || [],
+      records,
+      stats,
       user: {
         name: userData.name,
-        email: userData.email
+        email: userData.email,
+        totalRecordsCreated: records.length
       }
     });
 
@@ -423,30 +452,45 @@ app.delete('/delete-record/:recordId', verifyToken, (req, res) => {
     const userId = req.user.userId;
     const recordId = parseInt(req.params.recordId);
 
-    const userData = loadUserData(userId);
-    const initialLength = userData.records?.length || 0;
-
-    userData.records = (userData.records || []).filter(r => r.id !== recordId);
-
-    if (userData.records.length === initialLength) {
-      return res.status(404).json({
+    if (isNaN(recordId)) {
+      return res.status(400).json({
         success: false,
-        error: 'Record not found'
+        error: 'Invalid record ID format'
       });
     }
 
+    const userData = loadUserData(userId);
+    const recordToDelete = userData.records?.find(r => r.id === recordId);
+
+    if (!recordToDelete) {
+      return res.status(404).json({
+        success: false,
+        error: 'Record not found',
+        recordId
+      });
+    }
+
+    const initialLength = userData.records.length;
+    userData.records = userData.records.filter(r => r.id !== recordId);
+    userData.lastModified = new Date().toISOString();
+
     saveUserData(userId, userData);
+
+    console.log(`✓ Record deleted: ID ${recordId} for user ${userData.email}`);
 
     res.json({
       success: true,
-      message: 'Record deleted successfully'
+      message: 'Record deleted successfully',
+      deletedRecord: recordToDelete,
+      remainingRecords: userData.records.length
     });
 
   } catch (err) {
     console.error('Delete Record Error:', err);
     res.status(500).json({
       success: false,
-      error: 'Failed to delete record'
+      error: 'Failed to delete record',
+      message: err.message
     });
   }
 });
@@ -512,17 +556,108 @@ app.post('/send-sms', async (req, res) => {
  * GET /health - Health check endpoint
  */
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime() });
+  res.json({ 
+    status: 'ok', 
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'production'
+  });
+});
+
+/**
+ * GET /api/stats - Get system statistics
+ */
+app.get('/api/stats', (req, res) => {
+  try {
+    const dataDir = path.join(__dirname, 'user_data');
+    const files = fs.readdirSync(dataDir);
+    
+    let totalRecords = 0;
+    let totalRevenue = 0;
+    let totalUsers = files.length;
+
+    files.forEach(file => {
+      try {
+        const user = JSON.parse(fs.readFileSync(path.join(dataDir, file), 'utf8'));
+        const records = user.records || [];
+        totalRecords += records.length;
+        totalRevenue += records.reduce((sum, r) => sum + (r.total || 0), 0);
+      } catch (e) {
+        // Skip invalid files
+      }
+    });
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        totalRecords,
+        totalRevenue: parseFloat(totalRevenue.toFixed(2)),
+        averageRecordsPerUser: totalUsers > 0 ? (totalRecords / totalUsers).toFixed(2) : 0,
+        averageRevenuePerRecord: totalRecords > 0 ? (totalRevenue / totalRecords).toFixed(2) : 0
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('Stats Error:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve statistics'
+    });
+  }
 });
 
 // ============================================
 // ERROR HANDLING & STARTUP
 // ============================================
 
+// 404 handler
 app.use((req, res) => {
-  res.status(404).json({ error: 'Not Found', path: req.path });
+  res.status(404).json({ 
+    success: false,
+    error: 'Not Found', 
+    path: req.path,
+    method: req.method,
+    timestamp: new Date().toISOString()
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`🌊 Mickey Billing & Music Server running on port ${PORT}`);
+// Global error handler (must be last)
+app.use((err, req, res, next) => {
+  console.error('🔴 Server Error:', err);
+  res.status(err.status || 500).json({ 
+    success: false,
+    error: err.message || 'Internal Server Error',
+    timestamp: new Date().toISOString(),
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// Start server
+const server = app.listen(PORT, () => {
+  console.log(`
+╔═══════════════════════════════════════════════╗
+║  💧 Water Billing System Server              ║
+║  ✓ Running on port ${PORT}                    
+║  ✓ Environment: ${process.env.NODE_ENV || 'production'}
+║  ✓ Data directory: ${DATA_DIR}              
+╚═══════════════════════════════════════════════╝
+  `);
+});
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('📭 SIGTERM received, shutting down gracefully...');
+  server.close(() => {
+    console.log('✓ Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('📭 SIGINT received, shutting down gracefully...');
+  server.close(() => {
+    console.log('✓ Server closed');
+    process.exit(0);
+  });
 });

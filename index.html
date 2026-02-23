@@ -129,18 +129,37 @@
     }
 
     .status-box {
-      background: #f0faff;
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.05), rgba(14, 165, 233, 0.05));
       border: 2px solid var(--primary-color);
       border-radius: 12px;
       padding: 1.5rem;
       box-shadow: var(--shadow-sm);
       transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.3));
+      pointer-events: none;
     }
 
     .status-box:hover {
       box-shadow: var(--shadow-md);
       transform: translateY(-4px);
       border-color: var(--secondary-color);
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.1), rgba(14, 165, 233, 0.1));
+    }
+
+    .status-box > * {
+      position: relative;
+      z-index: 1;
     }
 
     .status-icon {
@@ -226,6 +245,36 @@
       text-decoration: none;
       display: inline-block;
       font-family: 'Poppins', sans-serif;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    a.btn::before,
+    button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+      z-index: 0;
+    }
+
+    a.btn:hover::before,
+    button:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    a.btn > *,
+    button > * {
+      position: relative;
+      z-index: 1;
     }
 
     a.btn:hover,
@@ -296,8 +345,32 @@
       }
     }
 
+    @keyframes shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
     .loading {
       animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .status-value {
+      animation: slideInRight 0.5s ease-out;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     /* ============================================

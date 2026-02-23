@@ -199,12 +199,29 @@
       border-color: var(--error-color);
     }
 
+    input:valid {
+      border-color: var(--success-color);
+      background: rgba(16, 185, 129, 0.02);
+    }
+
     .error-message {
       color: var(--error-color);
       font-size: 0.85rem;
       margin-top: 0.5rem;
       font-weight: 500;
       display: none;
+      animation: slideDown 0.2s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .error-message.show {
@@ -296,6 +313,11 @@
       background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.1));
       color: var(--error-color);
       border-left: 4px solid var(--error-color);
+    }
+
+    @keyframes spin {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
     }
 
     @keyframes slideIn {
@@ -649,6 +671,13 @@
     async function calculateBill() {
       if (!validateForm()) return;
 
+      const submitBtn = billingForm.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      
+      // Set loading state
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+
       const name = nameInput.value.trim();
       const phone = phoneInput.value.trim();
       const prev = parseFloat(prevInput.value);
@@ -695,6 +724,10 @@ Thank you!`;
       } catch (err) {
         console.error('Save error:', err);
         showError(`Failed to save record: ${err.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+        submitBtn.textContent = originalText;
       }
     }
 
