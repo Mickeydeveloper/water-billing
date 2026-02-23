@@ -337,9 +337,17 @@
 </head>
 <body>
   <div class="dashboard" id="dashboard">
-    <!-- Header -->
-    <h1>💧 Water Billing System</h1>
-    <p class="subtitle">Management Dashboard</p>
+    <!-- Header with User Info -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+      <div>
+        <h1 style="margin-bottom: 0;">💧 Water Billing System</h1>
+        <p class="subtitle" style="margin-bottom: 0;">Management Dashboard</p>
+      </div>
+      <div style="text-align: right;">
+        <div id="userName" style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.5rem;">Loading...</div>
+        <button onclick="window.logout()" style="padding: 0.6rem 1rem; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Poppins', sans-serif;">Logout</button>
+      </div>
+    </div>
 
     <!-- Status Grid -->
     <div class="status-grid">
@@ -402,31 +410,87 @@
     /**
      * Dashboard - Statistics and Quick Access
      * Features:
-     * - Display billing statistics
+     * - Display billing statistics from authenticated user
      * - Quick navigation
      * - Real-time data updates
      */
 
     // ============================================
-    // CONSTANTS
+    // INITIALIZATION
     // ============================================
-    const LOCAL_STORAGE_KEY = 'mickeyBillingRecords';
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuthentication();
+    });
+
+    // ============================================
+    // AUTHENTICATION
+    // ============================================
+    function checkAuthentication() {
+      const authToken = localStorage.getItem('authToken');
+      const user = localStorage.getItem('user');
+
+      if (!authToken || !user) {
+        // Redirect to login if not authenticated
+        window.location.href = '/';
+        return;
+      }
+
+      const userData = JSON.parse(user);
+      document.getElementById('userName').textContent = userData.name || 'User';
+      
+      loadStatsFromServer();
+    }
+
+    function logout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+
+    // Make logout globally available
+    window.logout = logout;
+
+    // ============================================
+    // API FUNCTIONS
+    // ============================================
+
+    /**
+     * Get authorization header with token
+     */
+    function getAuthHeader() {
+      const token = localStorage.getItem('authToken');
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+    }
+
+    /**
+     * Load statistics from authenticated API
+     */
+    async function loadStatsFromServer() {
+      try {
+        const response = await fetch('/get-records', {
+          method: 'GET',
+          headers: getAuthHeader()
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load statistics');
+        }
+
+        updateStats(data.records || []);
+      } catch (err) {
+        console.error('Error loading statistics:', err);
+        updateStats([]);
+      }
+    }
 
     // ============================================
     // UTILITY FUNCTIONS
     // ============================================
-
-    /**
-     * Get all records from localStorage
-     */
-    function getRecords() {
-      try {
-        return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-      } catch (err) {
-        console.error('Error loading records:', err);
-        return [];
-      }
-    }
 
     /**
      * Format currency
@@ -441,10 +505,8 @@
     /**
      * Calculate and display statistics
      */
-    function updateStats() {
-      const records = getRecords();
-
-      if (records.length === 0) {
+    function updateStats(records) {
+      if (!records || records.length === 0) {
         document.getElementById('totalBills').textContent = '0';
         document.getElementById('totalRevenue').textContent = 'TZS 0';
         document.getElementById('avgBill').textContent = 'TZS 0';
@@ -471,11 +533,12 @@
 A modern water billing solution for Tanzania.
 
 Features:
-• Face recognition login
+• Google Account Authentication
 • Bill calculation & SMS
 • Complete billing history
 • Monthly reports & exports
-• Secure data storage
+• Secure cloud storage
+• Multi-user support
 
 Developed by: Mickey Hamza
 © 2026 All Rights Reserved`);
@@ -489,14 +552,10 @@ Developed by: Mickey Hamza
       dashboard.classList.add('loading');
 
       setTimeout(() => {
-        updateStats();
+        loadStatsFromServer();
         dashboard.classList.remove('loading');
       }, 500);
     }
-
-    // ============================================
-    // INITIALIZATION
-    // ============================================
 
     // Show dashboard with animation
     const dashboard = document.getElementById('dashboard');
@@ -504,12 +563,6 @@ Developed by: Mickey Hamza
       dashboard.style.opacity = '1';
       dashboard.style.visibility = 'visible';
     }, 100);
-
-    // Load initial statistics
-    updateStats();
-
-    // Refresh stats when storage changes
-    window.addEventListener('storage', updateStats);
 
     console.log('Dashboard initialized successfully');
   </script>

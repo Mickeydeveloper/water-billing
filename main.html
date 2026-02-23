@@ -349,7 +349,17 @@
 </head>
 <body>
   <div class="container">
-    <h2>💧 Water Billing Calculator</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+      <h2 style="margin: 0;">💧 Water Billing Calculator</h2>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div id="userInfo" style="text-align: right; font-size: 0.9rem;">
+          <div id="userName" style="font-weight: 600; color: var(--primary-color);">Loading...</div>
+          <div id="userEmail" style="color: var(--text-secondary); font-size: 0.85rem;">-</div>
+        </div>
+        <img id="userPicture" src="" alt="User" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary-color); display: none;">
+        <button onclick="window.logout()" style="padding: 0.6rem 1rem; font-size: 0.9rem; margin: 0; background: linear-gradient(135deg, #ef4444, #dc2626);">Logout</button>
+      </div>
+    </div>
 
     <!-- Information Section -->
     <details class="info-section" open>
@@ -418,17 +428,58 @@
     /**
      * Water Billing Calculator System
      * Features:
+     * - Google Authentication integration
      * - Form validation
      * - Bill calculation
+     * - Cloud storage via authenticated API
      * - SMS sending
-     * - Local storage for records
      * - Error handling
      */
 
     // ============================================
+    // AUTHENTICATION CHECK
+    // ============================================
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuthentication();
+    });
+
+    function checkAuthentication() {
+      const authToken = localStorage.getItem('authToken');
+      const user = localStorage.getItem('user');
+
+      if (!authToken || !user) {
+        // Redirect to login if not authenticated
+        window.location.href = '/';
+        return;
+      }
+
+      const userData = JSON.parse(user);
+      displayUserInfo(userData);
+    }
+
+    function displayUserInfo(user) {
+      document.getElementById('userName').textContent = user.name || 'User';
+      document.getElementById('userEmail').textContent = user.email || '';
+      
+      if (user.picture) {
+        const userPicture = document.getElementById('userPicture');
+        userPicture.src = user.picture;
+        userPicture.style.display = 'block';
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+
+    // Make logout globally available
+    window.logout = logout;
+
+    // ============================================
     // CONSTANTS & CONFIG
     // ============================================
-    const LOCAL_STORAGE_KEY = 'mickeyBillingRecords';
     const PHONE_REGEX = /^255\d{9}$/;
     const MIN_NAME_LENGTH = 2;
     const MAX_NAME_LENGTH = 50;
@@ -451,40 +502,59 @@
     let currentRecord = null;
 
     // ============================================
+    // API FUNCTIONS
+    // ============================================
+
+    /**
+     * Get authorization header with token
+     */
+    function getAuthHeader() {
+      const token = localStorage.getItem('authToken');
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+    }
+
+    /**
+     * Save billing record to server
+     */
+    async function saveRecordToServer(record) {
+      try {
+        const response = await fetch('/save-record', {
+          method: 'POST',
+          headers: getAuthHeader(),
+          body: JSON.stringify({
+            name: record.name,
+            phone: record.phone,
+            prev: record.prev,
+            curr: record.curr,
+            rate: record.rate,
+            fixed: record.fixed,
+            total: record.total,
+            date: record.date
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to save record');
+        }
+
+        return data;
+      } catch (err) {
+        console.error('Error saving record:', err);
+        throw err;
+      }
+    }
+
+    // ============================================
     // UTILITY FUNCTIONS
     // ============================================
 
     /**
-     * Get all stored billing records
-     * @returns {Array} Array of billing records
-     */
-    function getRecords() {
-      try {
-        return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-      } catch (err) {
-        console.error('Error reading records:', err);
-        return [];
-      }
-    }
-
-    /**
-     * Save a new billing record
-     * @param {Object} record - Record to save
-     */
-    function saveRecord(record) {
-      try {
-        const records = getRecords();
-        records.push(record);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(records));
-      } catch (err) {
-        console.error('Error saving record:', err);
-        showError('Failed to save record. Storage limit may be exceeded.');
-      }
-    }
-
-    /**
      * Display success message
-     * @param {string} message - Message to display
      */
     function showSuccess(message) {
       resultDiv.textContent = message;
@@ -493,7 +563,6 @@
 
     /**
      * Display error message
-     * @param {string} message - Error message
      */
     function showError(message) {
       resultDiv.textContent = '⚠️ ' + message;
@@ -512,8 +581,6 @@
 
     /**
      * Format currency value
-     * @param {number} value - Value to format
-     * @returns {string} Formatted string
      */
     function formatCurrency(value) {
       return Number(value).toLocaleString('en-US', {
@@ -524,8 +591,6 @@
 
     /**
      * Display field-specific error
-     * @param {string} fieldId - Element ID
-     * @param {string} message - Error message
      */
     function displayFieldError(fieldId, message) {
       const errorEl = document.getElementById(`${fieldId}-error`);
@@ -541,7 +606,6 @@
 
     /**
      * Validate all form inputs
-     * @returns {boolean} True if valid
      */
     function validateForm() {
       clearErrors();
@@ -582,7 +646,7 @@
     /**
      * Calculate and display bill
      */
-    function calculateBill() {
+    async function calculateBill() {
       if (!validateForm()) return;
 
       const name = nameInput.value.trim();
@@ -610,7 +674,6 @@ Thank you!`;
       // Create record object
       const now = new Date();
       currentRecord = {
-        id: Date.now(),
         name,
         phone,
         prev,
@@ -624,10 +687,15 @@ Thank you!`;
         monthYear: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
       };
 
-      // Save and display
-      saveRecord(currentRecord);
-      showSuccess(`✓ Bill Calculated: TZS ${formatCurrency(total)}`);
-      actionButtons.classList.add('show');
+      // Save to server
+      try {
+        const result = await saveRecordToServer(currentRecord);
+        showSuccess(`✓ Bill Calculated & Saved: TZS ${formatCurrency(total)}`);
+        actionButtons.classList.add('show');
+      } catch (err) {
+        console.error('Save error:', err);
+        showError(`Failed to save record: ${err.message}`);
+      }
     }
 
     // ============================================
