@@ -511,36 +511,182 @@
      */
 
     // ============================================
-    // INITIALIZATION
+    // AUTHENTICATION CHECK & SESSION MANAGEMENT
     // ============================================
+    
+    // Configuration
+    const AUTH_CONFIG = {
+      redirectDelay: 1500,
+      sessionWarningTime: 5 * 60 * 1000, // 5 minutes
+      sessionTimeout: 7 * 24 * 60 * 60 * 1000, // 7 days
+      checkInterval: 1000 // Check every second
+    };
+
+    let sessionCheckInterval = null;
+    let authCheckComplete = false;
+
     window.addEventListener('DOMContentLoaded', () => {
       checkAuthentication();
+      startSessionMonitor();
     });
 
+    /**
+     * Check if user is authenticated
+     * Validates token and user data exist
+     */
     function checkAuthentication() {
       const authToken = localStorage.getItem('authToken');
       const user = localStorage.getItem('user');
+      const loginTime = localStorage.getItem('loginTime');
 
+      // Check if both auth data exist
       if (!authToken || !user) {
-        // Redirect to login if not authenticated
-        window.location.href = '/';
+        handleAuthenticationFailure('No authentication data found. Please log in.');
         return;
       }
 
-      const userData = JSON.parse(user);
-      document.getElementById('userName').textContent = userData.name || 'User';
-      
-      loadRecordsFromServer();
+      try {
+        // Validate user data is valid JSON
+        const userData = JSON.parse(user);
+        
+        // Validate required fields
+        if (!userData.userId || !userData.email) {
+          throw new Error('Invalid user data');
+        }
+
+        // Check session age
+        if (loginTime) {
+          const loginDate = new Date(loginTime);
+          const sessionAge = Date.now() - loginDate.getTime();
+          
+          if (sessionAge > AUTH_CONFIG.sessionTimeout) {
+            handleAuthenticationFailure('Your session has expired. Please log in again.');
+            return;
+          }
+        }
+
+        // Authentication successful
+        displayUserInfo(userData);
+        authCheckComplete = true;
+        loadRecordsFromServer();
+        console.log('✓ User authenticated:', userData.email);
+        
+      } catch (error) {
+        console.error('❌ Authentication validation error:', error);
+        handleAuthenticationFailure('Invalid authentication data. Please log in again.');
+      }
     }
 
+    /**
+     * Handle authentication failure
+     */
+    function handleAuthenticationFailure(message) {
+      console.warn('⚠️ Authentication check failed:', message);
+      
+      // Clear invalid auth data
+      clearAuthData();
+      
+      // Show message and redirect
+      alert(message);
+      
+      // Redirect to login page
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, AUTH_CONFIG.redirectDelay);
+    }
+
+    /**
+     * Display user information in header
+     */
+    function displayUserInfo(user) {
+      try {
+        const userName = document.getElementById('userName');
+        if (userName) {
+          userName.textContent = user.name || 'User';
+        }
+        console.log('✓ User info displayed');
+      } catch (error) {
+        console.error('Error displaying user info:', error);
+      }
+    }
+
+    /**
+     * Logout function
+     * Clears all authentication data and redirects to login
+     */
     function logout() {
+      try {
+        console.log('🔓 Logging out...');
+        clearAuthData();
+        
+        // Show feedback
+        alert('You have been logged out successfully.');
+        
+        // Redirect to login page
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Logout error:', error);
+        // Force redirect even if error occurs
+        window.location.href = 'login.html';
+      }
+    }
+
+    /**
+     * Clear all authentication data
+     */
+    function clearAuthData() {
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
-      window.location.href = '/';
+      localStorage.removeItem('loginTime');
+      localStorage.removeItem('isDemo');
     }
 
-    // Make logout globally available
+    /**
+     * Start monitoring session for expiration
+     */
+    function startSessionMonitor() {
+      sessionCheckInterval = setInterval(() => {
+        if (!authCheckComplete) return;
+
+        const loginTime = localStorage.getItem('loginTime');
+        if (!loginTime) return;
+
+        const loginDate = new Date(loginTime);
+        const sessionAge = Date.now() - loginDate.getTime();
+        const timeRemaining = AUTH_CONFIG.sessionTimeout - sessionAge;
+
+        // Warn user if session will expire soon
+        if (timeRemaining > 0 && timeRemaining < AUTH_CONFIG.sessionWarningTime) {
+          // Optional: Show warning
+          // console.warn(`⚠️ Session expires in ${Math.round(timeRemaining / 60000)} minutes`);
+        } else if (timeRemaining <= 0) {
+          // Session expired
+          handleAuthenticationFailure('Your session has expired. Please log in again.');
+        }
+      }, AUTH_CONFIG.checkInterval);
+    }
+
+    /**
+     * Stop monitoring session
+     */
+    function stopSessionMonitor() {
+      if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+      }
+    }
+
+    // Make functions globally available
     window.logout = logout;
+    window.isAuthenticated = () => localStorage.getItem('authToken') !== null;
+    window.getCurrentUser = () => {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    };
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      stopSessionMonitor();
+    });
 
     // ============================================
     // CONSTANTS & CONFIG

@@ -120,65 +120,145 @@ app.use((err, req, res, next) => {
 /**
  * POST /auth/google - Authenticate with Google token
  * Body: { token: string }
+ * Improved error handling for better debugging
  */
 app.post('/auth/google', async (req, res) => {
   try {
     const { token } = req.body;
 
+    // ============================================
+    // VALIDATION CHECKS
+    // ============================================
     if (!token) {
+      console.warn('❌ Auth failed: No token provided');
       return res.status(400).json({
         success: false,
-        error: 'Google token is required'
+        error: 'Google token is required',
+        code: 'MISSING_TOKEN'
       });
     }
 
-    // Verify the Google token
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: GOOGLE_CLIENT_ID
-    });
+    if (GOOGLE_CLIENT_ID === 'your-google-client-id.apps.googleusercontent.com') {
+      console.error('❌ CRITICAL: Google Client ID not configured');
+      return res.status(500).json({
+        success: false,
+        error: 'Server authentication not configured. Please contact administrator.',
+        code: 'MISSING_CLIENT_ID'
+      });
+    }
 
-    const payload = ticket.getPayload();
+    // ============================================
+    // VERIFY GOOGLE TOKEN
+    // ============================================
+    let ticket, payload;
+    try {
+      ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: GOOGLE_CLIENT_ID
+      });
+      payload = ticket.getPayload();
+    } catch (tokenErr) {
+      console.error('❌ Token verification failed:', tokenErr.message);
+      
+      // Provide specific error messages
+      let errorMsg = 'Invalid Google token';
+      if (tokenErr.message.includes('Token used too early')) {
+        errorMsg = 'Token used too early. Please try again.';
+      } else if (tokenErr.message.includes('Token used too late')) {
+        errorMsg = 'Token expired. Please sign in again.';
+      } else if (tokenErr.message.includes('Wrong number of segments')) {
+        errorMsg = 'Malformed authentication token.';
+      }
+
+      return res.status(401).json({
+        success: false,
+        error: errorMsg,
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    // ============================================
+    // EXTRACT & VALIDATE USER DATA
+    // ============================================
     const userId = payload.sub; // Google user ID
     const email = payload.email;
-    const name = payload.name;
-    const picture = payload.picture;
+    const name = payload.name || 'User';
+    const picture = payload.picture || null;
+    const emailVerified = payload.email_verified;
 
-    // Validate user data
+    // Ensure critical fields exist
     if (!userId || !email) {
-      throw new Error('Invalid token payload: missing userId or email');
+      console.error('❌ Auth failed: Missing required fields in token payload');
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token: missing user information',
+        code: 'INVALID_PAYLOAD'
+      });
     }
 
-    // Create JWT token with better claims
-    const jwtToken = jwt.sign(
-      {
-        userId,
-        email,
-        name,
-        picture,
-        provider: 'google',
-        iat: Date.now()
-      },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    // Load or create user data
-    let userData = loadUserData(userId);
-    userData.userId = userId;
-    userData.email = email;
-    userData.name = name;
-    userData.picture = picture;
-    userData.lastLogin = new Date().toISOString();
-    userData.loginCount = (userData.loginCount || 0) + 1;
-    if (!userData.records) {
-      userData.records = [];
+    // Optional: Check email verification
+    if (!emailVerified) {
+      console.warn(`⚠️ User email not verified: ${email}`);
+      // You can choose to allow or block unverified emails
+      // For now, we'll allow them
     }
 
-    // Save user data
-    saveUserData(userId, userData);
+    // ============================================
+    // CREATE JWT TOKEN
+    // ============================================
+    let jwtToken;
+    try {
+      jwtToken = jwt.sign(
+        {
+          userId,
+          email,
+          name,
+          picture,
+          provider: 'google',
+          emailVerified,
+          iat: Date.now()
+        },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+    } catch (jwtErr) {
+      console.error('❌ JWT creation failed:', jwtErr);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to create session token',
+        code: 'JWT_ERROR'
+      });
+    }
 
-    console.log(`✓ User authenticated: ${email}`);
+    // ============================================
+    // SAVE USER DATA
+    // ============================================
+    try {
+      let userData = loadUserData(userId);
+      userData.userId = userId;
+      userData.email = email;
+      userData.name = name;
+      userData.picture = picture;
+      userData.emailVerified = emailVerified;
+      userData.lastLogin = new Date().toISOString();
+      userData.loginCount = (userData.loginCount || 0) + 1;
+      if (!userData.records) {
+        userData.records = [];
+      }
+
+      if (!saveUserData(userId, userData)) {
+        throw new Error('Failed to save user data');
+      }
+    } catch (dataErr) {
+      console.error('❌ Failed to save user data:', dataErr);
+      // Still return success to client, but log the data save error
+      console.warn(`⚠️ User data not persisted for ${email}, but authentication succeeded`);
+    }
+
+    // ============================================
+    // SUCCESS RESPONSE
+    // ============================================
+    console.log(`✓ User authenticated: ${email} (${userId})`);
 
     res.json({
       success: true,
@@ -193,11 +273,11 @@ app.post('/auth/google', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Google Auth Error:', err);
-    res.status(401).json({
+    console.error('❌ Unexpected auth error:', err);
+    res.status(500).json({
       success: false,
-      error: 'Invalid Google token',
-      message: err.message
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Authentication failed. Please try again.',
+      code: 'UNEXPECTED_ERROR'
     });
   }
 });

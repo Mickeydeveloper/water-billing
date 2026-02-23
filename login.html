@@ -39,6 +39,49 @@
     }
 
     /* ============================================
+       KEYFRAME ANIMATIONS
+       ============================================ */
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ============================================
        BODY & LAYOUT
        ============================================ */
     body {
@@ -49,7 +92,7 @@
       min-height: 100vh;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: var(--text-primary);
-      overflow: hidden;
+      overflow: auto;
       padding: 20px;
     }
 
@@ -67,11 +110,28 @@
       max-width: 480px;
       width: 100%;
       transition: var(--transition);
+      animation: fadeInUp 0.6s ease-out;
     }
 
     .login-container.error {
       border-color: var(--error-color);
       background: rgba(255, 255, 255, 0.98);
+      animation: slideIn 0.3s ease-out;
+    }
+
+    /* ============================================
+       LOGO WRAPPER
+       ============================================ */
+    .logo-wrapper {
+      margin-bottom: 2rem;
+      animation: fadeInUp 0.8s ease-out 0.1s both;
+    }
+
+    .logo-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+      animation: pulse 2s ease-in-out infinite;
     }
 
     /* ============================================
@@ -96,6 +156,187 @@
     }
 
     /* ============================================
+       STATUS MESSAGES & SPINNER
+       ============================================ */
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .status.success {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--success-color);
+      border: 1px solid var(--success-color);
+    }
+
+    .status.error {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--error-color);
+      border: 1px solid var(--error-color);
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .status.success .spinner {
+      display: none;
+    }
+
+    /* ============================================
+       GOOGLE BUTTON CUSTOMIZATION
+       ============================================ */
+    #googleSignInContainer {
+      margin-bottom: 1.5rem;
+      animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    #googleSignInContainer > div {
+      margin: 0 auto;
+    }
+
+    /* ============================================
+       DIVIDER
+       ============================================ */
+    .divider {
+      position: relative;
+      margin: 1.5rem 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 35%;
+      height: 1px;
+      background-color: var(--border-color);
+    }
+
+    .divider::before {
+      left: 0;
+    }
+
+    .divider::after {
+      right: 0;
+    }
+
+    /* ============================================
+       DEMO SECTION
+       ============================================ */
+    .demo-section {
+      margin-bottom: 1.5rem;
+      animation: fadeInUp 0.8s ease-out 0.3s both;
+    }
+
+    .btn-demo {
+      width: 100%;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+    }
+
+    .btn-demo:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(30, 64, 175, 0.35);
+    }
+
+    .btn-demo:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(30, 64, 175, 0.2);
+    }
+
+    .demo-section p {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 0.75rem;
+    }
+
+    /* ============================================
+       FEATURES SECTION
+       ============================================ */
+    .features {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      animation: fadeInUp 0.8s ease-out 0.4s both;
+    }
+
+    .features-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      letter-spacing: 0.5px;
+    }
+
+    .features-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      transition: var(--transition);
+    }
+
+    .feature-item:hover {
+      color: var(--primary-color);
+      transform: translateX(4px);
+    }
+
+    .feature-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    .footer-text {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .footer-text p {
+      margin: 0;
+    }
+
+    /* ============================================
        RESPONSIVE
        ============================================ */
     @media (max-width: 480px) {
@@ -108,12 +349,28 @@
       }
 
       .logo-icon {
-        font-size: 2.5rem;
+        font-size: 3rem;
       }
 
       .features {
         margin-top: 1.5rem;
         padding-top: 1.5rem;
+      }
+
+      .divider::before,
+      .divider::after {
+        width: 30%;
+      }
+    }
+
+    /* ============================================
+       ACCESSIBILITY
+       ============================================ */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
       }
     }
   </style>
@@ -179,13 +436,28 @@
     /**
      * Google Sign-In Authentication
      * Handles user authentication and data persistence
+     * 
+     * SETUP INSTRUCTIONS:
+     * 1. Go to https://console.cloud.google.com/
+     * 2. Create or select a project
+     * 3. Enable Google+ API
+     * 4. Create OAuth 2.0 credentials (Web application)
+     * 5. Add redirect URI: http://localhost:10000 (development) or your domain
+     * 6. Copy the Client ID and replace 'YOUR_GOOGLE_CLIENT_ID' below
      */
 
     // ============================================
     // CONFIGURATION
     // ============================================
     const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
-    // Replace above with your actual Google Client ID from Google Cloud Console
+    const AUTH_ENDPOINT = '/auth/google';
+    const REDIRECT_PAGE = 'main.html';
+    const DEMO_MODE_ENABLED = true;
+
+    // Validate Google Client ID
+    if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+      console.warn('⚠️ WARNING: Google Client ID not configured! Please set up OAuth at https://console.cloud.google.com/');
+    }
 
     // ============================================
     // DOM ELEMENTS
@@ -193,40 +465,65 @@
     const statusDiv = document.getElementById('status');
     const statusText = document.getElementById('statusText');
     const container = document.getElementById('loginContainer');
+    const googleContainer = document.getElementById('googleSignInContainer');
 
     // ============================================
     // INITIALIZATION
     // ============================================
     window.onload = function() {
-      // Initialize Google Sign-In
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse
-      });
+      try {
+        // Check if Google API is loaded
+        if (typeof google === 'undefined' || !google.accounts) {
+          console.error('❌ Google API failed to load');
+          showError('Google authentication service failed to load. Please refresh the page.');
+          return;
+        }
 
-      google.accounts.id.renderButton(
-        document.getElementById('googleSignInContainer'),
-        {
+        // Initialize Google Sign-In
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleCredentialResponse,
+          auto_select: false,
+          itp_support: true
+        });
+
+        // Render the Google Sign-In button
+        google.accounts.id.renderButton(googleContainer, {
           theme: 'outline',
           size: 'large',
           width: '100%',
           locale: 'en',
-          logo_alignment: 'center'
-        }
-      );
+          logo_alignment: 'center',
+          text: 'continue_with'
+        });
+
+        // Also set up One Tap (optional)
+        // google.accounts.id.prompt();
+
+        console.log('✓ Google Sign-In initialized successfully');
+      } catch (error) {
+        console.error('Initialization error:', error);
+        showError('Failed to initialize Google Sign-In. Please try again.');
+      }
     };
 
     // ============================================
     // GOOGLE SIGN-IN HANDLER
     // ============================================
     async function handleCredentialResponse(response) {
+      if (!response || !response.credential) {
+        console.error('No credential received');
+        showError('No authentication credential received. Please try again.');
+        return;
+      }
+
       try {
         // Show loading status
         statusDiv.style.display = 'flex';
-        updateStatus('Authenticating with Google...', '');
+        updateStatus('Verifying credentials...', '');
 
         // Send token to backend for verification
-        const result = await fetch('/auth/google', {
+        const result = await fetch(AUTH_ENDPOINT, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -236,60 +533,98 @@
           })
         });
 
+        // Parse response
         const data = await result.json();
 
-        if (data.success) {
-          // Store JWT token in localStorage
+        // Handle response
+        if (!result.ok) {
+          throw new Error(data.error || 'Authentication failed');
+        }
+
+        if (data.success && data.token) {
+          // Store authentication data
           localStorage.setItem('authToken', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('loginTime', new Date().toISOString());
 
-          updateStatus('✓ Authentication successful!', 'success');
+          console.log('✓ Authentication successful:', data.user.email);
+          updateStatus('✓ Welcome ' + (data.user.name || 'User') + '!', 'success');
           
-          // Redirect to main page
+          // Redirect to main page after brief delay
           setTimeout(() => {
-            window.location.href = 'main.html';
-          }, 1500);
+            window.location.href = REDIRECT_PAGE;
+          }, 1200);
         } else {
-          updateStatus(`✗ Authentication failed: ${data.error}`, 'error');
-          statusDiv.style.display = 'flex';
+          throw new Error(data.error || 'Authentication failed');
         }
       } catch (error) {
         console.error('Authentication error:', error);
-        updateStatus('✗ Authentication failed. Please try again.', 'error');
-        statusDiv.style.display = 'flex';
+        showError(error.message || 'Authentication failed. Please check your connection and try again.');
       }
     }
 
     // ============================================
     // UTILITY FUNCTIONS
     // ============================================
+    
+    /**
+     * Update status message with optional styling
+     */
     function updateStatus(message, className = '') {
       statusText.textContent = message;
       statusDiv.className = `status ${className}`;
+      statusDiv.style.display = 'flex';
     }
 
     /**
-     * Demo mode - Skip authentication
+     * Show error message
+     */
+    function showError(message) {
+      console.error('❌ Error:', message);
+      updateStatus('✗ ' + message, 'error');
+      container.classList.add('error');
+    }
+
+    /**
+     * Demo mode - Skip authentication (for testing)
      */
     function loginAsDemo() {
-      // Create demo token for testing
-      const demoUser = {
-        userId: 'demo-user-' + Date.now(),
-        email: 'demo@example.com',
-        name: 'Demo User',
-        picture: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
-        provider: 'demo'
-      };
+      if (!DEMO_MODE_ENABLED) {
+        showError('Demo mode is currently disabled');
+        return;
+      }
 
-      localStorage.setItem('user', JSON.stringify(demoUser));
-      localStorage.setItem('authToken', 'demo-token-' + Date.now());
+      try {
+        // Show loading status
+        statusDiv.style.display = 'flex';
+        updateStatus('Entering Demo Mode...', '');
 
-      statusDiv.style.display = 'flex';
-      updateStatus('✓ Welcome to Demo Mode!', 'success');
+        // Create demo user data
+        const demoUser = {
+          userId: 'demo-user-' + Date.now(),
+          email: 'demo@example.com',
+          name: 'Demo User',
+          picture: 'https://ui-avatars.com/api/?name=Demo+User&background=0ea5e9&color=fff',
+          provider: 'demo'
+        };
 
-      setTimeout(() => {
-        window.location.href = 'main.html';
-      }, 1500);
+        // Store demo session
+        localStorage.setItem('user', JSON.stringify(demoUser));
+        localStorage.setItem('authToken', 'demo-token-' + Date.now());
+        localStorage.setItem('loginTime', new Date().toISOString());
+        localStorage.setItem('isDemo', 'true');
+
+        console.log('✓ Demo mode activated');
+        updateStatus('✓ Welcome to Demo Mode!', 'success');
+
+        // Redirect to main page
+        setTimeout(() => {
+          window.location.href = REDIRECT_PAGE;
+        }, 1200);
+      } catch (error) {
+        console.error('Demo mode error:', error);
+        showError('Failed to enter demo mode. Please try again.');
+      }
     }
 
     /**
@@ -298,13 +633,33 @@
     function logout() {
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
-      window.location.href = '/';
+      localStorage.removeItem('loginTime');
+      localStorage.removeItem('isDemo');
+      window.location.href = 'login.html';
     }
 
-    // Make logout globally available
-    window.logout = logout;
+    /**
+     * Check if user is authenticated
+     */
+    function isAuthenticated() {
+      return localStorage.getItem('authToken') !== null && localStorage.getItem('user') !== null;
+    }
 
-    console.log('Water Billing System - Login Page Initialized');
+    /**
+     * Get current user data
+     */
+    function getCurrentUser() {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    }
+
+    // Make functions globally available
+    window.logout = logout;
+    window.isAuthenticated = isAuthenticated;
+    window.getCurrentUser = getCurrentUser;
+    window.handleCredentialResponse = handleCredentialResponse;
+
+    console.log('✓ Water Billing System - Login Page Ready');
   </script>
 </body>
 </html>
