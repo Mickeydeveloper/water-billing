@@ -10,6 +10,7 @@
   
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="/config.js" defer></script>
   
   <style>
     /* ============================================
@@ -447,17 +448,16 @@
      */
 
     // ============================================
-    // CONFIGURATION
+    // CONFIGURATION (loaded from /config.js)
     // ============================================
-    const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+    function getGoogleClientId() {
+      return (window.APP_CONFIG && window.APP_CONFIG.GOOGLE_CLIENT_ID) || '';
+    }
     const AUTH_ENDPOINT = '/auth/google';
     const REDIRECT_PAGE = 'main.html';
     const DEMO_MODE_ENABLED = true;
 
-    // Validate Google Client ID
-    if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
-      console.warn('⚠️ WARNING: Google Client ID not configured! Please set up OAuth at https://console.cloud.google.com/');
-    }
+    // Validate Google Client ID (checked at runtime)
 
     // ============================================
     // DOM ELEMENTS
@@ -480,8 +480,14 @@
         }
 
         // Initialize Google Sign-In
+        const runtimeClientId = getGoogleClientId();
+        if (!runtimeClientId) {
+          showError('Server not configured: missing Google Client ID. Contact administrator.');
+          return;
+        }
+
         google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
+          client_id: runtimeClientId,
           callback: handleCredentialResponse,
           auto_select: false,
           itp_support: true

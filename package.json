@@ -26,7 +26,9 @@
     "google-auth-library": "^9.0.0",
     "jsonwebtoken": "^9.0.2",
     "cors": "^2.8.5",
-    "yt-search": "^2.11.0"
+    "yt-search": "^2.11.0",
+    "dotenv": "^16.3.1",
+    "helmet": "^7.0.0"
   },
   "devDependencies": {},
   "engines": {

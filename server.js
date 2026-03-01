@@ -5,7 +5,8 @@
  */
 
 const express = require('express');
-const bodyParser = require('body-parser');
+require('dotenv').config();
+const helmet = require('helmet');
 const path = require('path');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
@@ -15,11 +16,13 @@ const yts = require('yt-search');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || '';
 
-// Google OAuth Client ID (Replace with your actual Google Client ID)
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'your-google-client-id.apps.googleusercontent.com';
-const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+// Google OAuth Client ID and Secret are loaded from environment variables.
+// Client secret MUST NOT be committed to source control.
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
 
 // Data storage directory
 const DATA_DIR = path.join(__dirname, 'user_data');
@@ -31,12 +34,20 @@ if (!fs.existsSync(DATA_DIR)) {
 // MIDDLEWARE CONFIGURATION
 // ============================================
 
-app.use(cors()); 
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+app.use(helmet());
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Serve static files from root directory
 app.use(express.static(path.join(__dirname, '/')));
+
+// Serve a small config script for client-side (only non-secret values)
+app.get('/config.js', (req, res) => {
+  const clientId = GOOGLE_CLIENT_ID || '';
+  res.type('application/javascript');
+  res.send(`window.APP_CONFIG = { GOOGLE_CLIENT_ID: "${clientId}" };`);
+});
 
 // ============================================
 // AUTHENTICATION MIDDLEWARE
@@ -138,14 +149,16 @@ app.post('/auth/google', async (req, res) => {
       });
     }
 
-    if (GOOGLE_CLIENT_ID === 'your-google-client-id.apps.googleusercontent.com') {
+    if (!GOOGLE_CLIENT_ID) {
       console.error('❌ CRITICAL: Google Client ID not configured');
       return res.status(500).json({
         success: false,
-        error: 'Server authentication not configured. Please contact administrator.',
+        error: 'Server authentication not configured. Please set GOOGLE_CLIENT_ID in environment.',
         code: 'MISSING_CLIENT_ID'
       });
     }
+
+    console.log('🔍 Verifying token with Client ID:', GOOGLE_CLIENT_ID);
 
     // ============================================
     // VERIFY GOOGLE TOKEN
@@ -157,22 +170,35 @@ app.post('/auth/google', async (req, res) => {
         audience: GOOGLE_CLIENT_ID
       });
       payload = ticket.getPayload();
+      console.log('✓ Token verified successfully');
     } catch (tokenErr) {
       console.error('❌ Token verification failed:', tokenErr.message);
       
-      // Provide specific error messages
+      // Provide specific error messages based on error type
       let errorMsg = 'Invalid Google token';
+      let debugInfo = '';
+      
       if (tokenErr.message.includes('Token used too early')) {
         errorMsg = 'Token used too early. Please try again.';
       } else if (tokenErr.message.includes('Token used too late')) {
         errorMsg = 'Token expired. Please sign in again.';
       } else if (tokenErr.message.includes('Wrong number of segments')) {
         errorMsg = 'Malformed authentication token.';
+      } else if (tokenErr.message.includes('invalid_client') || tokenErr.message.includes('Client ID')) {
+        errorMsg = 'OAuth configuration error. Please check your Google Cloud Console settings.';
+        debugInfo = ' Make sure your redirect URIs include: https://water-billimg.onrender.com and https://water-billimg.onrender.com/';
+      } else if (tokenErr.message.includes('audience')) {
+        errorMsg = 'Client ID mismatch. The token was issued for a different application.';
+        debugInfo = ` Expected: ${GOOGLE_CLIENT_ID}`;
       }
+
+      console.error('Error Details:', tokenErr.message);
+      console.log('Debug Info:', debugInfo);
 
       return res.status(401).json({
         success: false,
         error: errorMsg,
+        details: process.env.NODE_ENV === 'development' ? debugInfo || tokenErr.message : null,
         code: 'INVALID_TOKEN'
       });
     }
@@ -185,6 +211,8 @@ app.post('/auth/google', async (req, res) => {
     const name = payload.name || 'User';
     const picture = payload.picture || null;
     const emailVerified = payload.email_verified;
+
+    console.log(`📧 Authenticating user: ${email}`);
 
     // Ensure critical fields exist
     if (!userId || !email) {
@@ -199,8 +227,6 @@ app.post('/auth/google', async (req, res) => {
     // Optional: Check email verification
     if (!emailVerified) {
       console.warn(`⚠️ User email not verified: ${email}`);
-      // You can choose to allow or block unverified emails
-      // For now, we'll allow them
     }
 
     // ============================================
@@ -251,14 +277,13 @@ app.post('/auth/google', async (req, res) => {
       }
     } catch (dataErr) {
       console.error('❌ Failed to save user data:', dataErr);
-      // Still return success to client, but log the data save error
       console.warn(`⚠️ User data not persisted for ${email}, but authentication succeeded`);
     }
 
     // ============================================
     // SUCCESS RESPONSE
     // ============================================
-    console.log(`✓ User authenticated: ${email} (${userId})`);
+    console.log(`✓ User authenticated successfully: ${email}`);
 
     res.json({
       success: true,
@@ -712,6 +737,11 @@ app.use((err, req, res, next) => {
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
+
+// Warn about missing critical env vars
+if (!JWT_SECRET) {
+  console.warn('⚠️ WARNING: JWT_SECRET is not set. Sessions will be insecure. Set JWT_SECRET in your environment.');
+}
 
 // Start server
 const server = app.listen(PORT, () => {
