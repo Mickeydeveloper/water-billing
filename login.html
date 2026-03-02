@@ -1,636 +1,69 @@
-      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
-      --border-radius: 16px;
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Water Billing System</title>
 
-    /* ============================================
-       KEYFRAME ANIMATIONS
-       ============================================ */
-    @keyframes spin {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
-    }
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.5;
-      }
-    }
+<style>
+body{
+  font-family:'Poppins',sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+}
 
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+.login-container{
+  background:rgba(255,255,255,0.95);
+  padding:3rem;
+  border-radius:16px;
+  box-shadow:0 12px 32px rgba(0,0,0,0.15);
+  text-align:center;
+  max-width:450px;
+  width:100%;
+}
 
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+h1{
+  font-weight:700;
+  background:linear-gradient(135deg,#1e40af,#0ea5e9);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
 
-    /* ============================================
-       BODY & LAYOUT
-       ============================================ */
-    body {
-      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: var(--text-primary);
-      overflow: auto;
-      padding: 20px;
-    }
+.btn-google{
+  margin-top:2rem;
+  padding:12px 20px;
+  width:100%;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#1e40af,#0ea5e9);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+}
 
-    /* ============================================
-       CONTAINER
-       ============================================ */
-    .login-container {
-      text-align: center;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      padding: 3rem;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow-lg);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      max-width: 480px;
-      width: 100%;
-      transition: var(--transition);
-      animation: fadeInUp 0.6s ease-out;
-    }
-
-    .login-container.error {
-      border-color: var(--error-color);
-      background: rgba(255, 255, 255, 0.98);
-      animation: slideIn 0.3s ease-out;
-    }
-
-    /* ============================================
-       LOGO WRAPPER
-       ============================================ */
-    .logo-wrapper {
-      margin-bottom: 2rem;
-      animation: fadeInUp 0.8s ease-out 0.1s both;
-    }
-
-    .logo-icon {
-      font-size: 3.5rem;
-      margin-bottom: 1rem;
-      display: inline-block;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    /* ============================================
-       HEADER SECTION
-       ============================================ */
-    h1 {
-      margin-bottom: 0.75rem;
-      font-size: clamp(1.5rem, 5vw, 2rem);
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-
-    .subtitle {
-      color: var(--text-secondary);
-      font-size: 0.95rem;
-      margin-bottom: 2rem;
-      font-weight: 500;
-    }
-
-    /* ============================================
-       STATUS MESSAGES & SPINNER
-       ============================================ */
-    .status {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      padding: 1rem;
-      margin-bottom: 1.5rem;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      animation: slideIn 0.3s ease-out;
-    }
-
-    .status.success {
-      background-color: rgba(16, 185, 129, 0.1);
-      color: var(--success-color);
-      border: 1px solid var(--success-color);
-    }
-
-    .status.error {
-      background-color: rgba(239, 68, 68, 0.1);
-      color: var(--error-color);
-      border: 1px solid var(--error-color);
-    }
-
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(0, 0, 0, 0.1);
-      border-top-color: var(--primary-color);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    .status.success .spinner {
-      display: none;
-    }
-
-    /* ============================================
-       GOOGLE BUTTON CUSTOMIZATION
-       ============================================ */
-    #googleSignInContainer {
-      margin-bottom: 1.5rem;
-      animation: fadeInUp 0.8s ease-out 0.2s both;
-    }
-
-    #googleSignInContainer > div {
-      margin: 0 auto;
-    }
-
-    /* ============================================
-       DIVIDER
-       ============================================ */
-    .divider {
-      position: relative;
-      margin: 1.5rem 0;
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 2px;
-    }
-
-    .divider::before,
-    .divider::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      width: 35%;
-      height: 1px;
-      background-color: var(--border-color);
-    }
-
-    .divider::before {
-      left: 0;
-    }
-
-    .divider::after {
-      right: 0;
-    }
-
-    /* ============================================
-       DEMO SECTION
-       ============================================ */
-    .demo-section {
-      margin-bottom: 1.5rem;
-      animation: fadeInUp 0.8s ease-out 0.3s both;
-    }
-
-    .btn-demo {
-      width: 100%;
-      padding: 0.75rem 1.5rem;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
-    }
-
-    .btn-demo:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(30, 64, 175, 0.35);
-    }
-
-    .btn-demo:active {
-      transform: translateY(0);
-      box-shadow: 0 2px 8px rgba(30, 64, 175, 0.2);
-    }
-
-    .demo-section p {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      margin-top: 0.75rem;
-    }
-
-    /* ============================================
-       FEATURES SECTION
-       ============================================ */
-    .features {
-      margin-top: 2rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border-color);
-      animation: fadeInUp 0.8s ease-out 0.4s both;
-    }
-
-    .features-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 1rem;
-      letter-spacing: 0.5px;
-    }
-
-    .features-list {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
-    }
-
-    .feature-item {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.5rem 0;
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      transition: var(--transition);
-    }
-
-    .feature-item:hover {
-      color: var(--primary-color);
-      transform: translateX(4px);
-    }
-
-    .feature-icon {
-      font-size: 1.5rem;
-      flex-shrink: 0;
-    }
-
-    /* ============================================
-       FOOTER
-       ============================================ */
-    .footer-text {
-      margin-top: 1.5rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--border-color);
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-
-    .footer-text p {
-      margin: 0;
-    }
-
-    /* ============================================
-       RESPONSIVE
-       ============================================ */
-    @media (max-width: 480px) {
-      .login-container {
-        padding: 1.5rem;
-      }
-
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      .logo-icon {
-        font-size: 3rem;
-      }
-
-      .features {
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-      }
-
-      .divider::before,
-      .divider::after {
-        width: 30%;
-      }
-    }
-
-    /* ============================================
-       ACCESSIBILITY
-       ============================================ */
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-  </style>
+.btn-google:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 16px rgba(0,0,0,0.25);
+}
+</style>
 </head>
 <body>
-  <div class="login-container" id="loginContainer">
-    <!-- Logo & Header -->
-    <div class="logo-wrapper">
-      <div class="logo-icon">💧</div>
-      <h1>Water Billing System</h1>
-      <p class="subtitle">Secure authentication powered by Google</p>
-    </div>
 
-    <!-- STATUS MESSAGE -->
-    <div class="status" id="status" style="display: none;">
-      <span class="spinner"></span>
-      <span id="statusText">Authenticating...</span>
-    </div>
+<div class="login-container">
+  <div style="font-size:3rem;">💧</div>
+  <h1>Water Billing System</h1>
+  <p>Secure login powered by Google</p>
 
-    <!-- GOOGLE SIGN IN -->
-    <div id="googleSignInContainer"></div>
+  <a href="/auth/google">
+    <button class="btn-google">Continue with Google</button>
+  </a>
+</div>
 
-    <!-- DIVIDER -->
-    <div class="divider">OR</div>
-
-    <!-- DEMO MODE -->
-    <div class="demo-section">
-      <button class="btn-demo" onclick="loginAsDemo()">🚀 Enter Demo Mode</button>
-      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.75rem;">Skip authentication & explore features</p>
-    </div>
-
-    <!-- FEATURES -->
-    <div class="features">
-      <div class="features-title">✨ Key Features</div>
-      <div class="features-list">
-        <div class="feature-item">
-          <div class="feature-icon">📝</div>
-          <div>Create and calculate water bills instantly</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">📱</div>
-          <div>Send billing SMS directly to customers</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">📊</div>
-          <div>View complete billing history & reports</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">☁️</div>
-          <div>Secure cloud storage for your data</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="footer-text">
-      <p>© 2026 Mickey Water Billing System<br>
-      Built with 💙 for efficient water management</p>
-    </div>
-  </div>
-
-  <script>
-    /**
-     * Google Sign-In Authentication
-     * Handles user authentication and data persistence
-     * 
-     * SETUP INSTRUCTIONS:
-     * 1. Go to https://console.cloud.google.com/
-     * 2. Create or select a project
-     * 3. Enable Google+ API
-     * 4. Create OAuth 2.0 credentials (Web application)
-     * 5. Add redirect URI: http://localhost:10000 (development) or your domain
-     * 6. Copy the Client ID and replace 'YOUR_GOOGLE_CLIENT_ID' below
-     */
-
-    // ============================================
-    // CONFIGURATION (loaded from /config.js)
-    // ============================================
-    function getGoogleClientId() {
-      return (window.APP_CONFIG && window.APP_CONFIG.GOOGLE_CLIENT_ID) || '';
-    }
-    const AUTH_ENDPOINT = '/auth/google';
-    const REDIRECT_PAGE = 'main.html';
-    const DEMO_MODE_ENABLED = true;
-
-    // Validate Google Client ID (checked at runtime)
-
-    // ============================================
-    // DOM ELEMENTS
-    // ============================================
-    const statusDiv = document.getElementById('status');
-    const statusText = document.getElementById('statusText');
-    const container = document.getElementById('loginContainer');
-    const googleContainer = document.getElementById('googleSignInContainer');
-
-    // ============================================
-    // INITIALIZATION
-    // ============================================
-    window.onload = function() {
-      try {
-        // Check if Google API is loaded
-        if (typeof google === 'undefined' || !google.accounts) {
-          console.error('❌ Google API failed to load');
-          showError('Google authentication service failed to load. Please refresh the page.');
-          return;
-        }
-
-        // Initialize Google Sign-In
-        const runtimeClientId = getGoogleClientId();
-        if (!runtimeClientId) {
-          showError('Server not configured: missing Google Client ID. Contact administrator.');
-          return;
-        }
-
-        google.accounts.id.initialize({
-          client_id: runtimeClientId,
-          callback: handleCredentialResponse,
-          auto_select: false,
-          itp_support: true
-        });
-
-        // Render the Google Sign-In button
-        google.accounts.id.renderButton(googleContainer, {
-          theme: 'outline',
-          size: 'large',
-          width: '100%',
-          locale: 'en',
-          logo_alignment: 'center',
-          text: 'continue_with'
-        });
-
-        // Also set up One Tap (optional)
-        // google.accounts.id.prompt();
-
-        console.log('✓ Google Sign-In initialized successfully');
-      } catch (error) {
-        console.error('Initialization error:', error);
-        showError('Failed to initialize Google Sign-In. Please try again.');
-      }
-    };
-
-    // ============================================
-    // GOOGLE SIGN-IN HANDLER
-    // ============================================
-    async function handleCredentialResponse(response) {
-      if (!response || !response.credential) {
-        console.error('No credential received');
-        showError('No authentication credential received. Please try again.');
-        return;
-      }
-
-      try {
-        // Show loading status
-        statusDiv.style.display = 'flex';
-        updateStatus('Verifying credentials...', '');
-
-        // Send token to backend for verification
-        const result = await fetch(AUTH_ENDPOINT, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            token: response.credential
-          })
-        });
-
-        // Parse response
-        const data = await result.json();
-
-        // Handle response
-        if (!result.ok) {
-          throw new Error(data.error || 'Authentication failed');
-        }
-
-        if (data.success && data.token) {
-          // Store authentication data
-          localStorage.setItem('authToken', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          localStorage.setItem('loginTime', new Date().toISOString());
-
-          console.log('✓ Authentication successful:', data.user.email);
-          updateStatus('✓ Welcome ' + (data.user.name || 'User') + '!', 'success');
-          
-          // Redirect to main page after brief delay
-          setTimeout(() => {
-            window.location.href = REDIRECT_PAGE;
-          }, 1200);
-        } else {
-          throw new Error(data.error || 'Authentication failed');
-        }
-      } catch (error) {
-        console.error('Authentication error:', error);
-        showError(error.message || 'Authentication failed. Please check your connection and try again.');
-      }
-    }
-
-    // ============================================
-    // UTILITY FUNCTIONS
-    // ============================================
-    
-    /**
-     * Update status message with optional styling
-     */
-    function updateStatus(message, className = '') {
-      statusText.textContent = message;
-      statusDiv.className = `status ${className}`;
-      statusDiv.style.display = 'flex';
-    }
-
-    /**
-     * Show error message
-     */
-    function showError(message) {
-      console.error('❌ Error:', message);
-      updateStatus('✗ ' + message, 'error');
-      container.classList.add('error');
-    }
-
-    /**
-     * Demo mode - Skip authentication (for testing)
-     */
-    function loginAsDemo() {
-      if (!DEMO_MODE_ENABLED) {
-        showError('Demo mode is currently disabled');
-        return;
-      }
-
-      try {
-        // Show loading status
-        statusDiv.style.display = 'flex';
-        updateStatus('Entering Demo Mode...', '');
-
-        // Create demo user data
-        const demoUser = {
-          userId: 'demo-user-' + Date.now(),
-          email: 'demo@example.com',
-          name: 'Demo User',
-          picture: 'https://ui-avatars.com/api/?name=Demo+User&background=0ea5e9&color=fff',
-          provider: 'demo'
-        };
-
-        // Store demo session
-        localStorage.setItem('user', JSON.stringify(demoUser));
-        localStorage.setItem('authToken', 'demo-token-' + Date.now());
-        localStorage.setItem('loginTime', new Date().toISOString());
-        localStorage.setItem('isDemo', 'true');
-
-        console.log('✓ Demo mode activated');
-        updateStatus('✓ Welcome to Demo Mode!', 'success');
-
-        // Redirect to main page
-        setTimeout(() => {
-          window.location.href = REDIRECT_PAGE;
-        }, 1200);
-      } catch (error) {
-        console.error('Demo mode error:', error);
-        showError('Failed to enter demo mode. Please try again.');
-      }
-    }
-
-    /**
-     * Logout function (for use in other pages)
-     */
-    function logout() {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      localStorage.removeItem('loginTime');
-      localStorage.removeItem('isDemo');
-      window.location.href = 'login.html';
-    }
-
-    /**
-     * Check if user is authenticated
-     */
-    function isAuthenticated() {
-      return localStorage.getItem('authToken') !== null && localStorage.getItem('user') !== null;
-    }
-
-    /**
-     * Get current user data
-     */
-    function getCurrentUser() {
-      const userStr = localStorage.getItem('user');
-      return userStr ? JSON.parse(userStr) : null;
-    }
-
-    // Make functions globally available
-    window.logout = logout;
-    window.isAuthenticated = isAuthenticated;
-    window.getCurrentUser = getCurrentUser;
-    window.handleCredentialResponse = handleCredentialResponse;
-
-    console.log('✓ Water Billing System - Login Page Ready');
-  </script>
 </body>
 </html>
-
