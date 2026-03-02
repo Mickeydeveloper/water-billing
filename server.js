@@ -402,6 +402,7 @@ if (wss) {
     console.error('WebSocket error:', error);
   });
 });
+} // end of if (wss)
 
 // =========================
 // UTILITY FUNCTIONS
