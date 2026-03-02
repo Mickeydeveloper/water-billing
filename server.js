@@ -1,5 +1,10 @@
 const express = require('express');
-const WebSocket = require('ws');
+let WebSocket;
+try {
+  WebSocket = require('ws');
+} catch (err) {
+  console.warn("Optional module 'ws' not installed. WebSocket functionality will be disabled.");
+}
 const http = require('http');
 const { v4: uuidv4 } = require('uuid');
 const bodyParser = require('body-parser');
@@ -8,7 +13,12 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+let wss = null;
+if (WebSocket) {
+  wss = new WebSocket.Server({ server });
+} else {
+  console.log('WebSocket server disabled because ws module is not available.');
+}
 
 // Middleware
 app.use(cors());
@@ -312,11 +322,12 @@ app.get('/api/bot/status', (req, res) => {
 // WEBSOCKET SUPPORT
 // =========================
 
-wss.on('connection', (ws, req) => {
-  const clientId = uuidv4();
-  console.log(`New WebSocket connection: ${clientId}`);
+if (wss) {
+  wss.on('connection', (ws, req) => {
+    const clientId = uuidv4();
+    console.log(`New WebSocket connection: ${clientId}`);
 
-  ws.on('message', (data) => {
+    ws.on('message', (data) => {
     try {
       const payload = JSON.parse(data);
       const { type, userId, conversationId, content } = payload;
@@ -434,6 +445,11 @@ function generateBotResponse(userMessage) {
  * Broadcast message to all connected WebSocket clients
  */
 function broadcastMessage(conversationId, message) {
+  if (!wss) {
+    // WebSocket not available; nothing to broadcast
+    return;
+  }
+
   const payload = JSON.stringify({
     type: 'message',
     conversationId,
