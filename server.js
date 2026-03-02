@@ -6,7 +6,13 @@ try {
   console.warn("Optional module 'ws' not installed. WebSocket functionality will be disabled.");
 }
 const http = require('http');
-const { v4: uuidv4 } = require('uuid');
+let uuidv4;
+try {
+  uuidv4 = require('uuid').v4;
+} catch (err) {
+  console.warn("Optional module 'uuid' not installed. Using fallback ID generator.");
+  uuidv4 = () => Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
