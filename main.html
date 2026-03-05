@@ -66,6 +66,14 @@
       overflow-y: auto;
     }
 
+    /* Notification styles (3D pop) */
+    #notify { position: fixed; right: 16px; top: 16px; z-index: 9999; pointer-events: none; }
+    #notify .note { pointer-events: auto; min-width:220px; max-width:420px; padding:14px 16px; border-radius:12px; color:#fff; box-shadow:0 12px 30px rgba(2,6,23,0.35); transform-origin:center; transform: perspective(600px) translateZ(0) rotateX(0); opacity:0; transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 260ms; margin-top:10px }
+    #notify .note.show { opacity:1; transform: perspective(600px) translateZ(18px) rotateX(0deg) }
+    #notify .note.info { background: linear-gradient(135deg,#1e40af,#0ea5e9) }
+    #notify .note.success { background: linear-gradient(135deg,#10b981,#059669) }
+    #notify .note.error { background: linear-gradient(135deg,#ef4444,#f97316) }
+
     /* ============================================
        CONTAINER
        ============================================ */
@@ -367,6 +375,13 @@
         padding: 0.75rem;
       }
     }
+
+    /* Account menu responsive adjustments */
+    #accountMenu { right: 0; top: 64px; }
+    @media (max-width: 700px) {
+      #accountMenu { position: fixed; left: 12px; right: 12px; bottom: 12px; top: auto; }
+      .container { margin: 12px; width: calc(100% - 24px); }
+    }
   </style>
 </head>
 <body>
@@ -547,12 +562,8 @@ function checkAuthentication() {
       clearAuthData();
       
       // Show message and redirect
-      alert(message);
-      
-      // Redirect to login page
-      setTimeout(() => {
-        window.location.href = 'login.html';
-      }, AUTH_CONFIG.redirectDelay);
+      showNotification(message, 'error', 3000);
+      setTimeout(() => { window.location.href = 'login.html'; }, AUTH_CONFIG.redirectDelay);
     }
 
     /**
@@ -603,7 +614,7 @@ function checkAuthentication() {
 
         if (menuLogoutBtn) menuLogoutBtn.addEventListener('click', () => logout());
         if (menuProfileBtn) menuProfileBtn.addEventListener('click', () => {
-          alert(`Signed in as ${user.name || user.email}`);
+          showNotification(`Signed in as ${user.name || user.email}`, 'info', 1800);
         });
 
         console.log('✓ User info displayed');
@@ -623,9 +634,9 @@ function checkAuthentication() {
     fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
       clearAuthData();
       // Show feedback
-      alert('You have been logged out successfully.');
+      showNotification('You have been logged out successfully.', 'success', 2000);
       // Redirect to login page
-      window.location.href = 'login.html';
+      setTimeout(() => { window.location.href = 'login.html'; }, 700);
     });
   } catch (error) {
     console.error('Logout error:', error);
@@ -685,6 +696,16 @@ function checkAuthentication() {
       const userStr = localStorage.getItem('user');
       return userStr ? JSON.parse(userStr) : null;
     };
+
+    // Notification helper
+    function showNotification(message, type = 'info', duration = 3000) {
+      let container = document.getElementById('notify');
+      if (!container) { container = document.createElement('div'); container.id = 'notify'; document.body.appendChild(container); }
+      const el = document.createElement('div'); el.className = 'note ' + type; el.innerHTML = '<div style="font-weight:700">' + message + '</div>';
+      container.appendChild(el);
+      requestAnimationFrame(() => el.classList.add('show'));
+      setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, duration);
+    }
 
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {

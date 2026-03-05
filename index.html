@@ -66,6 +66,14 @@
       color: var(--text-primary);
     }
 
+    /* Notification styles (3D pop) */
+    #notify { position: fixed; right: 16px; top: 16px; z-index: 9999; pointer-events: none; }
+    #notify .note { pointer-events: auto; min-width:220px; max-width:420px; padding:14px 16px; border-radius:12px; color:#fff; box-shadow:0 12px 30px rgba(2,6,23,0.35); transform-origin:center; transform: perspective(600px) translateZ(0) rotateX(0); opacity:0; transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 260ms; margin-top:10px }
+    #notify .note.show { opacity:1; transform: perspective(600px) translateZ(18px) rotateX(0deg) }
+    #notify .note.info { background: linear-gradient(135deg,#1e40af,#0ea5e9) }
+    #notify .note.success { background: linear-gradient(135deg,#10b981,#059669) }
+    #notify .note.error { background: linear-gradient(135deg,#ef4444,#f97316) }
+
     /* ============================================
        DASHBOARD CONTAINER
        ============================================ */
@@ -564,13 +572,9 @@
       // Clear invalid auth data
       clearAuthData();
       
-      // Show message and redirect
-      alert(message);
-      
-      // Redirect to login page
-      setTimeout(() => {
-        window.location.href = 'login.html';
-      }, AUTH_CONFIG.redirectDelay);
+      // Show message and redirect with 3D notification
+      showNotification(message, 'error', 3000);
+      setTimeout(() => { window.location.href = 'login.html'; }, AUTH_CONFIG.redirectDelay);
     }
 
     /**
@@ -595,13 +599,12 @@
     function logout() {
       try {
         console.log('🔓 Logging out...');
-        clearAuthData();
-        
-        // Show feedback
-        alert('You have been logged out successfully.');
-        
-        // Redirect to login page
-        window.location.href = 'login.html';
+        // Call server to clear session, then clear client state
+        fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
+          clearAuthData();
+          showNotification('You have been logged out successfully.', 'success', 2000);
+          setTimeout(() => { window.location.href = 'login.html'; }, 700);
+        });
       } catch (error) {
         console.error('Logout error:', error);
         // Force redirect even if error occurs
@@ -660,6 +663,34 @@
       const userStr = localStorage.getItem('user');
       return userStr ? JSON.parse(userStr) : null;
     };
+
+    // Notification helper
+    function showNotification(message, type = 'info', duration = 3000) {
+      let container = document.getElementById('notify');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'notify';
+        document.body.appendChild(container);
+      }
+      const el = document.createElement('div'); el.className = 'note ' + type; el.innerHTML = '<div style="font-weight:700">' + message + '</div>';
+      container.appendChild(el);
+      requestAnimationFrame(() => el.classList.add('show'));
+      setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, duration);
+    }
+
+    // Modal helper for longer content
+    function showModal(opts) {
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed'; overlay.style.left = 0; overlay.style.top = 0; overlay.style.right = 0; overlay.style.bottom = 0;
+      overlay.style.background = 'rgba(2,6,23,0.6)'; overlay.style.display = 'flex'; overlay.style.alignItems = 'center'; overlay.style.justifyContent = 'center'; overlay.style.zIndex = 10000;
+      const card = document.createElement('div');
+      card.style.background = '#fff'; card.style.padding = '18px'; card.style.borderRadius = '12px'; card.style.maxWidth = '620px'; card.style.width = 'min(92%,620px)'; card.style.boxShadow = '0 20px 60px rgba(2,6,23,0.35)';
+      const title = document.createElement('div'); title.style.fontWeight = 800; title.style.marginBottom = '8px'; title.textContent = opts.title || '';
+      const body = document.createElement('div'); body.innerHTML = opts.body || '';
+      const close = document.createElement('button'); close.textContent = 'Close'; close.style.marginTop = '12px'; close.style.padding = '8px 10px'; close.style.borderRadius = '8px'; close.style.border = 'none'; close.style.background = 'linear-gradient(90deg,#1e40af,#0ea5e9)'; close.style.color = '#fff'; close.style.cursor = 'pointer';
+      close.addEventListener('click', () => overlay.remove());
+      card.appendChild(title); card.appendChild(body); card.appendChild(close); overlay.appendChild(card); document.body.appendChild(overlay);
+    }
 
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
@@ -744,20 +775,13 @@
      * Show about information
      */
     function showAbout() {
-      alert(`Mickey Water Billing System v1.0
-      
-A modern water billing solution for Tanzania.
-
-Features:
-• Google Account Authentication
-• Bill calculation & SMS
-• Complete billing history
-• Monthly reports & exports
-• Secure cloud storage
-• Multi-user support
-
-Developed by: Mickey Hamza
-© 2026 All Rights Reserved`);
+      // Show an about modal with richer styling
+      showModal({
+        title: 'Mickey Water Billing System',
+        body: `<p style="margin:0 0 8px">A modern water billing solution for Tanzania.</p>
+          <ul style="margin:0 0 8px 18px;padding:0"><li>Google Account Authentication</li><li>Bill calculation & SMS</li><li>Billing history & exports</li><li>Secure session storage</li></ul>
+          <p style="margin:0;font-size:0.95rem;color:#64748b">Developed by Mickey Hamza • © 2026</p>`
+      });
     }
 
     /**

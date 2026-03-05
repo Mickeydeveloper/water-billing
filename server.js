@@ -93,8 +93,8 @@ app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'em
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/login?error=oauth' }),
   (req, res) => {
-    // Successful auth: redirect to app
-    res.redirect('/main.html');
+    // Successful auth: redirect to homepage (index)
+    res.redirect('/');
   }
 );
 

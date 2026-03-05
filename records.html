@@ -50,6 +50,14 @@
       color: var(--text-primary);
     }
 
+    /* Notification styles (3D pop) */
+    #notify { position: fixed; right: 16px; top: 16px; z-index: 9999; pointer-events: none; }
+    #notify .note { pointer-events: auto; min-width:220px; max-width:420px; padding:14px 16px; border-radius:12px; color:#fff; box-shadow:0 12px 30px rgba(2,6,23,0.35); transform-origin:center; transform: perspective(600px) translateZ(0) rotateX(0); opacity:0; transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 260ms; margin-top:10px }
+    #notify .note.show { opacity:1; transform: perspective(600px) translateZ(18px) rotateX(0deg) }
+    #notify .note.info { background: linear-gradient(135deg,#1e40af,#0ea5e9) }
+    #notify .note.success { background: linear-gradient(135deg,#10b981,#059669) }
+    #notify .note.error { background: linear-gradient(135deg,#ef4444,#f97316) }
+
     /* ============================================
        CONTAINER
        ============================================ */
@@ -587,12 +595,8 @@
       clearAuthData();
       
       // Show message and redirect
-      alert(message);
-      
-      // Redirect to login page
-      setTimeout(() => {
-        window.location.href = 'login.html';
-      }, AUTH_CONFIG.redirectDelay);
+      showNotification(message, 'error', 3000);
+      setTimeout(() => { window.location.href = 'login.html'; }, AUTH_CONFIG.redirectDelay);
     }
 
     /**
@@ -617,13 +621,12 @@
     function logout() {
       try {
         console.log('🔓 Logging out...');
-        clearAuthData();
-        
-        // Show feedback
-        alert('You have been logged out successfully.');
-        
-        // Redirect to login page
-        window.location.href = 'login.html';
+        // Call server to clear session, then client cleanup
+        fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
+          clearAuthData();
+          showNotification('You have been logged out successfully.', 'success', 2000);
+          setTimeout(() => { window.location.href = 'login.html'; }, 700);
+        });
       } catch (error) {
         console.error('Logout error:', error);
         // Force redirect even if error occurs
@@ -682,6 +685,16 @@
       const userStr = localStorage.getItem('user');
       return userStr ? JSON.parse(userStr) : null;
     };
+
+    // Notification helper
+    function showNotification(message, type = 'info', duration = 3000) {
+      let container = document.getElementById('notify');
+      if (!container) { container = document.createElement('div'); container.id = 'notify'; document.body.appendChild(container); }
+      const el = document.createElement('div'); el.className = 'note ' + type; el.innerHTML = '<div style="font-weight:700">' + message + '</div>';
+      container.appendChild(el);
+      requestAnimationFrame(() => el.classList.add('show'));
+      setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, duration);
+    }
 
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
@@ -777,7 +790,7 @@
         return true;
       } catch (err) {
         console.error('Error deleting record:', err);
-        alert(`Failed to delete record: ${err.message}`);
+        showNotification(`Failed to delete record: ${err.message}`, 'error', 3000);
         return false;
       }
     }
@@ -989,7 +1002,7 @@
      */
     function exportToCSV() {
       if (filteredRecords.length === 0) {
-        alert('No records to export');
+        showNotification('No records to export', 'info', 2200);
         return;
       }
 
@@ -1032,7 +1045,7 @@
 
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
-        alert('To delete all records, please contact system administrator.');
+        showNotification('To delete all records, please contact system administrator.', 'info', 3000);
       });
     }
 
