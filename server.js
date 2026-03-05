@@ -60,6 +60,41 @@ app.get('/records.html', (req, res) => {
     }
 });
 
+// Return current authenticated user (used by client to populate UI)
+app.get('/api/me', (req, res) => {
+  if (req.isAuthenticated() && req.user) {
+    // Send minimal profile information
+    const profile = {
+      id: req.user.id || req.user.sub || (req.user.id && req.user.id.toString()) || null,
+      name: req.user.displayName || (req.user.name && req.user.name.givenName) || '',
+      email: (req.user.emails && req.user.emails[0] && req.user.emails[0].value) || '',
+      picture: (req.user.photos && req.user.photos[0] && req.user.photos[0].value) || ''
+    };
+    return res.json({ user: profile });
+  }
+  return res.status(401).json({ error: 'Not authenticated' });
+});
+
+// Simple in-memory record store (for demo). Requires session-authenticated user.
+const records = [];
+app.post('/save-record', (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const record = req.body;
+  if (!record || !record.name) {
+    return res.status(400).json({ error: 'Invalid record' });
+  }
+
+  // Attach owner info from session
+  record.owner = (req.user && ((req.user.emails && req.user.emails[0] && req.user.emails[0].value) || req.user.id)) || 'unknown';
+  record.id = records.length + 1;
+  records.push(record);
+
+  return res.json({ success: true, record });
+});
+
 // Homepage
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));

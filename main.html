@@ -483,45 +483,43 @@
      * Validates token and user data exist
      */
     function checkAuthentication() {
-      const authToken = localStorage.getItem('authToken');
-      const user = localStorage.getItem('user');
-      const loginTime = localStorage.getItem('loginTime');
-
-      // Check if both auth data exist
-      if (!authToken || !user) {
-        handleAuthenticationFailure('No authentication data found. Please log in.');
-        return;
-      }
-
-      try {
-        // Validate user data is valid JSON
-        const userData = JSON.parse(user);
-        
-        // Validate required fields
-        if (!userData.userId || !userData.email) {
-          throw new Error('Invalid user data');
-        }
-
-        // Check session age
-        if (loginTime) {
-          const loginDate = new Date(loginTime);
-          const sessionAge = Date.now() - loginDate.getTime();
-          
-          if (sessionAge > AUTH_CONFIG.sessionTimeout) {
-            handleAuthenticationFailure('Your session has expired. Please log in again.');
+      // Try to fetch current user info from server-side session
+      (async () => {
+        try {
+          const resp = await fetch('/api/me', { credentials: 'same-origin' });
+          if (!resp.ok) {
+            handleAuthenticationFailure('No authentication data found. Please log in.');
             return;
           }
-        }
 
-        // Authentication successful
-        displayUserInfo(userData);
-        authCheckComplete = true;
-        console.log('✓ User authenticated:', userData.email);
-        
-      } catch (error) {
-        console.error('❌ Authentication validation error:', error);
-        handleAuthenticationFailure('Invalid authentication data. Please log in again.');
-      }
+          const payload = await resp.json();
+          const userData = payload.user;
+          if (!userData || !userData.email) {
+            handleAuthenticationFailure('Invalid user data. Please log in again.');
+            return;
+          }
+
+          // Persist to localStorage for the rest of the app
+          const stored = {
+            userId: userData.id || null,
+            name: userData.name || '',
+            email: userData.email || '',
+            picture: userData.picture || ''
+          };
+
+          localStorage.setItem('user', JSON.stringify(stored));
+          // Use a placeholder token to indicate authenticated session to client logic
+          localStorage.setItem('authToken', 'session');
+          localStorage.setItem('loginTime', new Date().toISOString());
+
+          displayUserInfo(stored);
+          authCheckComplete = true;
+          console.log('✓ User authenticated:', userData.email);
+        } catch (error) {
+          console.error('Authentication fetch error:', error);
+          handleAuthenticationFailure('Failed to validate authentication. Please log in.');
+        }
+      })();
     }
 
     /**
@@ -578,16 +576,17 @@
     function logout() {
       try {
         console.log('🔓 Logging out...');
-        clearAuthData();
-        
-        // Show feedback
-        alert('You have been logged out successfully.');
-        
-        // Redirect to login page
-        window.location.href = 'login.html';
+        // Inform server to clear session cookie
+        fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
+          clearAuthData();
+          // Show feedback
+          alert('You have been logged out successfully.');
+          // Redirect to login page
+          window.location.href = 'login.html';
+        });
       } catch (error) {
         console.error('Logout error:', error);
-        // Force redirect even if error occurs
+        clearAuthData();
         window.location.href = 'login.html';
       }
     }
@@ -696,6 +695,7 @@
       try {
         const response = await fetch('/save-record', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: getAuthHeader(),
           body: JSON.stringify({
             name: record.name,
