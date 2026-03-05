@@ -373,13 +373,28 @@
   <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
       <h2 style="margin: 0;">💧 Water Billing Calculator</h2>
-      <div style="display: flex; align-items: center; gap: 1rem;">
-        <div id="userInfo" style="text-align: right; font-size: 0.9rem;">
-          <div id="userName" style="font-weight: 600; color: var(--primary-color);">Loading...</div>
-          <div id="userEmail" style="color: var(--text-secondary); font-size: 0.85rem;">-</div>
+      <div style="display: flex; align-items: center; gap: 1rem; position:relative;">
+        <div id="accountArea" style="display:flex;align-items:center;gap:12px;cursor:pointer">
+          <img id="userPicture" src="" alt="User" style="width:40px;height:40px;border-radius:50%;border:2px solid var(--primary-color);display:none">
+          <div id="userInfo" style="text-align:right;font-size:0.9rem;">
+            <div id="userName" style="font-weight:600;color:var(--primary-color);">Loading...</div>
+            <div id="userEmail" style="color:var(--text-secondary);font-size:0.85rem;">-</div>
+          </div>
         </div>
-        <img id="userPicture" src="" alt="User" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary-color); display: none;">
-        <button onclick="window.logout()" style="padding: 0.6rem 1rem; font-size: 0.9rem; margin: 0; background: linear-gradient(135deg, #ef4444, #dc2626);">Logout</button>
+
+        <div id="accountMenu" style="position:absolute;right:0;top:64px;background:#fff;border:1px solid var(--border-color);border-radius:10px;box-shadow:var(--shadow-md);padding:12px;display:none;min-width:220px;z-index:50">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <img id="menuPicture" src="" alt="User" style="width:48px;height:48px;border-radius:50%;border:2px solid var(--primary-color);display:none">
+            <div>
+              <div id="menuName" style="font-weight:700;color:var(--primary-color)"></div>
+              <div id="menuEmail" style="font-size:0.85rem;color:var(--text-secondary)"></div>
+            </div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-direction:column">
+            <button id="menuProfileBtn" style="padding:8px;border-radius:8px;border:1px solid #eef; background:transparent;cursor:pointer;text-align:left">View profile</button>
+            <button id="menuLogoutBtn" style="padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;cursor:pointer">Logout</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -482,45 +497,45 @@
      * Check if user is authenticated
      * Validates token and user data exist
      */
-    function checkAuthentication() {
-      // Try to fetch current user info from server-side session
-      (async () => {
-        try {
-          const resp = await fetch('/api/me', { credentials: 'same-origin' });
-          if (!resp.ok) {
-            handleAuthenticationFailure('No authentication data found. Please log in.');
-            return;
-          }
+function checkAuthentication() {
+  // Try to fetch current user info from server-side session
+  (async () => {
+    try {
+      const resp = await fetch('/api/me', { credentials: 'same-origin' });
+      if (!resp.ok) {
+        handleAuthenticationFailure('No authentication data found. Please log in.');
+        return;
+      }
 
-          const payload = await resp.json();
-          const userData = payload.user;
-          if (!userData || !userData.email) {
-            handleAuthenticationFailure('Invalid user data. Please log in again.');
-            return;
-          }
+      const payload = await resp.json();
+      const userData = payload.user;
+      if (!userData || !userData.email) {
+        handleAuthenticationFailure('Invalid user data. Please log in again.');
+        return;
+      }
 
-          // Persist to localStorage for the rest of the app
-          const stored = {
-            userId: userData.id || null,
-            name: userData.name || '',
-            email: userData.email || '',
-            picture: userData.picture || ''
-          };
+      // Persist to localStorage for the rest of the app
+      const stored = {
+        userId: userData.id || null,
+        name: userData.name || '',
+        email: userData.email || '',
+        picture: userData.picture || ''
+      };
 
-          localStorage.setItem('user', JSON.stringify(stored));
-          // Use a placeholder token to indicate authenticated session to client logic
-          localStorage.setItem('authToken', 'session');
-          localStorage.setItem('loginTime', new Date().toISOString());
+      localStorage.setItem('user', JSON.stringify(stored));
+      // Use a placeholder token to indicate authenticated session to client logic
+      localStorage.setItem('authToken', 'session');
+      localStorage.setItem('loginTime', new Date().toISOString());
 
-          displayUserInfo(stored);
-          authCheckComplete = true;
-          console.log('✓ User authenticated:', userData.email);
-        } catch (error) {
-          console.error('Authentication fetch error:', error);
-          handleAuthenticationFailure('Failed to validate authentication. Please log in.');
-        }
-      })();
+      displayUserInfo(stored);
+      authCheckComplete = true;
+      console.log('✓ User authenticated:', userData.email);
+    } catch (error) {
+      console.error('Authentication fetch error:', error);
+      handleAuthenticationFailure('Failed to validate authentication. Please log in.');
     }
+  })();
+}
 
     /**
      * Handle authentication failure
@@ -548,20 +563,48 @@
         const userName = document.getElementById('userName');
         const userEmail = document.getElementById('userEmail');
         const userPicture = document.getElementById('userPicture');
+        const menuPicture = document.getElementById('menuPicture');
+        const menuName = document.getElementById('menuName');
+        const menuEmail = document.getElementById('menuEmail');
 
-        if (userName) {
-          userName.textContent = user.name || 'User';
-        }
-        
-        if (userEmail) {
-          userEmail.textContent = user.email || '';
-        }
-        
+        if (userName) userName.textContent = user.name || 'User';
+        if (userEmail) userEmail.textContent = user.email || '';
+
         if (userPicture && user.picture) {
           userPicture.src = user.picture;
           userPicture.style.display = 'block';
           userPicture.alt = user.name || 'User Avatar';
         }
+
+        if (menuPicture && user.picture) {
+          menuPicture.src = user.picture;
+          menuPicture.style.display = 'block';
+        }
+        if (menuName) menuName.textContent = user.name || '';
+        if (menuEmail) menuEmail.textContent = user.email || '';
+
+        // Wire up account menu
+        const accountArea = document.getElementById('accountArea');
+        const accountMenu = document.getElementById('accountMenu');
+        const menuLogoutBtn = document.getElementById('menuLogoutBtn');
+        const menuProfileBtn = document.getElementById('menuProfileBtn');
+
+        if (accountArea) {
+          accountArea.addEventListener('click', (e) => {
+            e.stopPropagation();
+            accountMenu.style.display = accountMenu.style.display === 'block' ? 'none' : 'block';
+          });
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', () => {
+          if (accountMenu) accountMenu.style.display = 'none';
+        });
+
+        if (menuLogoutBtn) menuLogoutBtn.addEventListener('click', () => logout());
+        if (menuProfileBtn) menuProfileBtn.addEventListener('click', () => {
+          alert(`Signed in as ${user.name || user.email}`);
+        });
 
         console.log('✓ User info displayed');
       } catch (error) {
@@ -574,22 +617,22 @@
      * Clears all authentication data and redirects to login
      */
     function logout() {
-      try {
-        console.log('🔓 Logging out...');
-        // Inform server to clear session cookie
-        fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
-          clearAuthData();
-          // Show feedback
-          alert('You have been logged out successfully.');
-          // Redirect to login page
-          window.location.href = 'login.html';
-        });
-      } catch (error) {
-        console.error('Logout error:', error);
-        clearAuthData();
-        window.location.href = 'login.html';
-      }
-    }
+  try {
+    console.log('🔓 Logging out...');
+    // Inform server to clear session cookie
+    fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
+      clearAuthData();
+      // Show feedback
+      alert('You have been logged out successfully.');
+      // Redirect to login page
+      window.location.href = 'login.html';
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    clearAuthData();
+    window.location.href = 'login.html';
+  }
+}
 
     /**
      * Clear all authentication data
