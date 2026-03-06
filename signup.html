@@ -6,7 +6,7 @@
   <title>Sign Up — Water Billing</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300,400,600,700&display=swap" rel="stylesheet">
   <style>
-    :root{--bg-1:#667eea;--bg-2:#764ba2;--card-bg:rgba(255,255,255,0.98);--muted:#64748b}
+    :root{--bg-1:#667eea;--bg-2:#764ba2;--card-bg:rgba(255,255,255,0.98);--muted:#64748b;--accent-1:#1e40af;--accent-2:#0ea5e9}
     *{box-sizing:border-box}
     body{font-family:Poppins,system-ui,Arial;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--bg-1),var(--bg-2));padding:24px}
     .card{background:var(--card-bg);padding:22px;border-radius:14px;max-width:480px;width:100%;box-shadow:0 12px 40px rgba(2,6,23,0.25)}
@@ -14,8 +14,17 @@
     p{margin:0 0 14px 0;color:var(--muted)}
     .row{margin-bottom:12px}
     input{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef}
-    button{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(90deg,#1e40af,#0ea5e9);color:#fff;font-weight:700}
-    .small{font-size:0.9rem;color:var(--muted);margin-top:12px}
+    button.primary{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(90deg,#1e40af,#0ea5e9);color:#fff;font-weight:700;cursor:pointer}
+    
+    /* Google Button Style */
+    .btn-google{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent-1),var(--accent-2));color:#fff;font-weight:700;cursor:pointer;width:100%;text-decoration:none;margin-bottom:16px}
+    .btn-google img{height:20px}
+    
+    .or{display:flex;align-items:center;gap:12px;margin:16px 0}
+    .or div{flex:1;height:1px;background:#e6e9ef}
+    .or span{font-size:12px;color:var(--muted)}
+
+    .small{font-size:0.9rem;color:var(--muted);margin-top:12px;text-align:center}
     a{color:#1e40af;text-decoration:none;font-weight:600}
 
     /* Notification styles */
@@ -32,17 +41,25 @@
 <body>
   <div class="card">
     <h1>Create account</h1>
-    <p class="small">Sign up to save billing records to your account. This demo stores accounts in-memory.</p>
+    <p class="small" style="text-align:left">Sign up to save billing records to your account.</p>
+
+    <a href="/auth/google" class="btn-google">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G"> 
+      Sign up with Google
+    </a>
+
+    <div class="or"><div></div><span>or use email</span><div></div></div>
 
     <form id="signupForm">
       <div class="row"><input type="text" id="name" placeholder="Full name" required></div>
       <div class="row"><input type="email" id="email" placeholder="Email address" required></div>
       <div class="row"><input type="tel" id="phone" placeholder="Phone (optional)" pattern="[0-9+\- ]{7,}" ></div>
       <div class="row"><input type="password" id="password" placeholder="Password" required></div>
-      <button type="submit">Create account</button>
+      <button type="submit" class="primary">Create account</button>
     </form>
 
     <div class="small">Already have an account? <a href="login.html">Sign in</a></div>
+    <div class="small"><a href="index.html" style="color:var(--muted);font-weight:400">Return to home</a></div>
   </div>
 
   <div id="notify" aria-hidden="true"></div>
@@ -50,7 +67,6 @@
   <script>
     function showNotification(message, type = 'info', duration = 3000) {
       let container = document.getElementById('notify');
-      if (!container) { container = document.createElement('div'); container.id = 'notify'; document.body.appendChild(container); }
       const el = document.createElement('div'); el.className = 'note ' + type; el.innerHTML = '<div style="font-weight:700">' + message + '</div>';
       container.appendChild(el);
       requestAnimationFrame(() => el.classList.add('show'));
@@ -77,8 +93,7 @@
           return;
         }
         showNotification('Account created. Signing in...', 'success', 1400);
-        // Signed up and logged in — redirect to homepage
-        setTimeout(() => { window.location.href = '/'; }, 900);
+        setTimeout(() => { window.location.href = '/main.html'; }, 900);
       } catch (err) {
         showNotification('Network error — please try again', 'error', 3000);
       }
