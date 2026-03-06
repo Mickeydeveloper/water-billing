@@ -16,8 +16,9 @@ app.use(express.static(__dirname)); // Inaruhusu kusoma html files zako moja kwa
 // Session Config (Muhimu kwa OAuth)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'water_secret',
-  resave: false,
-  saveUninitialized: true
+  resave: true,
+  saveUninitialized: true,
+  cookie: { secure: false, httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }
 }));
 
 app.use(passport.initialize());
@@ -27,11 +28,15 @@ app.use(passport.session());
 const users = [];
 
 function findUserByEmail(email) {
-  return users.find(u => u.email && u.email.toLowerCase() === (email || '').toLowerCase());
+  const user = users.find(u => u.email && u.email.toLowerCase() === (email || '').toLowerCase());
+  console.log('🔍 findUserByEmail("' + email + '") ->', user ? 'FOUND: ' + user.id : 'NOT FOUND');
+  return user;
 }
 
 function findUserById(id) {
-  return users.find(u => u.id === id);
+  const user = users.find(u => u.id === id);
+  console.log('🔍 findUserById("' + id + '") ->', user ? 'FOUND: ' + user.email : 'NOT FOUND', '(total users: ' + users.length + ')');
+  return user;
 }
 
 // Passport Strategy (Google OAuth)
@@ -72,11 +77,13 @@ passport.use(new GoogleStrategy({
 ));
 
 passport.serializeUser((user, done) => {
+  console.log('✓ Serializing user:', user.id, user.email);
   done(null, user.id);
 });
 
 passport.deserializeUser((id, done) => {
   const user = findUserById(id);
+  console.log('✓ Deserializing user ID:', id, 'Found:', user ? user.email : 'NOT FOUND');
   done(null, user || null);
 });
 
@@ -109,6 +116,11 @@ app.get('/records.html', (req, res) => {
 
 // Return current authenticated user (used by client to populate UI)
 app.get('/api/me', (req, res) => {
+  console.log('🔍 /api/me called - isAuthenticated:', req.isAuthenticated());
+  console.log('🔍 req.user:', req.user);
+  console.log('🔍 req.session:', req.session ? 'exists' : 'missing');
+  console.log('🔍 req.session.passport:', req.session ? req.session.passport : 'no session');
+  
   if (req.isAuthenticated() && req.user) {
     // Send minimal profile information from stored user
     const profile = {
@@ -117,9 +129,24 @@ app.get('/api/me', (req, res) => {
       email: req.user.email || '',
       picture: req.user.picture || ''
     };
+    console.log('✓ Returning authenticated user:', profile.email);
     return res.json({ user: profile });
   }
+  
+  console.warn('⚠️ Authentication failed in /api/me');
   return res.status(401).json({ error: 'Not authenticated' });
+});
+
+// Debug endpoint to check session status
+app.get('/api/debug', (req, res) => {
+  res.json({
+    isAuthenticated: req.isAuthenticated(),
+    user: req.user || null,
+    sessionId: req.sessionID,
+    sessionPassport: req.session ? req.session.passport : null,
+    allUsers: users.map(u => ({ id: u.id, email: u.email })),
+    totalUsers: users.length
+  });
 });
 
 // Simple in-memory record store (for demo). Requires session-authenticated user.
@@ -150,11 +177,15 @@ app.get('/', (req, res) => {
 // Local signup: create an account and sign the user in
 app.post('/signup', (req, res) => {
   const { name, email, password, phone } = req.body;
+  console.log('📝 /signup attempt:', email);
+  
   if (!email || !password) {
+    console.warn('⚠️ Missing email or password');
     return res.status(400).json({ error: 'Email and password required' });
   }
 
   if (findUserByEmail(email)) {
+    console.warn('⚠️ User already exists:', email);
     return res.status(409).json({ error: 'User already exists' });
   }
 
@@ -172,16 +203,25 @@ app.post('/signup', (req, res) => {
     createdAt: new Date().toISOString()
   };
   users.push(user);
+  console.log('✓ User created with id:', user.id, 'email:', user.email);
+  console.log('✓ Total users in store:', users.length);
 
   // Log the user in
   req.login(user, (err) => {
-    if (err) return res.status(500).json({ error: 'Failed to login after signup' });
+    if (err) {
+      console.error('❌ req.login error:', err);
+      return res.status(500).json({ error: 'Failed to login after signup' });
+    }
+    
+    console.log('✓ After req.login - isAuthenticated:', req.isAuthenticated());
+    
     // Save session before sending response
     req.session.save((saveErr) => {
       if (saveErr) {
-        console.error('Session save error:', saveErr);
+        console.error('❌ Session save error:', saveErr);
         return res.status(500).json({ error: 'Failed to save session' });
       }
+      console.log('✓ Session saved for new user:', user.email);
       return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
     });
   });
@@ -190,21 +230,43 @@ app.post('/signup', (req, res) => {
 // Local login (email/password)
 app.post('/local-login', (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+  console.log('📧 /local-login attempt:', email);
+  
+  if (!email || !password) {
+    console.warn('⚠️ Missing email or password');
+    return res.status(400).json({ error: 'Email and password required' });
+  }
 
   const user = findUserByEmail(email);
-  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  if (!user) {
+    console.warn('⚠️ User not found:', email);
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+  
+  console.log('✓ User found:', user.email, '- Checking password...');
   const match = bcrypt.compareSync(password, user.passwordHash || '');
-  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+  if (!match) {
+    console.warn('⚠️ Password mismatch for:', email);
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
 
+  console.log('✓ Password match! Logging in user:', user.id, user.email);
   req.login(user, (err) => {
-    if (err) return res.status(500).json({ error: 'Failed to login' });
+    if (err) {
+      console.error('❌ req.login error:', err);
+      return res.status(500).json({ error: 'Failed to login' });
+    }
+    
+    console.log('✓ After req.login - isAuthenticated:', req.isAuthenticated());
+    console.log('✓ After req.login - req.user:', req.user);
+    
     // Save session before sending response
     req.session.save((saveErr) => {
       if (saveErr) {
-        console.error('Session save error:', saveErr);
+        console.error('❌ Session save error:', saveErr);
         return res.status(500).json({ error: 'Failed to save session' });
       }
+      console.log('✓ Session saved successfully for user:', user.email);
       return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
     });
   });
