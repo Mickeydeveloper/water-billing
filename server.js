@@ -176,7 +176,14 @@ app.post('/signup', (req, res) => {
   // Log the user in
   req.login(user, (err) => {
     if (err) return res.status(500).json({ error: 'Failed to login after signup' });
-    return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
+    // Save session before sending response
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error('Session save error:', saveErr);
+        return res.status(500).json({ error: 'Failed to save session' });
+      }
+      return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
+    });
   });
 });
 
@@ -192,7 +199,14 @@ app.post('/local-login', (req, res) => {
 
   req.login(user, (err) => {
     if (err) return res.status(500).json({ error: 'Failed to login' });
-    return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
+    // Save session before sending response
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error('Session save error:', saveErr);
+        return res.status(500).json({ error: 'Failed to save session' });
+      }
+      return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
+    });
   });
 });
 
