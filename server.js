@@ -35,6 +35,7 @@ app.use(passport.session());
 // --- 3. DATABASE (DEMO ONLY) ---
 // ONYO: Hii itafutika kila Render ikirestart. Kwa app kubwa, tumia MongoDB.
 const users = [];
+const userRecords = {}; // Store billing records for each user
 
 function findUserByEmail(email) {
   return users.find(u => u.email && u.email.toLowerCase() === (email || '').toLowerCase());
@@ -124,6 +125,92 @@ app.get('/api/me', (req, res) => {
     return res.json({ user: req.user });
   }
   res.status(401).json({ error: 'Not authenticated' });
+});
+
+// API ya kusave billing record
+app.post('/save-record', (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const userId = req.user.id;
+  const { name, phone, prev, curr, rate, fixed, total, date } = req.body;
+
+  // Validate required fields
+  if (!name || !phone || prev === undefined || curr === undefined || rate === undefined || fixed === undefined || total === undefined) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Initialize user records array if not exist
+  if (!userRecords[userId]) {
+    userRecords[userId] = [];
+  }
+
+  // Create record object
+  const record = {
+    id: String(Date.now()),
+    name,
+    phone,
+    prev: parseFloat(prev),
+    curr: parseFloat(curr),
+    usage: parseFloat(curr) - parseFloat(prev),
+    rate: parseFloat(rate),
+    fixed: parseFloat(fixed),
+    total: parseFloat(total),
+    date: date || new Date().toISOString()
+  };
+
+  // Save record
+  userRecords[userId].push(record);
+
+  res.json({ 
+    success: true, 
+    message: 'Record saved successfully',
+    record: record
+  });
+});
+
+// API ya kuget all billing records
+app.get('/get-records', (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const userId = req.user.id;
+  const records = userRecords[userId] || [];
+
+  res.json({ 
+    success: true,
+    records: records
+  });
+});
+
+// API ya kudelete billing record
+app.delete('/delete-record/:recordId', (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const userId = req.user.id;
+  const recordId = req.params.recordId;
+
+  // Initialize user records array if not exist
+  if (!userRecords[userId]) {
+    return res.status(404).json({ error: 'Record not found' });
+  }
+
+  // Find and remove the record
+  const initialLength = userRecords[userId].length;
+  userRecords[userId] = userRecords[userId].filter(r => r.id !== recordId);
+
+  if (userRecords[userId].length === initialLength) {
+    return res.status(404).json({ error: 'Record not found' });
+  }
+
+  res.json({ 
+    success: true,
+    message: 'Record deleted successfully'
+  });
 });
 
 // Logout
