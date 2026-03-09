@@ -90,11 +90,11 @@ app.get('/auth/google/callback',
 
 // Local Signup
 app.post('/signup', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, phone } = req.body;
   if (findUserByEmail(email)) return res.status(400).json({ error: 'User exists' });
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = { id: String(Date.now()), name, email, passwordHash: hashedPassword, provider: 'local' };
+  const user = { id: String(Date.now()), name, email, phone, passwordHash: hashedPassword, provider: 'local' };
   users.push(user);
 
   req.login(user, (err) => {
