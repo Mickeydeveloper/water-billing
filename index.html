@@ -528,6 +528,8 @@
       (async () => {
         try {
           const resp = await fetch('/api/me', { credentials: 'same-origin' });
+          console.log('✓ Authentication check started, status:', resp.status);
+          
           if (!resp.ok) {
             handleAuthenticationFailure('No authentication data found. Please log in.');
             return;
@@ -718,17 +720,23 @@
      */
     async function loadStatsFromServer() {
       try {
+        console.log('✓ Loading stats from server...');
         const response = await fetch('/get-records', {
           method: 'GET',
+          credentials: 'same-origin',
           headers: getAuthHeader()
         });
 
+        console.log('✓ Stats response status:', response.status);
+        
         const data = await response.json();
 
         if (!response.ok) {
+          console.error('Stats fetch error:', data.error);
           throw new Error(data.error || 'Failed to load statistics');
         }
 
+        console.log('✓ Records loaded:', data.records?.length || 0, 'records');
         updateStats(data.records || []);
       } catch (err) {
         console.error('Error loading statistics:', err);

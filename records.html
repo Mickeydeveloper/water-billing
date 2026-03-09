@@ -450,6 +450,9 @@
     <div class="controls">
       <div class="controls-left">
         <a href="main.html" class="btn btn-back">← Back to Billing</a>
+        <select id="monthFilter" style="padding: 0.6rem 1rem; border-radius: 8px; border: 2px solid var(--border-color); font-family: 'Poppins', sans-serif; cursor: pointer; font-size: 0.95rem; color: var(--text-primary);">
+          <option value="">All Records</option>
+        </select>
       </div>
 
       <div style="text-align: right;">
@@ -458,6 +461,7 @@
 
       <div class="controls-right">
         <button class="btn btn-export" id="exportBtn" disabled>📥 Export to CSV</button>
+        <button class="btn" id="clearBtn" style="background: linear-gradient(135deg, #f59e0b, #d97706); display: none;">🗑️ Clear All</button>
         <button onclick="window.logout()" style="padding: 0.6rem 1rem; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Poppins', sans-serif;">Logout</button>
       </div>
     </div>
@@ -716,8 +720,8 @@
     // ============================================
     // DOM ELEMENTS
     // ============================================
-    const monthFilter = document.getElementById('monthFilter');
-    const recordsBody = document.getElementById('recordsBody');
+    const monthFilter = document.getElementById('monthFilter') || { innerHTML: '' };
+    const recordsBody = document.getElementById('recordsBody') || { innerHTML: '' };
     const exportBtn = document.getElementById('exportBtn');
     const clearBtn = document.getElementById('clearBtn');
     const statsGrid = document.getElementById('statsGrid');
@@ -748,6 +752,7 @@
       try {
         const response = await fetch('/get-records', {
           method: 'GET',
+          credentials: 'same-origin',
           headers: getAuthHeader()
         });
 
@@ -782,6 +787,7 @@
       try {
         const response = await fetch(`/delete-record/${recordId}`, {
           method: 'DELETE',
+          credentials: 'same-origin',
           headers: getAuthHeader()
         });
 
@@ -842,6 +848,7 @@
      * Populate month filter dropdown
      */
     function populateMonthFilter() {
+      if (!monthFilter || typeof monthFilter.appendChild !== 'function') return;
       const months = getUniqueMonths();
       monthFilter.innerHTML = '<option value="">All Records</option>';
 
@@ -862,6 +869,8 @@
      * Calculate statistics
      */
     function calculateStats(records) {
+      if (!statsGrid) return;
+      
       if (records.length === 0) {
         statsGrid.style.display = 'none';
         return;
@@ -871,10 +880,10 @@
       const usage = records.reduce((sum, r) => sum + (r.usage || 0), 0);
       const average = records.length > 0 ? total / records.length : 0;
 
-      totalRecords.textContent = records.length;
-      totalRevenue.textContent = 'TZS ' + formatCurrency(total);
-      averageBill.textContent = 'TZS ' + formatCurrency(average);
-      totalUsage.textContent = usage + ' units';
+      if (totalRecords) totalRecords.textContent = records.length;
+      if (totalRevenue) totalRevenue.textContent = 'TZS ' + formatCurrency(total);
+      if (averageBill) averageBill.textContent = 'TZS ' + formatCurrency(average);
+      if (totalUsage) totalUsage.textContent = usage + ' units';
 
       statsGrid.style.display = 'grid';
     }
@@ -883,6 +892,8 @@
      * Display records in table
      */
     function displayRecords(records) {
+      if (!recordsBody) return;
+      
       if (records.length === 0) {
         recordsBody.innerHTML = `
           <tr>
@@ -894,8 +905,8 @@
             </td>
           </tr>
         `;
-        statsGrid.style.display = 'none';
-        exportBtn.disabled = true;
+        if (statsGrid) statsGrid.style.display = 'none';
+        if (exportBtn) exportBtn.disabled = true;
         return;
       }
 
@@ -908,13 +919,13 @@
           <td>TZS ${formatCurrency(record.rate || 0)}</td>
           <td class="total-cell">TZS ${formatCurrency(record.total || 0)}</td>
           <td class="action-cell">
-            <button class="btn-delete" onclick="deleteRecord(${record.id})">Delete</button>
+            <button class="btn-delete" onclick="deleteRecord('${record.id}')">Delete</button>
           </td>
         </tr>
       `).join('');
 
       calculateStats(records);
-      exportBtn.disabled = false;
+      if (exportBtn) exportBtn.disabled = false;
     }
 
     /**
@@ -995,8 +1006,10 @@
       const success = await deleteRecordFromServer(id);
       if (success) {
         allRecords = allRecords.filter(r => r.id !== id);
-        monthFilter.value = '';
-        populateMonthFilter();
+        if (monthFilter && monthFilter.value !== undefined) {
+          monthFilter.value = '';
+          populateMonthFilter();
+        }
         filterByMonth('');
       }
     }
@@ -1041,11 +1054,15 @@
     // EVENT LISTENERS
     // ============================================
 
-    monthFilter.addEventListener('change', (e) => {
-      filterByMonth(e.target.value);
-    });
+    if (monthFilter && monthFilter.addEventListener) {
+      monthFilter.addEventListener('change', (e) => {
+        filterByMonth(e.target.value);
+      });
+    }
 
-    exportBtn.addEventListener('click', exportToCSV);
+    if (exportBtn) {
+      exportBtn.addEventListener('click', exportToCSV);
+    }
 
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {

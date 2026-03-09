@@ -229,7 +229,7 @@ const protect = (req, res, next) => {
     res.redirect('/login');
 };
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/', protect, (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/main.html', protect, (req, res) => res.sendFile(path.join(__dirname, 'main.html')));
 app.get('/records.html', protect, (req, res) => res.sendFile(path.join(__dirname, 'records.html')));
 
