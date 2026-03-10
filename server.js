@@ -86,7 +86,7 @@ app.get('/signup', (req, res) => res.sendFile(path.join(__dirname, 'signup.html'
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/login?error=auth_failed' }),
-  (req, res) => res.redirect('/main.html') // Baada ya login peleka main.html
+  (req, res) => res.redirect('/index.html') // After login, go to dashboard
 );
 
 // Local Signup

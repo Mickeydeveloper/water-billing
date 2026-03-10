@@ -96,8 +96,8 @@
           showNotification(data.error || 'Sign up failed', 'error', 3500);
           return;
         }
-        showNotification('Account created. Signing in...', 'success', 1400);
-        setTimeout(() => { window.location.href = '/main.html'; }, 900);
+        showNotification('Account created. Please sign in.', 'success', 1400);
+        setTimeout(() => { window.location.href = '/login.html'; }, 900);
       } catch (err) {
         showNotification('Network error — please try again', 'error', 3000);
       }

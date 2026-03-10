@@ -120,8 +120,8 @@
           return;
         }
         showNotification('Signed in successfully', 'success', 1200);
-        // Signed in — go to main page
-        setTimeout(() => { window.location.href = '/main.html'; }, 600);
+        // Signed in — go to dashboard
+        setTimeout(() => { window.location.href = '/index.html'; }, 600);
       }catch(err){
         showError('Network error — please try again');
       }
