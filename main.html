@@ -923,10 +923,12 @@ function checkAuthentication() {
       const amount = usage * rate;
       const total = amount + fixed;
 
-      // Create bill message
+      // Create bill message (includes previous and current meter readings)
       const billMessage = `BILL STATEMENT
 Customer: ${name}
 Phone: ${phone}
+Previous Reading: ${prev} units
+Current Reading: ${curr} units
 Usage: ${usage} units
 Rate: TZS ${formatCurrency(rate)}/unit
 Fixed Charge: TZS ${formatCurrency(fixed)}

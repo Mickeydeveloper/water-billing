@@ -494,15 +494,17 @@
             <th onclick="sortTable(0)">Date</th>
             <th onclick="sortTable(1)">Customer</th>
             <th onclick="sortTable(2)">Phone</th>
-            <th onclick="sortTable(3)">Usage (units)</th>
-            <th onclick="sortTable(4)">Rate</th>
-            <th onclick="sortTable(5)">Total Bill</th>
+            <th onclick="sortTable(3)">Prev</th>
+            <th onclick="sortTable(4)">Curr</th>
+            <th onclick="sortTable(5)">Usage (units)</th>
+            <th onclick="sortTable(6)">Rate</th>
+            <th onclick="sortTable(7)">Total Bill</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody id="recordsBody">
           <tr>
-            <td colspan="7" style="text-align: center; padding: 3rem;">
+            <td colspan="9" style="text-align: center; padding: 3rem;">
               <div class="empty-state">
                 <div class="empty-state-icon">📋</div>
                 <div class="empty-state-text">No billing records found</div>
@@ -769,7 +771,7 @@
         console.error('Error loading records:', err);
         recordsBody.innerHTML = `
           <tr>
-            <td colspan="7" style="padding: 3rem;">
+            <td colspan="9" style="padding: 3rem;">
               <div class="empty-state">
                 <div class="empty-state-icon">⚠️</div>
                 <div class="empty-state-text">Error loading records: ${err.message}</div>
@@ -897,7 +899,7 @@
       if (records.length === 0) {
         recordsBody.innerHTML = `
           <tr>
-            <td colspan="7" style="padding: 3rem;">
+            <td colspan="9" style="padding: 3rem;">
               <div class="empty-state">
                 <div class="empty-state-icon">📋</div>
                 <div class="empty-state-text">No records match your filter</div>
@@ -915,6 +917,8 @@
           <td>${formatDate(record.date)}</td>
           <td>${record.name || '-'}</td>
           <td>${record.phone || '-'}</td>
+          <td>${record.prev !== undefined ? record.prev : '-'}</td>
+          <td>${record.curr !== undefined ? record.curr : '-'}</td>
           <td>${record.usage || 0}</td>
           <td>TZS ${formatCurrency(record.rate || 0)}</td>
           <td class="total-cell">TZS ${formatCurrency(record.total || 0)}</td>
@@ -967,15 +971,23 @@
             aVal = a.phone || '';
             bVal = b.phone || '';
             break;
-          case 3: // Usage
+          case 3: // Prev
+            aVal = a.prev || 0;
+            bVal = b.prev || 0;
+            break;
+          case 4: // Curr
+            aVal = a.curr || 0;
+            bVal = b.curr || 0;
+            break;
+          case 5: // Usage
             aVal = a.usage || 0;
             bVal = b.usage || 0;
             break;
-          case 4: // Rate
+          case 6: // Rate
             aVal = a.rate || 0;
             bVal = b.rate || 0;
             break;
-          case 5: // Total
+          case 7: // Total
             aVal = a.total || 0;
             bVal = b.total || 0;
             break;
