@@ -5,6 +5,7 @@ const passport = require('passport');
 const session = require('express-session');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 
 const app = express();
 
@@ -32,48 +33,89 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// --- 3. DATABASE (DEMO ONLY) ---
-// ONYO: Hii itafutika kila Render ikirestart. Kwa app kubwa, tumia MongoDB.
-const users = [];
-const userRecords = {}; // Store billing records for each user
+// --- 3. MONGODB CONNECTION ---
+const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://mickidadyhamza_db_user:U41ddz44QsMxBI7D@cluster0.motlmco.mongodb.net/?appName=Cluster0';
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error('MongoDB connection error:', err));
 
-function findUserByEmail(email) {
-  return users.find(u => u.email && u.email.toLowerCase() === (email || '').toLowerCase());
+// --- 4. MONGOOSE MODELS ---
+const userSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: String,
+  passwordHash: String,
+  picture: String,
+  provider: { type: String, required: true }
+});
+
+const recordSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  id: { type: String, required: true },
+  name: { type: String, required: true },
+  phone: { type: String, required: true },
+  prev: { type: Number, required: true },
+  curr: { type: Number, required: true },
+  usage: { type: Number, required: true },
+  rate: { type: Number, required: true },
+  fixed: { type: Number, required: true },
+  total: { type: Number, required: true },
+  date: { type: String, required: true }
+});
+
+const User = mongoose.model('User', userSchema);
+const Record = mongoose.model('Record', recordSchema);
+
+// --- 5. DATABASE FUNCTIONS ---
+async function findUserByEmail(email) {
+  return await User.findOne({ email: email.toLowerCase() });
 }
 
-function findUserById(id) {
-  return users.find(u => u.id === id);
+async function findUserById(id) {
+  return await User.findOne({ id });
 }
 
-// --- 4. PASSPORT CONFIG ---
+// --- 6. PASSPORT CONFIG ---
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: "/auth/google/callback",
     proxy: true // Muhimu kwa OAuth ukiwa kwenye proxy (Render)
   },
-  (accessToken, refreshToken, profile, done) => {
-    const email = profile.emails?.[0]?.value || null;
-    let user = email ? findUserByEmail(email) : null;
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      const email = profile.emails?.[0]?.value || null;
+      let user = email ? await findUserByEmail(email) : null;
 
-    if (!user) {
-      user = {
-        id: String(Date.now()), // Tumia timestamp kama ID ya muda
-        name: profile.displayName,
-        email: email,
-        picture: profile.photos?.[0]?.value || '',
-        provider: 'google'
-      };
-      users.push(user);
+      if (!user) {
+        user = new User({
+          id: String(Date.now()), // Tumia timestamp kama ID ya muda
+          name: profile.displayName,
+          email: email,
+          picture: profile.photos?.[0]?.value || '',
+          provider: 'google'
+        });
+        await user.save();
+      }
+      return done(null, user);
+    } catch (error) {
+      return done(error, null);
     }
-    return done(null, user);
   }
 ));
 
 passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser((id, done) => {
-  const user = findUserById(id);
-  done(null, user || null);
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await findUserById(id);
+    done(null, user || null);
+  } catch (error) {
+    done(error, null);
+  }
 });
 
 // --- 5. ROUTES ---
@@ -91,32 +133,48 @@ app.get('/auth/google/callback',
 
 // Local Signup
 app.post('/signup', async (req, res) => {
-  const { name, email, password, phone } = req.body;
-  if (findUserByEmail(email)) return res.status(400).json({ error: 'User exists' });
+  try {
+    const { name, email, password, phone } = req.body;
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) return res.status(400).json({ error: 'User exists' });
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = { id: String(Date.now()), name, email, phone, passwordHash: hashedPassword, provider: 'local' };
-  users.push(user);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ 
+      id: String(Date.now()), 
+      name, 
+      email, 
+      phone, 
+      passwordHash: hashedPassword, 
+      provider: 'local' 
+    });
+    await user.save();
 
-  req.login(user, (err) => {
-    if (err) return res.status(500).json({ error: 'Login failed' });
-    req.session.save(() => res.json({ success: true }));
-  });
+    req.login(user, (err) => {
+      if (err) return res.status(500).json({ error: 'Login failed' });
+      req.session.save(() => res.json({ success: true }));
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Signup failed' });
+  }
 });
 
 // Local Login
 app.post('/local-login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = findUserByEmail(email);
-  if (!user || !user.passwordHash) return res.status(401).json({ error: 'Invalid credentials' });
+  try {
+    const { email, password } = req.body;
+    const user = await findUserByEmail(email);
+    if (!user || !user.passwordHash) return res.status(401).json({ error: 'Invalid credentials' });
 
-  const match = await bcrypt.compare(password, user.passwordHash);
-  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+    const match = await bcrypt.compare(password, user.passwordHash);
+    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-  req.login(user, (err) => {
-    if (err) return res.status(500).json({ error: 'Login failed' });
-    req.session.save(() => res.json({ success: true }));
-  });
+    req.login(user, (err) => {
+      if (err) return res.status(500).json({ error: 'Login failed' });
+      req.session.save(() => res.json({ success: true }));
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Login failed' });
+  }
 });
 
 // API ya ku-check kama user ameingia (Inatumika na main.html/index.html)
@@ -128,89 +186,90 @@ app.get('/api/me', (req, res) => {
 });
 
 // API ya kusave billing record
-app.post('/save-record', (req, res) => {
+app.post('/save-record', async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
-  const userId = req.user.id;
-  const { name, phone, prev, curr, rate, fixed, total, date } = req.body;
+  try {
+    const userId = req.user.id;
+    const { name, phone, prev, curr, rate, fixed, total, date } = req.body;
 
-  // Validate required fields
-  if (!name || !phone || prev === undefined || curr === undefined || rate === undefined || fixed === undefined || total === undefined) {
-    return res.status(400).json({ error: 'Missing required fields' });
+    // Validate required fields
+    if (!name || !phone || prev === undefined || curr === undefined || rate === undefined || fixed === undefined || total === undefined) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Create record object
+    const record = new Record({
+      userId,
+      id: String(Date.now()),
+      name,
+      phone,
+      prev: parseFloat(prev),
+      curr: parseFloat(curr),
+      usage: parseFloat(curr) - parseFloat(prev),
+      rate: parseFloat(rate),
+      fixed: parseFloat(fixed),
+      total: parseFloat(total),
+      date: date || new Date().toISOString()
+    });
+
+    // Save record
+    await record.save();
+
+    res.json({ 
+      success: true, 
+      message: 'Record saved successfully',
+      record: record
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to save record' });
   }
-
-  // Initialize user records array if not exist
-  if (!userRecords[userId]) {
-    userRecords[userId] = [];
-  }
-
-  // Create record object
-  const record = {
-    id: String(Date.now()),
-    name,
-    phone,
-    prev: parseFloat(prev),
-    curr: parseFloat(curr),
-    usage: parseFloat(curr) - parseFloat(prev),
-    rate: parseFloat(rate),
-    fixed: parseFloat(fixed),
-    total: parseFloat(total),
-    date: date || new Date().toISOString()
-  };
-
-  // Save record
-  userRecords[userId].push(record);
-
-  res.json({ 
-    success: true, 
-    message: 'Record saved successfully',
-    record: record
-  });
 });
 
 // API ya kuget all billing records
-app.get('/get-records', (req, res) => {
+app.get('/get-records', async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
-  const userId = req.user.id;
-  const records = userRecords[userId] || [];
+  try {
+    const userId = req.user.id;
+    const records = await Record.find({ userId }).sort({ date: -1 });
 
-  res.json({ 
-    success: true,
-    records: records
-  });
+    res.json({ 
+      success: true,
+      records: records
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get records' });
+  }
 });
 
 // API ya kudelete billing record
-app.delete('/delete-record/:recordId', (req, res) => {
+app.delete('/delete-record/:recordId', async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
-  const userId = req.user.id;
-  const recordId = req.params.recordId;
+  try {
+    const userId = req.user.id;
+    const recordId = req.params.recordId;
 
-  // Initialize user records array if not exist
-  if (!userRecords[userId]) {
-    return res.status(404).json({ error: 'Record not found' });
+    const result = await Record.deleteOne({ userId, id: recordId });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+
+    res.json({ 
+      success: true,
+      message: 'Record deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete record' });
   }
-
-  // Find and remove the record
-  const initialLength = userRecords[userId].length;
-  userRecords[userId] = userRecords[userId].filter(r => r.id !== recordId);
-
-  if (userRecords[userId].length === initialLength) {
-    return res.status(404).json({ error: 'Record not found' });
-  }
-
-  res.json({ 
-    success: true,
-    message: 'Record deleted successfully'
-  });
 });
 
 // Logout
