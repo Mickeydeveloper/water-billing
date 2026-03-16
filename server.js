@@ -15,7 +15,12 @@ app.set('trust proxy', 1);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname));
+
+// Serve static files from root directory (for HTML, CSS, JS files)
+app.use(express.static(__dirname, {
+  index: false, // Don't serve index.html automatically
+  dotfiles: 'deny' // Deny access to dotfiles
+}));
 
 // --- 2. SESSION CONFIG ---
 app.use(session({
@@ -366,14 +371,19 @@ app.delete('/delete-record/:recordId', checkMongoConnection, async (req, res) =>
 
 // Logout
 app.get('/logout', (req, res) => {
-  req.logout();
-  req.session.destroy((err) => {
+  req.logout((err) => {
     if (err) {
-      console.error('Session destroy error:', err);
+      console.error('Logout error:', err);
       return res.status(500).json({ error: 'Logout failed' });
     }
-    res.clearCookie('connect.sid');
-    res.redirect('/login');
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destroy error:', err);
+        return res.status(500).json({ error: 'Logout failed' });
+      }
+      res.clearCookie('connect.sid');
+      res.redirect('/login');
+    });
   });
 });
 
@@ -382,6 +392,12 @@ const protect = (req, res, next) => {
     if (req.isAuthenticated()) return next();
     res.redirect('/login');
 };
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Express error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 app.get('/', protect, (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/main.html', protect, (req, res) => res.sendFile(path.join(__dirname, 'main.html')));
