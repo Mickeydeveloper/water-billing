@@ -6,6 +6,7 @@ const session = require('express-session');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const webpush = require('web-push');
 
 const app = express();
 
@@ -66,6 +67,17 @@ mongoose.connect(mongoURI, {
   isMongoConnected = false;
   // Don't exit, just log the error
 });
+
+// --- 4. WEB PUSH CONFIGURATION ---
+// VAPID keys for Web Push notifications (generate your own in production)
+webpush.setVapidDetails(
+  'mailto:your-email@example.com', // Replace with your email
+  process.env.VAPID_PUBLIC_KEY || 'BDefault_Public_Key_For_Development',
+  process.env.VAPID_PRIVATE_KEY || 'Default_Private_Key_For_Development'
+);
+
+// Store push subscriptions (in production, save to database)
+let pushSubscriptions = [];
 
 // --- 4. MONGOOSE MODELS ---
 const userSchema = new mongoose.Schema({
@@ -384,6 +396,76 @@ app.get('/logout', (req, res) => {
       res.clearCookie('connect.sid');
       res.redirect('/login');
     });
+  });
+});
+
+// --- WEB PUSH API ROUTES ---
+
+// Subscribe to push notifications
+app.post('/api/push/subscribe', (req, res) => {
+  const subscription = req.body;
+
+  // Validate subscription object
+  if (!subscription || !subscription.endpoint) {
+    return res.status(400).json({ error: 'Invalid subscription' });
+  }
+
+  // Check if subscription already exists
+  const existingIndex = pushSubscriptions.findIndex(sub =>
+    sub.endpoint === subscription.endpoint
+  );
+
+  if (existingIndex === -1) {
+    pushSubscriptions.push(subscription);
+    console.log('New push subscription added');
+  } else {
+    // Update existing subscription
+    pushSubscriptions[existingIndex] = subscription;
+    console.log('Push subscription updated');
+  }
+
+  res.json({ success: true, message: 'Subscription saved' });
+});
+
+// Send push notification (for testing/admin use)
+app.post('/api/push/send', (req, res) => {
+  const { title, body, icon, badge } = req.body;
+
+  if (!title || !body) {
+    return res.status(400).json({ error: 'Title and body are required' });
+  }
+
+  const payload = JSON.stringify({
+    title: title,
+    body: body,
+    icon: icon || '/icon-192x192.svg',
+    badge: badge || '/icon-192x192.svg',
+    data: {
+      url: '/'
+    }
+  });
+
+  const promises = pushSubscriptions.map(subscription => {
+    return webpush.sendNotification(subscription, payload)
+      .catch(error => {
+        console.error('Push notification failed:', error);
+        // Remove invalid subscriptions
+        pushSubscriptions = pushSubscriptions.filter(sub => sub !== subscription);
+      });
+  });
+
+  Promise.all(promises)
+    .then(() => res.json({ success: true, message: 'Notifications sent' }))
+    .catch(error => {
+      console.error('Error sending notifications:', error);
+      res.status(500).json({ error: 'Failed to send notifications' });
+    });
+});
+
+// Get VAPID public key for client-side subscription
+app.get('/api/push/vapid-public-key', (req, res) => {
+  res.json({
+    publicKey: process.env.VAPID_PUBLIC_KEY || 'BDefault_Public_Key_For_Development'
   });
 });
 
