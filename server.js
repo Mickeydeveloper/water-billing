@@ -35,10 +35,7 @@ app.use(passport.session());
 
 // --- 3. MONGODB CONNECTION ---
 const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://mickidadyhamza_db_user:U41ddz44QsMxBI7D@cluster0.motlmco.mongodb.net/?appName=Cluster0';
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(mongoURI)
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.error('MongoDB connection error:', err));
 
@@ -89,11 +86,14 @@ passport.use(new GoogleStrategy({
   async (accessToken, refreshToken, profile, done) => {
     try {
       const email = profile.emails?.[0]?.value || null;
-      let user = email ? await findUserByEmail(email) : null;
+      if (!email) {
+        return done(new Error('No email provided by Google'), null);
+      }
+      let user = await findUserByEmail(email);
 
       if (!user) {
         user = new User({
-          id: String(Date.now()), // Tumia timestamp kama ID ya muda
+          id: String(Date.now()),
           name: profile.displayName,
           email: email,
           picture: profile.photos?.[0]?.value || '',
@@ -200,6 +200,16 @@ app.post('/save-record', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    const prevNum = parseFloat(prev);
+    const currNum = parseFloat(curr);
+    const rateNum = parseFloat(rate);
+    const fixedNum = parseFloat(fixed);
+    const totalNum = parseFloat(total);
+
+    if (isNaN(prevNum) || isNaN(currNum) || isNaN(rateNum) || isNaN(fixedNum) || isNaN(totalNum)) {
+      return res.status(400).json({ error: 'Invalid number format' });
+    }
+
     // Create record object
     const record = new Record({
       userId,
@@ -274,11 +284,14 @@ app.delete('/delete-record/:recordId', async (req, res) => {
 
 // Logout
 app.get('/logout', (req, res) => {
-  req.logout(() => {
-    req.session.destroy(() => {
-      res.clearCookie('connect.sid');
-      res.redirect('/login');
-    });
+  req.logout();
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Session destroy error:', err);
+      return res.status(500).json({ error: 'Logout failed' });
+    }
+    res.clearCookie('connect.sid');
+    res.redirect('/login');
   });
 });
 
