@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Admin Dashboard - Water Billing System">
+  <meta name="author" content="Mickey Hamza">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Admin Dashboard - Water Billing System</title>
+
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+  <link rel="manifest" href="/manifest.json">
+
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #06b6d4;
+      --success-color: #059669;
+      --error-color: #dc2626;
+      --warning-color: #d97706;
+      --background-light: #f8fafc;
+      --background-dark: #0f172a;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --border-color: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --border-radius: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      color: white;
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.1rem;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+    }
+
+    .card h3 {
+      color: var(--text-primary);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card h3::before {
+      content: '';
+      width: 4px;
+      height: 20px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 15px;
+      background: var(--background-light);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-top: 5px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success-color), #10b981);
+      color: white;
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(5, 150, 105, 0.3);
+    }
+
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+
+    .notification-item {
+      padding: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: var(--background-light);
+    }
+
+    .notification-item.success {
+      border-color: var(--success-color);
+      background: rgba(5, 150, 105, 0.05);
+    }
+
+    .notification-item.error {
+      border-color: var(--error-color);
+      background: rgba(220, 38, 38, 0.05);
+    }
+
+    .notification-item .title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .notification-item .timestamp {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .loading::after {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛠️ Admin Dashboard</h1>
+      <p>Manage Water Billing System - Send Bulk Notifications</p>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Statistics Card -->
+      <div class="card">
+        <h3>📊 System Statistics</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-number" id="totalUsers">-</span>
+            <div class="stat-label">Total Users</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="totalRecords">-</span>
+            <div class="stat-label">Billing Records</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="totalSubscriptions">-</span>
+            <div class="stat-label">Push Subscribers</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="recentSubscriptions">-</span>
+            <div class="stat-label">New This Week</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="refreshStats()">🔄 Refresh Stats</button>
+          <a href="/" class="btn btn-secondary">🏠 Back to App</a>
+        </div>
+      </div>
+
+      <!-- Bulk Notification Card -->
+      <div class="card">
+        <h3>📢 Send Bulk Notification</h3>
+        <form id="notificationForm">
+          <div class="form-group">
+            <label for="notificationTitle">Notification Title *</label>
+            <input
+              type="text"
+              id="notificationTitle"
+              placeholder="e.g., Water Bill Due Reminder"
+              required
+              maxlength="50"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="notificationBody">Notification Message *</label>
+            <textarea
+              id="notificationBody"
+              placeholder="e.g., Your water bill for this month is now available. Please check your account for details."
+              required
+              maxlength="150"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="notificationUrl">Target URL (optional)</label>
+            <input
+              type="url"
+              id="notificationUrl"
+              placeholder="e.g., /records.html or https://yoursite.com/records"
+              value="/records.html"
+            >
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-success" id="sendBtn">
+              📤 Send to All Subscribers
+            </button>
+            <button type="button" class="btn btn-primary" onclick="testNotification()">
+              🧪 Send Test Notification
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Recent Notifications Card -->
+      <div class="card">
+        <h3>📋 Recent Notifications</h3>
+        <div id="notificationHistory">
+          <p style="color: var(--text-secondary); font-style: italic;">
+            No notifications sent yet. Send your first bulk notification above.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let isAuthenticated = false;
+    let notificationHistory = [];
+
+    // Initialize admin dashboard
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      loadStats();
+      setupForm();
+      loadNotificationHistory();
+    });
+
+    // Check if user is authenticated as admin
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/me');
+        if (response.ok) {
+          const data = await response.json();
+          isAuthenticated = true;
+          console.log('Admin authenticated:', data.user.email);
+        } else {
+          // Redirect to login if not authenticated
+          window.location.href = '/login.html?redirect=/admin.html';
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '/login.html?redirect=/admin.html';
+      }
+    }
+
+    // Load system statistics
+    async function loadStats() {
+      try {
+        // Load user stats
+        const userResponse = await fetch('/api/users/count');
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          document.getElementById('totalUsers').textContent = userData.count || 0;
+        }
+
+        // Load record stats
+        const recordResponse = await fetch('/api/records/count');
+        if (recordResponse.ok) {
+          const recordData = await recordResponse.json();
+          document.getElementById('totalRecords').textContent = recordData.count || 0;
+        }
+
+        // Load push subscription stats
+        const pushResponse = await fetch('/api/push/stats');
+        if (pushResponse.ok) {
+          const pushData = await pushResponse.json();
+          document.getElementById('totalSubscriptions').textContent = pushData.totalSubscriptions || 0;
+          document.getElementById('recentSubscriptions').textContent = pushData.recentSubscriptions || 0;
+        }
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+        showNotification('Failed to load statistics', 'error');
+      }
+    }
+
+    // Refresh statistics
+    function refreshStats() {
+      loadStats();
+      showNotification('Statistics refreshed', 'success');
+    }
+
+    // Setup notification form
+    function setupForm() {
+      const form = document.getElementById('notificationForm');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const title = document.getElementById('notificationTitle').value.trim();
+        const body = document.getElementById('notificationBody').value.trim();
+        const url = document.getElementById('notificationUrl').value.trim();
+
+        if (!title || !body) {
+          showNotification('Please fill in both title and message', 'error');
+          return;
+        }
+
+        await sendBulkNotification(title, body, url);
+      });
+    }
+
+    // Send bulk notification
+    async function sendBulkNotification(title, body, url = '/records.html') {
+      const sendBtn = document.getElementById('sendBtn');
+      const originalText = sendBtn.textContent;
+
+      try {
+        sendBtn.classList.add('loading');
+        sendBtn.textContent = 'Sending...';
+        sendBtn.disabled = true;
+
+        const response = await fetch('/api/push/send-bulk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title,
+            body,
+            url,
+            icon: '/icon-192x192.svg',
+            badge: '/icon-192x192.svg'
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showNotification(`✅ Notification sent successfully! ${result.sent} subscribers reached.`, 'success');
+
+          // Add to history
+          addToNotificationHistory({
+            title,
+            body,
+            sent: result.sent,
+            failed: result.failed,
+            timestamp: new Date()
+          });
+
+          // Reset form
+          document.getElementById('notificationForm').reset();
+          document.getElementById('notificationUrl').value = '/records.html';
+        } else {
+          showNotification(`❌ Failed to send notification: ${result.error}`, 'error');
+        }
+
+      } catch (error) {
+        console.error('Error sending bulk notification:', error);
+        showNotification('❌ Network error - please try again', 'error');
+      } finally {
+        sendBtn.classList.remove('loading');
+        sendBtn.textContent = originalText;
+        sendBtn.disabled = false;
+      }
+    }
+
+    // Send test notification (to current user only)
+    async function testNotification() {
+      const title = '🧪 Test Notification';
+      const body = 'This is a test notification to verify push notifications are working.';
+
+      showNotification('Sending test notification...', 'info');
+
+      try {
+        const response = await fetch('/api/push/send-bulk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title,
+            body,
+            url: '/admin.html',
+            icon: '/icon-192x192.svg'
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showNotification(`✅ Test notification sent! Check your device.`, 'success');
+        } else {
+          showNotification(`❌ Test failed: ${result.error}`, 'error');
+        }
+      } catch (error) {
+        console.error('Test notification error:', error);
+        showNotification('❌ Test failed - check console for details', 'error');
+      }
+    }
+
+    // Add notification to history
+    function addToNotificationHistory(notification) {
+      notificationHistory.unshift(notification);
+
+      // Keep only last 10 notifications
+      if (notificationHistory.length > 10) {
+        notificationHistory = notificationHistory.slice(0, 10);
+      }
+
+      // Save to localStorage
+      localStorage.setItem('notificationHistory', JSON.stringify(notificationHistory));
+
+      // Update UI
+      updateNotificationHistoryUI();
+    }
+
+    // Load notification history from localStorage
+    function loadNotificationHistory() {
+      const saved = localStorage.getItem('notificationHistory');
+      if (saved) {
+        notificationHistory = JSON.parse(saved);
+        updateNotificationHistoryUI();
+      }
+    }
+
+    // Update notification history UI
+    function updateNotificationHistoryUI() {
+      const container = document.getElementById('notificationHistory');
+
+      if (notificationHistory.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">No notifications sent yet. Send your first bulk notification above.</p>';
+        return;
+      }
+
+      container.innerHTML = notificationHistory.map(notification => `
+        <div class="notification-item success">
+          <div class="title">${notification.title}</div>
+          <div style="margin-bottom: 8px; color: var(--text-secondary);">${notification.body}</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.9rem; color: var(--success-color);">
+              ✅ ${notification.sent || 0} sent${notification.failed ? `, ${notification.failed} failed` : ''}
+            </span>
+            <span class="timestamp">${formatTimestamp(notification.timestamp)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Format timestamp
+    function formatTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diff = now - date;
+
+      if (diff < 60000) return 'Just now';
+      if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+      if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+      return date.toLocaleDateString();
+    }
+
+    // Notification helper
+    function showNotification(message, type = 'info', duration = 4000) {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+        max-width: 400px;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+      `;
+
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      // Animate in
+      setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+      }, 100);
+
+      // Animate out
+      setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, duration);
+    }
+
+    // Add some demo data for testing
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      // Add demo notification history
+      if (notificationHistory.length === 0) {
+        addToNotificationHistory({
+          title: 'Welcome to Admin Dashboard',
+          body: 'This is your first notification. The admin dashboard is now ready to send bulk notifications to all users.',
+          sent: 0,
+          failed: 0,
+          timestamp: new Date()
+        });
+      }
+    }
+  </script>
+</body>
+</html></content>
+<parameter name="filePath">vscode-vfs://github/Mickeydeveloper/water-billing/admin.html
