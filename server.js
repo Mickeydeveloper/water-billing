@@ -33,18 +33,33 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// --- 3.5. MONGODB CONNECTION CHECK MIDDLEWARE ---
+const checkMongoConnection = (req, res, next) => {
+  if (!isMongoConnected) {
+    console.error('MongoDB not connected, rejecting request');
+    return res.status(503).json({ error: 'Database connection unavailable' });
+  }
+  next();
+};
+
 // --- 3. MONGODB CONNECTION ---
 const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://mickidadyhamza_db_user:U41ddz44QsMxBI7D@cluster0.motlmco.mongodb.net/?appName=Cluster0';
 console.log('Connecting to MongoDB...');
-mongoose.connect(mongoURI)
-.then(() => console.log('MongoDB connected successfully'))
+
+let isMongoConnected = false;
+
+mongoose.connect(mongoURI, {
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+})
+.then(() => {
+  console.log('MongoDB connected successfully');
+  isMongoConnected = true;
+})
 .catch(err => {
   console.error('MongoDB connection error:', err);
-  // Don't exit in production, just log the error
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Exiting due to MongoDB connection failure in development');
-    process.exit(1);
-  }
+  isMongoConnected = false;
+  // Don't exit, just log the error
 });
 
 // --- 4. MONGOOSE MODELS ---
@@ -90,7 +105,13 @@ async function findUserByEmail(email) {
 }
 
 async function findUserById(id) {
-  return await User.findOne({ id });
+  try {
+    const user = await User.findOne({ id });
+    return user;
+  } catch (error) {
+    console.error('Database error in findUserById:', error);
+    throw error;
+  }
 }
 
 // --- 6. PASSPORT CONFIG ---
@@ -102,6 +123,10 @@ passport.use(new GoogleStrategy({
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
+      if (!isMongoConnected) {
+        return done(new Error('Database connection unavailable'), null);
+      }
+
       const email = profile.emails?.[0]?.value || null;
       if (!email) {
         return done(new Error('No email provided by Google'), null);
@@ -120,6 +145,7 @@ passport.use(new GoogleStrategy({
       }
       return done(null, user);
     } catch (error) {
+      console.error('Google OAuth error:', error);
       return done(error, null);
     }
   }
@@ -128,9 +154,14 @@ passport.use(new GoogleStrategy({
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
   try {
+    if (!isMongoConnected) {
+      return done(new Error('Database connection unavailable'), null);
+    }
+
     const user = await findUserById(id);
     done(null, user || null);
   } catch (error) {
+    console.error('Deserialize user error:', error);
     done(error, null);
   }
 });
@@ -149,7 +180,7 @@ app.get('/auth/google/callback',
 );
 
 // Local Signup
-app.post('/signup', async (req, res) => {
+app.post('/signup', checkMongoConnection, async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
     const normalizedEmail = email.toLowerCase();
@@ -161,6 +192,10 @@ app.post('/signup', async (req, res) => {
       id: String(Date.now()), 
       name, 
       email: normalizedEmail, 
+      phone, 
+      passwordHash: hashedPassword,
+      provider: 'local' 
+    });
     await user.save();
 
     req.login(user, (err) => {
@@ -168,12 +203,13 @@ app.post('/signup', async (req, res) => {
       req.session.save(() => res.json({ success: true }));
     });
   } catch (error) {
+    console.error('Signup error:', error);
     res.status(500).json({ error: 'Signup failed' });
   }
 });
 
 // Local Login
-app.post('/local-login', async (req, res) => {
+app.post('/local-login', checkMongoConnection, async (req, res) => {
   try {
     const { email, password } = req.body;
     console.log('Login attempt for email:', email);
@@ -218,8 +254,18 @@ app.get('/api/me', (req, res) => {
   res.status(401).json({ error: 'Not authenticated' });
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    mongodb: isMongoConnected ? 'connected' : 'disconnected',
+    uptime: process.uptime()
+  });
+});
+
 // API ya kusave billing record
-app.post('/save-record', async (req, res) => {
+app.post('/save-record', checkMongoConnection, async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
@@ -267,12 +313,13 @@ app.post('/save-record', async (req, res) => {
       record: record
     });
   } catch (error) {
+    console.error('Save record error:', error);
     res.status(500).json({ error: 'Failed to save record' });
   }
 });
 
 // API ya kuget all billing records
-app.get('/get-records', async (req, res) => {
+app.get('/get-records', checkMongoConnection, async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
@@ -286,12 +333,13 @@ app.get('/get-records', async (req, res) => {
       records: records
     });
   } catch (error) {
+    console.error('Get records error:', error);
     res.status(500).json({ error: 'Failed to get records' });
   }
 });
 
 // API ya kudelete billing record
-app.delete('/delete-record/:recordId', async (req, res) => {
+app.delete('/delete-record/:recordId', checkMongoConnection, async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
@@ -311,6 +359,7 @@ app.delete('/delete-record/:recordId', async (req, res) => {
       message: 'Record deleted successfully'
     });
   } catch (error) {
+    console.error('Delete record error:', error);
     res.status(500).json({ error: 'Failed to delete record' });
   }
 });
@@ -340,3 +389,17 @@ app.get('/records.html', protect, (req, res) => res.sendFile(path.join(__dirname
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server on port ${PORT} 🚀`));
+
+// Global error handler
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  // Don't exit in production
+  if (process.env.NODE_ENV === 'development') {
+    process.exit(1);
+  }
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit in production
+});
