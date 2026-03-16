@@ -35,9 +35,17 @@ app.use(passport.session());
 
 // --- 3. MONGODB CONNECTION ---
 const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://mickidadyhamza_db_user:U41ddz44QsMxBI7D@cluster0.motlmco.mongodb.net/?appName=Cluster0';
+console.log('Connecting to MongoDB...');
 mongoose.connect(mongoURI)
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error('MongoDB connection error:', err));
+.then(() => console.log('MongoDB connected successfully'))
+.catch(err => {
+  console.error('MongoDB connection error:', err);
+  // Don't exit in production, just log the error
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Exiting due to MongoDB connection failure in development');
+    process.exit(1);
+  }
+});
 
 // --- 4. MONGOOSE MODELS ---
 const userSchema = new mongoose.Schema({
@@ -69,7 +77,16 @@ const Record = mongoose.model('Record', recordSchema);
 
 // --- 5. DATABASE FUNCTIONS ---
 async function findUserByEmail(email) {
-  return await User.findOne({ email: email.toLowerCase() });
+  try {
+    const normalizedEmail = email.toLowerCase();
+    console.log('Searching for user with email:', normalizedEmail);
+    const user = await User.findOne({ email: normalizedEmail });
+    console.log('Database query result:', user ? 'found' : 'not found');
+    return user;
+  } catch (error) {
+    console.error('Database error in findUserByEmail:', error);
+    throw error;
+  }
 }
 
 async function findUserById(id) {
@@ -95,7 +112,7 @@ passport.use(new GoogleStrategy({
         user = new User({
           id: String(Date.now()),
           name: profile.displayName,
-          email: email,
+          email: email.toLowerCase(),
           picture: profile.photos?.[0]?.value || '',
           provider: 'google'
         });
@@ -135,6 +152,7 @@ app.get('/auth/google/callback',
 app.post('/signup', async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
+    const normalizedEmail = email.toLowerCase();
     const existingUser = await findUserByEmail(email);
     if (existingUser) return res.status(400).json({ error: 'User exists' });
 
@@ -142,11 +160,7 @@ app.post('/signup', async (req, res) => {
     const user = new User({ 
       id: String(Date.now()), 
       name, 
-      email, 
-      phone, 
-      passwordHash: hashedPassword, 
-      provider: 'local' 
-    });
+      email: normalizedEmail, 
     await user.save();
 
     req.login(user, (err) => {
@@ -162,17 +176,36 @@ app.post('/signup', async (req, res) => {
 app.post('/local-login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log('Login attempt for email:', email);
+    
     const user = await findUserByEmail(email);
-    if (!user || !user.passwordHash) return res.status(401).json({ error: 'Invalid credentials' });
+    console.log('User found:', user ? 'yes' : 'no');
+    
+    if (!user || !user.passwordHash) {
+      console.log('Invalid credentials - no user or no password hash');
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     const match = await bcrypt.compare(password, user.passwordHash);
-    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+    console.log('Password match:', match);
+    
+    if (!match) {
+      console.log('Password does not match');
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     req.login(user, (err) => {
-      if (err) return res.status(500).json({ error: 'Login failed' });
-      req.session.save(() => res.json({ success: true }));
+      if (err) {
+        console.error('Login error:', err);
+        return res.status(500).json({ error: 'Login failed' });
+      }
+      req.session.save(() => {
+        console.log('Login successful for user:', user.email);
+        res.json({ success: true });
+      });
     });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });
   }
 });
