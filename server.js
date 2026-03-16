@@ -6,7 +6,6 @@ const session = require('express-session');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
-const webpush = require('web-push');
 
 const app = express();
 
@@ -68,18 +67,6 @@ mongoose.connect(mongoURI, {
   // Don't exit, just log the error
 });
 
-// --- 4. WEB PUSH CONFIGURATION ---
-// VAPID keys for Web Push notifications (generate your own in production)
-// You can generate keys using: npx web-push generate-vapid-keys
-webpush.setVapidDetails(
-  'mailto:admin@waterbilling.com', // Replace with your email
-  process.env.VAPID_PUBLIC_KEY || 'BM8VdKmJC6e8rXc3x0zqF5zQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQ',
-  process.env.VAPID_PRIVATE_KEY || 'your_private_key_here_replace_in_production'
-);
-
-// Store push subscriptions (in production, save to database)
-let pushSubscriptions = [];
-
 // --- 4. MONGOOSE MODELS ---
 const userSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
@@ -105,22 +92,8 @@ const recordSchema = new mongoose.Schema({
   date: { type: String, required: true }
 });
 
-// Push Subscription Schema for PWA notifications
-const pushSubscriptionSchema = new mongoose.Schema({
-  userId: { type: String, required: true }, // Associated user ID
-  endpoint: { type: String, required: true, unique: true },
-  keys: {
-    p256dh: { type: String, required: true },
-    auth: { type: String, required: true }
-  },
-  userAgent: String,
-  createdAt: { type: Date, default: Date.now },
-  lastUsed: { type: Date, default: Date.now }
-});
-
 const User = mongoose.model('User', userSchema);
 const Record = mongoose.model('Record', recordSchema);
-const PushSubscription = mongoose.model('PushSubscription', pushSubscriptionSchema);
 
 // --- 5. DATABASE FUNCTIONS ---
 async function findUserByEmail(email) {
@@ -433,154 +406,6 @@ app.get('/logout', (req, res) => {
       res.redirect('/login');
     });
   });
-});
-
-// --- WEB PUSH API ROUTES ---
-
-// Subscribe to push notifications
-app.post('/api/push/subscribe', checkMongoConnection, async (req, res) => {
-  try {
-    const subscription = req.body;
-    const userId = req.user ? req.user.id : 'anonymous'; // Use user ID if authenticated
-
-    // Validate subscription object
-    if (!subscription || !subscription.endpoint || !subscription.keys) {
-      return res.status(400).json({ error: 'Invalid subscription data' });
-    }
-
-    // Check if subscription already exists
-    const existingSubscription = await PushSubscription.findOne({
-      endpoint: subscription.endpoint
-    });
-
-    if (existingSubscription) {
-      // Update existing subscription
-      existingSubscription.keys = subscription.keys;
-      existingSubscription.lastUsed = new Date();
-      existingSubscription.userAgent = req.get('User-Agent');
-      await existingSubscription.save();
-      console.log('Push subscription updated for user:', userId);
-    } else {
-      // Create new subscription
-      const newSubscription = new PushSubscription({
-        userId,
-        endpoint: subscription.endpoint,
-        keys: subscription.keys,
-        userAgent: req.get('User-Agent')
-      });
-      await newSubscription.save();
-      console.log('New push subscription created for user:', userId);
-    }
-
-    res.json({ success: true, message: 'Subscription saved successfully' });
-  } catch (error) {
-    console.error('Error saving push subscription:', error);
-    res.status(500).json({ error: 'Failed to save subscription' });
-  }
-});
-
-// Send bulk push notifications to all subscribers (Admin only)
-app.post('/api/push/send-bulk', checkMongoConnection, async (req, res) => {
-  try {
-    const { title, body, icon, badge, url } = req.body;
-
-    if (!title || !body) {
-      return res.status(400).json({ error: 'Title and body are required' });
-    }
-
-    // Get all active subscriptions
-    const subscriptions = await PushSubscription.find({});
-    console.log(`Sending bulk notification to ${subscriptions.length} subscribers`);
-
-    if (subscriptions.length === 0) {
-      return res.json({ success: true, message: 'No subscribers found', sent: 0 });
-    }
-
-    const payload = JSON.stringify({
-      title: title,
-      body: body,
-      icon: icon || '/icon-192x192.svg',
-      badge: badge || '/icon-192x192.svg',
-      data: {
-        url: url || '/',
-        timestamp: Date.now()
-      }
-    });
-
-    let successCount = 0;
-    let failureCount = 0;
-    const failedEndpoints = [];
-
-    // Send notifications with proper error handling
-    const promises = subscriptions.map(async (subscription) => {
-      try {
-        await webpush.sendNotification({
-          endpoint: subscription.endpoint,
-          keys: subscription.keys
-        }, payload);
-
-        // Update last used timestamp
-        subscription.lastUsed = new Date();
-        await subscription.save();
-
-        successCount++;
-        console.log(`Notification sent successfully to: ${subscription.userId}`);
-      } catch (error) {
-        failureCount++;
-        console.error(`Failed to send notification to ${subscription.endpoint}:`, error.message);
-
-        // Handle different error types
-        if (error.statusCode === 410 || error.statusCode === 400) {
-          // Subscription expired or invalid, remove it
-          await PushSubscription.deleteOne({ _id: subscription._id });
-          console.log('Removed expired subscription:', subscription.endpoint);
-        } else {
-          failedEndpoints.push(subscription.endpoint);
-        }
-      }
-    });
-
-    await Promise.allSettled(promises);
-
-    res.json({
-      success: true,
-      message: `Notifications sent: ${successCount} successful, ${failureCount} failed`,
-      sent: successCount,
-      failed: failureCount,
-      total: subscriptions.length
-    });
-
-  } catch (error) {
-    console.error('Error sending bulk notifications:', error);
-    res.status(500).json({ error: 'Failed to send bulk notifications' });
-  }
-});
-
-// Get push notification statistics
-app.get('/api/push/stats', checkMongoConnection, async (req, res) => {
-  try {
-    const totalSubscriptions = await PushSubscription.countDocuments({});
-    const recentSubscriptions = await PushSubscription.countDocuments({
-      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } // Last 7 days
-    });
-
-    res.json({
-      totalSubscriptions,
-      recentSubscriptions,
-      lastUpdated: new Date()
-    });
-  } catch (error) {
-    console.error('Error getting push stats:', error);
-    res.status(500).json({ error: 'Failed to get statistics' });
-  }
-});
-
-// Get VAPID public key for client-side subscription
-app.get('/api/push/vapid-public-key', (req, res) => {
-  const publicKey = process.env.VAPID_PUBLIC_KEY || 'BM8VdKmJC6e8rXc3x0zqF5zQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQ';
-  res.json({ publicKey });
-});
-
 // Kulinda files za Dashboard
 const protect = (req, res, next) => {
     if (req.isAuthenticated()) return next();

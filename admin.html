@@ -299,14 +299,6 @@
             <span class="stat-number" id="totalRecords">-</span>
             <div class="stat-label">Billing Records</div>
           </div>
-          <div class="stat-item">
-            <span class="stat-number" id="totalSubscriptions">-</span>
-            <div class="stat-label">Push Subscribers</div>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number" id="recentSubscriptions">-</span>
-            <div class="stat-label">New This Week</div>
-          </div>
         </div>
         <div class="actions">
           <button class="btn btn-secondary" onclick="refreshStats()">🔄 Refresh Stats</button>
@@ -360,29 +352,17 @@
         </form>
       </div>
 
-      <!-- Recent Notifications Card -->
-      <div class="card">
-        <h3>📋 Recent Notifications</h3>
-        <div id="notificationHistory">
-          <p style="color: var(--text-secondary); font-style: italic;">
-            No notifications sent yet. Send your first bulk notification above.
-          </p>
-        </div>
-      </div>
     </div>
   </div>
 
   <script>
     // Global state
     let isAuthenticated = false;
-    let notificationHistory = [];
 
     // Initialize admin dashboard
     document.addEventListener('DOMContentLoaded', () => {
       checkAuth();
       loadStats();
-      setupForm();
-      loadNotificationHistory();
     });
 
     // Check if user is authenticated as admin
@@ -420,13 +400,6 @@
           document.getElementById('totalRecords').textContent = recordData.count || 0;
         }
 
-        // Load push subscription stats
-        const pushResponse = await fetch('/api/push/stats');
-        if (pushResponse.ok) {
-          const pushData = await pushResponse.json();
-          document.getElementById('totalSubscriptions').textContent = pushData.totalSubscriptions || 0;
-          document.getElementById('recentSubscriptions').textContent = pushData.recentSubscriptions || 0;
-        }
       } catch (error) {
         console.error('Failed to load stats:', error);
         showNotification('Failed to load statistics', 'error');
@@ -437,175 +410,6 @@
     function refreshStats() {
       loadStats();
       showNotification('Statistics refreshed', 'success');
-    }
-
-    // Setup notification form
-    function setupForm() {
-      const form = document.getElementById('notificationForm');
-
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const title = document.getElementById('notificationTitle').value.trim();
-        const body = document.getElementById('notificationBody').value.trim();
-        const url = document.getElementById('notificationUrl').value.trim();
-
-        if (!title || !body) {
-          showNotification('Please fill in both title and message', 'error');
-          return;
-        }
-
-        await sendBulkNotification(title, body, url);
-      });
-    }
-
-    // Send bulk notification
-    async function sendBulkNotification(title, body, url = '/records.html') {
-      const sendBtn = document.getElementById('sendBtn');
-      const originalText = sendBtn.textContent;
-
-      try {
-        sendBtn.classList.add('loading');
-        sendBtn.textContent = 'Sending...';
-        sendBtn.disabled = true;
-
-        const response = await fetch('/api/push/send-bulk', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title,
-            body,
-            url,
-            icon: '/icon-192x192.svg',
-            badge: '/icon-192x192.svg'
-          })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          showNotification(`✅ Notification sent successfully! ${result.sent} subscribers reached.`, 'success');
-
-          // Add to history
-          addToNotificationHistory({
-            title,
-            body,
-            sent: result.sent,
-            failed: result.failed,
-            timestamp: new Date()
-          });
-
-          // Reset form
-          document.getElementById('notificationForm').reset();
-          document.getElementById('notificationUrl').value = '/records.html';
-        } else {
-          showNotification(`❌ Failed to send notification: ${result.error}`, 'error');
-        }
-
-      } catch (error) {
-        console.error('Error sending bulk notification:', error);
-        showNotification('❌ Network error - please try again', 'error');
-      } finally {
-        sendBtn.classList.remove('loading');
-        sendBtn.textContent = originalText;
-        sendBtn.disabled = false;
-      }
-    }
-
-    // Send test notification (to current user only)
-    async function testNotification() {
-      const title = '🧪 Test Notification';
-      const body = 'This is a test notification to verify push notifications are working.';
-
-      showNotification('Sending test notification...', 'info');
-
-      try {
-        const response = await fetch('/api/push/send-bulk', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title,
-            body,
-            url: '/admin.html',
-            icon: '/icon-192x192.svg'
-          })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          showNotification(`✅ Test notification sent! Check your device.`, 'success');
-        } else {
-          showNotification(`❌ Test failed: ${result.error}`, 'error');
-        }
-      } catch (error) {
-        console.error('Test notification error:', error);
-        showNotification('❌ Test failed - check console for details', 'error');
-      }
-    }
-
-    // Add notification to history
-    function addToNotificationHistory(notification) {
-      notificationHistory.unshift(notification);
-
-      // Keep only last 10 notifications
-      if (notificationHistory.length > 10) {
-        notificationHistory = notificationHistory.slice(0, 10);
-      }
-
-      // Save to localStorage
-      localStorage.setItem('notificationHistory', JSON.stringify(notificationHistory));
-
-      // Update UI
-      updateNotificationHistoryUI();
-    }
-
-    // Load notification history from localStorage
-    function loadNotificationHistory() {
-      const saved = localStorage.getItem('notificationHistory');
-      if (saved) {
-        notificationHistory = JSON.parse(saved);
-        updateNotificationHistoryUI();
-      }
-    }
-
-    // Update notification history UI
-    function updateNotificationHistoryUI() {
-      const container = document.getElementById('notificationHistory');
-
-      if (notificationHistory.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">No notifications sent yet. Send your first bulk notification above.</p>';
-        return;
-      }
-
-      container.innerHTML = notificationHistory.map(notification => `
-        <div class="notification-item success">
-          <div class="title">${notification.title}</div>
-          <div style="margin-bottom: 8px; color: var(--text-secondary);">${notification.body}</div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 0.9rem; color: var(--success-color);">
-              ✅ ${notification.sent || 0} sent${notification.failed ? `, ${notification.failed} failed` : ''}
-            </span>
-            <span class="timestamp">${formatTimestamp(notification.timestamp)}</span>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Format timestamp
-    function formatTimestamp(timestamp) {
-      const date = new Date(timestamp);
-      const now = new Date();
-      const diff = now - date;
-
-      if (diff < 60000) return 'Just now';
-      if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-      if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-      return date.toLocaleDateString();
     }
 
     // Notification helper
