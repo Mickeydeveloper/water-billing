@@ -6,6 +6,7 @@ const session = require('express-session');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const axios = require('axios'); // Nimeongeza hii kwa ajili ya AI API
 
 const app = express();
 
@@ -125,6 +126,23 @@ const protect = (req, res, next) => {
     if (req.isAuthenticated()) return next();
     res.redirect('/login');
 };
+
+// AI PROXY ROUTE (Hii ndiyo inafanya Chat ifanye kazi kwenye Web)
+app.get('/api/chat', async (req, res) => {
+  const userText = req.query.text;
+  if (!userText) return res.status(400).json({ error: 'andika kitu' });
+
+  const prompt = "Wewe ni Mickey, ni developer wa bot na web. Jibu kishkaji na kitaaluma kuhusu whatsapp bot na kupair kupitia telegram au pannel pia fanya kama mtu halisi na sio ai.";
+  
+  try {
+    const response = await axios.get(`https://api.yupra.my.id/api/ai/gpt5?text=${encodeURIComponent(prompt + " " + userText)}`);
+    const reply = response.data.result || response.data.response || "Dah mwanangu, nimepata data tupu.";
+    res.json({ reply });
+  } catch (e) {
+    console.error("AI Error:", e.message);
+    res.status(500).json({ reply: "Mwanangu network ya AI inayumba, jaribu tena kdg!" });
+  }
+});
 
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 app.get('/signup', (req, res) => res.sendFile(path.join(__dirname, 'signup.html')));
