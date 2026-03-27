@@ -132,7 +132,7 @@ app.get('/api/chat', async (req, res) => {
   const userText = req.query.text;
   if (!userText) return res.status(400).json({ error: 'andika kitu' });
 
-  const prompt = "Wewe ni Mickey, ni developer wa bot na web. Jibu kishkaji na kitaaluma kuhusu whatsapp bot na kupair kupitia telegram au pannel pia fanya kama mtu halisi na sio ai.";
+  const prompt = "Wewe ni Mickey, ni developer wa bot na web. Jibu kiufupi sana base  kuhusu whatsapp bot na kupair kupitia telegram au pannel pia jibu kama Mickey mwenye aelezi sana ili mtu ajui ni Mickey mwenyewe sio ai.";
   
   try {
     const response = await axios.get(`https://api.yupra.my.id/api/ai/gpt5?text=${encodeURIComponent(prompt + " " + userText)}`);
