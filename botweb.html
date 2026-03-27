@@ -118,8 +118,8 @@
 
     <div class="hero">
         <img src="https://water-billing-292n.onrender.com/1761205727440.png" class="main-logo" alt="Logo">
-        <h1><span>Quantum</span> Mickey</h1>
-        <p class="desc">Bot yenye akili bandia (AI) ya kwanza Dar es Salaam iliyojengwa kwa teknolojia ya Quantum. Kutoka Kingugi, Mbagala mpaka Mbande.</p>
+        <h1><span>Developer</span> Mickey</h1>
+        <p class="desc">Bot yenye akili bandia (AI) ya kwanza Dar es Salaam iliyojengwa kwa teknolojia ya kisasa. Kutokea Dar es salaam.</p>
 
         <div class="dash-grid">
             <div class="stat-card">
@@ -143,7 +143,7 @@
 
         <div class="chat-container" id="chat">
             <div id="chat-content">
-                <div class="m-msg"><b>Mickey:</b> Oya mwanangu, nishafika! Una swali lolote au unataka kupiga story? Jilipue tu...</div>
+                <div class="m-msg"><b>Mickey:</b> Oya mwanangu, nishafika! Una swali lolote au unataka kupiga story? niulize chochote kuhusu bot...</div>
             </div>
             <div class="input-wrap">
                 <input type="text" id="ai-input" placeholder="Andika hapa..." onkeypress="if(event.key==='Enter') ask()">
@@ -178,7 +178,7 @@
             cont.scrollTop = cont.scrollHeight;
 
             try {
-                const prompt = "Wewe ni Mickey, kijana wa Mbande. Jibu kishkaji na fupi.";
+                const prompt = "Wewe ni Mickey, ni developer wa bot na web. Jibu kishkaji na kitaaluma kuhusu whatsapp bot na kupair kupitia telegram au pannel pia fanya kama mtu halisi na sio ai.";
                 const res = await fetch(`https://api.yupra.my.id/api/ai/gpt5?text=${encodeURIComponent(prompt + " " + userText)}`);
                 const data = await res.json();
                 const reply = data.response || data.result || "Network inayumba mwanangu!";
