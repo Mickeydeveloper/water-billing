@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mickey Glitch | Live Dashboard</title>
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --neon-green: #00ff88;
+            --dark-bg: #05070a;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background: var(--dark-bg);
+            color: #fff; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* LIVE STATUS HEADER (PRO) */
+        .status-header {
+            width: 100%; padding: 15px 8%; background: rgba(0,0,0,0.4);
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px); position: fixed; top: 0; z-index: 100;
+        }
+
+        .online-box { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.85rem; }
+        .dot { 
+            width: 10px; height: 10px; background: var(--neon-green); 
+            border-radius: 50%; box-shadow: 0 0 15px var(--neon-green); 
+            animation: pulse 2s infinite; 
+        }
+
+        .stats-top { display: flex; gap: 20px; font-size: 0.75rem; color: #888; }
+        .stats-top span b { color: var(--primary); }
+
+        /* HERO SECTION */
+        .hero { margin-top: 140px; text-align: center; padding: 0 20px; max-width: 900px; }
+        
+        .main-logo {
+            width: 150px; height: 150px; border-radius: 40px;
+            border: 2px solid var(--primary); padding: 5px;
+            box-shadow: 0 0 40px rgba(0, 210, 255, 0.2);
+            transition: 0.5s; cursor: pointer;
+        }
+        .main-logo:hover { transform: scale(1.05) rotate(-3deg); }
+
+        h1 { font-size: 3.8rem; margin: 20px 0 10px; font-weight: 900; letter-spacing: -2px; }
+        h1 span { color: var(--primary); text-shadow: 0 0 20px rgba(0, 210, 255, 0.4); }
+
+        .desc { color: #aaa; margin-bottom: 30px; font-size: 1.1rem; line-height: 1.6; }
+
+        /* DASHBOARD GRID */
+        .dash-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; width: 100%; margin-bottom: 40px;
+        }
+        .stat-card {
+            background: var(--glass); border: 1px solid rgba(255,255,255,0.05);
+            padding: 20px; border-radius: 20px; text-align: center;
+        }
+        .stat-card h2 { font-size: 1.5rem; color: var(--primary); margin-bottom: 5px; }
+        .stat-card p { font-size: 0.7rem; text-transform: uppercase; color: #666; letter-spacing: 1px; }
+
+        /* BUTTONS */
+        .btns { display: flex; gap: 15px; justify-content: center; margin-bottom: 60px; }
+        .btn { 
+            padding: 16px 35px; border-radius: 15px; text-decoration: none; 
+            font-weight: 700; font-size: 0.9rem; transition: 0.3s; 
+        }
+        .btn-tele { background: #fff; color: #000; }
+        .btn-ai { border: 1px solid #333; color: #fff; background: rgba(255,255,255,0.02); }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+
+        /* CHAT BOX */
+        .chat-container {
+            width: 100%; max-width: 600px; background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05); border-radius: 30px;
+            padding: 25px; margin-bottom: 100px; backdrop-filter: blur(20px);
+        }
+        #chat-content { height: 180px; overflow-y: auto; margin-bottom: 20px; text-align: left; }
+        .m-msg { color: var(--primary); font-size: 0.9rem; margin-bottom: 10px; }
+        .u-msg { color: #888; font-size: 0.9rem; margin-bottom: 10px; text-align: right; }
+
+        .input-wrap { display: flex; gap: 10px; background: #000; padding: 8px; border-radius: 18px; }
+        input { flex: 1; background: none; border: none; padding: 10px; color: #fff; outline: none; }
+        .send-btn { background: var(--primary); border: none; padding: 0 22px; border-radius: 14px; font-weight: 800; cursor: pointer; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .hero { margin-top: 100px; }
+            .btns { flex-direction: column; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="status-header">
+        <div class="online-box">
+            <div class="dot"></div>
+            <span>MICKEY-GLITCH IS ONLINE</span>
+        </div>
+        <div class="stats-top">
+            <span>PING: <b id="ping">24ms</b></span>
+            <span>UPTIME: <b>99.9%</b></span>
+        </div>
+    </div>
+
+    <div class="hero">
+        <img src="https://water-billing-292n.onrender.com/1761205727440.png" class="main-logo" alt="Logo">
+        <h1><span>Quantum</span> Mickey</h1>
+        <p class="desc">Bot yenye akili bandia (AI) ya kwanza Dar es Salaam iliyojengwa kwa teknolojia ya Quantum. Kutoka Kingugi, Mbagala mpaka Mbande.</p>
+
+        <div class="dash-grid">
+            <div class="stat-card">
+                <h2 id="user-count">1,402</h2>
+                <p>Total Users</p>
+            </div>
+            <div class="stat-card">
+                <h2>68+</h2>
+                <p>Commands</p>
+            </div>
+            <div class="stat-card">
+                <h2 id="req-count">25k</h2>
+                <p>Requests Today</p>
+            </div>
+        </div>
+
+        <div class="btns">
+            <a href="https://t.me/Mickey_connectbot" class="btn btn-tele">TELEGRAM CONNECT</a>
+            <a href="#chat" class="btn btn-ai">JARIBU MICKEY AI</a>
+        </div>
+
+        <div class="chat-container" id="chat">
+            <div id="chat-content">
+                <div class="m-msg"><b>Mickey:</b> Oya mwanangu, nishafika! Una swali lolote au unataka kupiga story? Jilipue tu...</div>
+            </div>
+            <div class="input-wrap">
+                <input type="text" id="ai-input" placeholder="Andika hapa..." onkeypress="if(event.key==='Enter') ask()">
+                <button class="send-btn" onclick="ask()">SEND</button>
+            </div>
+        </div>
+
+        <p style="font-size: 0.7rem; color: #444; margin-bottom: 50px;">© 2026 MICKEY LABS | THE WEAK SHALL SUFFER!!</p>
+    </div>
+
+    <script>
+        // Mfumo wa kubadilisha namba za Dashboard uongo-uongo (Simulation)
+        setInterval(() => {
+            const ping = Math.floor(Math.random() * (45 - 18) + 18);
+            document.getElementById('ping').innerText = ping + 'ms';
+            
+            // Ongeza user mmoja mmoja kila baada ya muda
+            if(Math.random() > 0.7) {
+                let count = parseInt(document.getElementById('user-count').innerText.replace(',',''));
+                document.getElementById('user-count').innerText = (count + 1).toLocaleString();
+            }
+        }, 3000);
+
+        async function ask() {
+            const inp = document.getElementById('ai-input');
+            const cont = document.getElementById('chat-content');
+            if(!inp.value.trim()) return;
+
+            cont.innerHTML += `<div class="u-msg"><b>Wewe:</b> ${inp.value}</div>`;
+            const userText = inp.value;
+            inp.value = "";
+            cont.scrollTop = cont.scrollHeight;
+
+            try {
+                const prompt = "Wewe ni Mickey, kijana wa Mbande. Jibu kishkaji na fupi.";
+                const res = await fetch(`https://api.yupra.my.id/api/ai/gpt5?text=${encodeURIComponent(prompt + " " + userText)}`);
+                const data = await res.json();
+                const reply = data.response || data.result || "Network inayumba mwanangu!";
+                
+                cont.innerHTML += `<div class="m-msg"><b>Mickey:</b> ${reply}</div>`;
+                cont.scrollTop = cont.scrollHeight;
+            } catch(e) {
+                cont.innerHTML += `<div class="m-msg"><b>Mickey:</b> Dah, network imekata kdg!</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
