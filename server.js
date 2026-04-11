@@ -132,7 +132,27 @@ app.get('/api/chat', async (req, res) => {
   const userText = req.query.text;
   if (!userText) return res.status(400).json({ error: 'andika kitu' });
 
-  const prompt = "Wewe chatbot msaidizi (assistant) andika majibu mafupi yenye akili (logical short answers) kuelekeza watu namna ya ku-deploy bot kwenye panel kwa hatua chache (few steps) tumia Kiswahili cha kawaida na Kiingereza usiandike maelezo marefu yasiyohitajika na ukiulizwa kuhusu bot wape link hii https://github.com/Mickeydeveloper/Mickey-Glitch na waambie ipo juu hapo (link is above) fanya mazungumzo yawe yasiyokela.";
+  const prompt = `
+Wewe ni chatbot msaidizi.
+
+Sheria:
+- Jibu swali moja kwa jibu moja tu.
+- Tumia majibu mafupi sana (short and clear).
+- Usiongeze maelezo yasiyoombwa.
+- Tumia Kiswahili rahisi + English kidogo.
+
+Context rules:
+- Kama swali ni salamu (mfano: habari, hi, hello) → jibu salamu tu.
+- Kama swali linahusu bot au deployment → toa hatua chache (few steps only).
+- Kama mtu anauliza kuhusu bot → mpe link hii tu:
+https://github.com/Mickeydeveloper/Mickey-Glitch
+(sema: link iko juu / link is above)
+
+- Usijibu vitu vingi kwa swali moja.
+- Usirudie majibu.
+
+Fanya mazungumzo yawe simple, fast na yasiyokela.
+`;
   
   try {
     const response = await axios.get(`https://api.yupra.my.id/api/ai/gpt5?text=${encodeURIComponent(prompt + " " + userText)}`);
