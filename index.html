@@ -41,6 +41,20 @@
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    #dashboard {
+      flex: 1;
+    }
+
+    footer {
+      margin-top: auto;
+    }
+
     @media (prefers-color-scheme: dark) {
       :root {
         --background-light: #0f172a;
@@ -419,9 +433,70 @@
       }
     }
   </style>
+  
+  <!-- NAVBAR STYLES -->
+  <style>
+    .navbar {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #06b6d4 100%);
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .navbar-brand {
+      color: white;
+      font-weight: 800;
+      font-size: 1.2rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .navbar-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .navbar-links a, .navbar-links button {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .navbar-links a:hover, .navbar-links button:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .navbar-links a.active {
+      background: rgba(255,255,255,0.3);
+    }
+  </style>
 </head>
 <body>
-  <div class="dashboard" id="dashboard">
+  <!-- TOP NAVIGATION -->
+  <div class=\"navbar\">
+    <a href=\"/index.html\" class=\"navbar-brand\">💧 Water Billing</a>
+    <div class=\"navbar-links\">
+      <a href=\"/index.html\" class=\"active\">📊 Dashboard</a>
+      <a href=\"/main.html\">🧮 Calculator</a>
+      <a href=\"/records.html\">📋 Records</a>
+      <a href=\"/admin.html\">⚙️ Admin</a>
+      <a href=\"/botweb.html\" title=\"Chat Support\">💬 Chat</a>
+    </div>
+  </div>
+
+  <div id=\"dashboard\" class=\"dashboard\"
     <!-- Header with User Info -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
       <div>
@@ -816,7 +891,7 @@
       dashboard.style.visibility = 'visible';
     }, 100);
 
-    console.log('Dashboard initialized successfully');
+    // Mark active navbar link\n    document.querySelectorAll('.navbar-links a').forEach(link => {\n      if (link.href.includes('index.html') || link.pathname === '/' || link.pathname === '/index.html') {\n        link.classList.add('active');\n      } else {\n        link.classList.remove('active');\n      }\n    });\n\n    console.log('Dashboard initialized successfully');
   </script>
 
   <!-- Service Worker Registration for PWA -->
@@ -843,5 +918,41 @@
           });
       });
   </script>
+
+  <!-- FOOTER -->
+  <footer style="background: #f8fafc; border-top: 2px solid #e2e8f0; padding: 2rem; margin-top: 3rem; color: #64748b; flex-shrink: 0;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2rem; margin-bottom: 2rem; text-align: left;">
+        <div>
+          <h4 style="color: #1e293b; margin-bottom: 1rem; font-weight: 700;">🏠 Product</h4>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <li><a href="/index.html" style="color: #2563eb; text-decoration: none;">Dashboard</a></li>
+            <li><a href="/main.html" style="color: #2563eb; text-decoration: none;">Calculator</a></li>
+            <li><a href="/records.html" style="color: #2563eb; text-decoration: none;">Records</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color: #1e293b; margin-bottom: 1rem; font-weight: 700;">👤 Account</h4>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <li><a href="/login.html" style="color: #2563eb; text-decoration: none;">Login</a></li>
+            <li><a href="/signup.html" style="color: #2563eb; text-decoration: none;">Sign Up</a></li>
+            <li><button onclick="window.logout && window.logout()" style="background: none; border: none; color: #2563eb; cursor: pointer; text-decoration: none; padding: 0; font-family: inherit;">Logout</button></li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color: #1e293b; margin-bottom: 1rem; font-weight: 700;">ℹ️ Support</h4>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <li><button onclick="showAbout && showAbout()" style="background: none; border: none; color: #2563eb; cursor: pointer; text-decoration: none; padding: 0; font-family: inherit;">About</button></li>
+            <li><a href="/botweb.html" style="color: #2563eb; text-decoration: none;">Chat Support</a></li>
+            <li><button onclick="refreshStats && refreshStats()" style="background: none; border: none; color: #2563eb; cursor: pointer; text-decoration: none; padding: 0; font-family: inherit;">Refresh</button></li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top: 1px solid #cbd5e1; padding-top: 1.5rem; text-align: center;">
+        <p style="margin: 0 0 0.5rem; font-size: 0.9rem;">© 2026 Mickey Water Billing System. All rights reserved.</p>
+        <p style="margin: 0; font-size: 0.85rem;">Developed by Mickey Hamza • <a href="/botweb.html" style="color: #2563eb; text-decoration: none;">Get Support</a></p>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
