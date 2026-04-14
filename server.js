@@ -199,17 +199,49 @@ app.post('/signup', checkMongoConnection, async (req, res) => {
       passwordHash: hashedPassword, provider: 'local' 
     });
     await user.save();
-    req.login(user, (err) => res.json({ success: true }));
-  } catch (e) { res.status(500).json({ error: 'Error' }); }
+    
+    // Properly login and save session
+    req.login(user, (err) => {
+      if (err) {
+        console.error('Login error:', err);
+        return res.status(500).json({ error: 'Account created but login failed' });
+      }
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error('Session save error:', saveErr);
+          return res.status(500).json({ error: 'Session error' });
+        }
+        res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
+      });
+    });
+  } catch (e) { 
+    console.error('Signup error:', e);
+    res.status(500).json({ error: 'Signup failed: ' + e.message }); 
+  }
 });
 
 app.post('/local-login', checkMongoConnection, async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email: email.toLowerCase() });
-  if (!user || !user.passwordHash) return res.status(401).json({ error: 'Invalid creds' });
+  if (!user || !user.passwordHash) return res.status(401).json({ error: 'Invalid credentials' });
   const match = await bcrypt.compare(password, user.passwordHash);
-  if (!match) return res.status(401).json({ error: 'Invalid' });
-  req.login(user, (err) => res.json({ success: true }));
+  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+  
+  // Properly login and save session
+  req.login(user, (err) => {
+    if (err) {
+      console.error('Login error:', err);
+      return res.status(500).json({ error: 'Login failed' });
+    }
+    // Ensure session is saved before responding
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error('Session save error:', saveErr);
+        return res.status(500).json({ error: 'Session error' });
+      }
+      res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
+    });
+  });
 });
 
 app.get('/api/me', (req, res) => req.isAuthenticated() ? res.json({ user: req.user }) : res.status(401).json({ error: 'No' }));

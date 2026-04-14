@@ -720,9 +720,9 @@
       const user = localStorage.getItem('user');
       const loginTime = localStorage.getItem('loginTime');
 
-      // Check if both auth data exist
+      // If localStorage is empty, try to validate with server session
       if (!authToken || !user) {
-        handleAuthenticationFailure('No authentication data found. Please log in.');
+        validateServerSession();
         return;
       }
 
@@ -755,6 +755,50 @@
       } catch (error) {
         console.error('❌ Authentication validation error:', error);
         handleAuthenticationFailure('Invalid authentication data. Please log in again.');
+      }
+    }
+
+    /**
+     * Validate authentication with server session
+     * Fallback for users coming from OAuth or with missing localStorage
+     */
+    async function validateServerSession() {
+      try {
+        const response = await fetch('/api/me', {
+          method: 'GET',
+          credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+          handleAuthenticationFailure('No authentication data found. Please log in.');
+          return;
+        }
+
+        const data = await response.json();
+        if (data.user) {
+          const userData = {
+            userId: data.user.id,
+            email: data.user.email,
+            name: data.user.name,
+            picture: data.user.picture || ''
+          };
+
+          // Store in localStorage for next time
+          localStorage.setItem('authToken', 'session_' + Date.now());
+          localStorage.setItem('user', JSON.stringify(userData));
+          localStorage.setItem('loginTime', new Date().toISOString());
+
+          // Continue with authenticated flow
+          displayUserInfo(userData);
+          authCheckComplete = true;
+          loadRecordsFromServer();
+          console.log('✓ User authenticated via server session:', userData.email);
+        } else {
+          handleAuthenticationFailure('No authentication data found. Please log in.');
+        }
+      } catch (error) {
+        console.error('❌ Server session validation error:', error);
+        handleAuthenticationFailure('Unable to verify authentication. Please log in.');
       }
     }
 

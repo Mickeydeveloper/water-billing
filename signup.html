@@ -96,9 +96,24 @@
           showNotification(data.error || 'Sign up failed', 'error', 3500);
           return;
         }
-        showNotification('Account created. Please sign in.', 'success', 1400);
-        setTimeout(() => { window.location.href = '/login.html'; }, 900);
+        
+        // Store authentication data after successful signup
+        if (data.user) {
+          localStorage.setItem('authToken', 'session_' + Date.now());
+          localStorage.setItem('user', JSON.stringify({
+            userId: data.user.id,
+            email: data.user.email,
+            name: data.user.name,
+            picture: ''
+          }));
+          localStorage.setItem('loginTime', new Date().toISOString());
+        }
+        
+        showNotification('Account created successfully! Redirecting...', 'success', 1400);
+        // Redirect to records page since user is now logged in
+        setTimeout(() => { window.location.href = '/records.html'; }, 900);
       } catch (err) {
+        console.error('Error:', err);
         showNotification('Network error — please try again', 'error', 3000);
       }
     });

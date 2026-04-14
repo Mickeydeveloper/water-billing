@@ -119,10 +119,33 @@
           showError(data.error || 'Sign in failed');
           return;
         }
-        showNotification('Signed in successfully', 'success', 1200);
-        // Signed in — go to dashboard
-        setTimeout(() => { window.location.href = '/index.html'; }, 600);
+        
+        // Get user data after successful login
+        const meResp = await fetch('/api/me', {
+          method: 'GET',
+          credentials: 'same-origin'
+        });
+        const meData = await meResp.json();
+        
+        if (meResp.ok && meData.user) {
+          // Store authentication data in localStorage
+          localStorage.setItem('authToken', 'session_' + Date.now());
+          localStorage.setItem('user', JSON.stringify({
+            userId: meData.user.id,
+            email: meData.user.email,
+            name: meData.user.name,
+            picture: meData.user.picture || ''
+          }));
+          localStorage.setItem('loginTime', new Date().toISOString());
+          
+          showNotification('Signed in successfully', 'success', 1200);
+          // Redirect to records page
+          setTimeout(() => { window.location.href = '/records.html'; }, 600);
+        } else {
+          showError('Failed to retrieve user data');
+        }
       }catch(err){
+        console.error('Error:', err);
         showError('Network error — please try again');
       }
     });
