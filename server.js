@@ -184,7 +184,7 @@ app.get('/signup', (req, res) => res.sendFile(path.join(__dirname, 'signup.html'
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/login?error=auth_failed' }),
-  (req, res) => res.redirect('/main.html')
+  (req, res) => res.redirect('/records.html')
 );
 
 app.post('/signup', checkMongoConnection, async (req, res) => {
@@ -214,6 +214,14 @@ app.post('/local-login', checkMongoConnection, async (req, res) => {
 
 app.get('/api/me', (req, res) => req.isAuthenticated() ? res.json({ user: req.user }) : res.status(401).json({ error: 'No' }));
 
+// Check if user is admin (for now, check if email contains 'admin' or specific domain)
+app.get('/api/is-admin', (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).json({ isAdmin: false });
+  const adminEmails = ['mickidadyhamza@gmail.com', 'mickey@water-billing.com'];
+  const isAdmin = adminEmails.includes(req.user.email?.toLowerCase());
+  res.json({ isAdmin });
+});
+
 app.get('/logout', (req, res) => {
   req.logout((err) => {
     req.session.destroy(() => {
@@ -234,8 +242,26 @@ app.post('/save-record', checkMongoConnection, async (req, res) => {
 
 app.get('/get-records', checkMongoConnection, async (req, res) => {
   if (!req.isAuthenticated()) return res.status(401).send();
-  const records = await Record.find({ userId: req.user.id }).sort({ date: -1 });
-  res.json({ success: true, records });
+  
+  // Check if user is admin
+  const adminEmails = ['mickidadyhamza@gmail.com', 'mickey@water-billing.com'];
+  const isAdmin = adminEmails.includes(req.user.email?.toLowerCase());
+  
+  // Get records: all for admin, only user's records for regular users
+  let records;
+  if (isAdmin) {
+    records = await Record.find().sort({ date: -1 });
+  } else {
+    records = await Record.find({ userId: req.user.id }).sort({ date: -1 });
+  }
+  
+  res.json({ 
+    success: true, 
+    records,
+    currentUserId: req.user.id,
+    currentUserEmail: req.user.email,
+    isAdmin
+  });
 });
 
 // ======================== PAYMENT ROUTES ========================
@@ -291,6 +317,51 @@ app.get('/get-payment-stats', checkMongoConnection, async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: 'Failed to fetch stats' });
   }
+});
+
+// ======================== NOTIFICATION ROUTES ========================
+// In-memory notifications (can upgrade to MongoDB later)
+const notifications = {};
+
+app.post('/send-notification', checkMongoConnection, async (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).send();
+  try {
+    const { recordId, title, message, type } = req.body;
+    if (!recordId || !title) return res.status(400).json({ error: 'Missing fields' });
+
+    const notif = {
+      id: String(Date.now()),
+      userId: req.user.id,
+      recordId,
+      title,
+      message,
+      type: type || 'info',
+      read: false,
+      createdAt: new Date()
+    };
+
+    if (!notifications[req.user.id]) notifications[req.user.id] = [];
+    notifications[req.user.id].push(notif);
+
+    res.json({ success: true, notification: notif });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
+app.get('/get-notifications', (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).send();
+  const userNotifs = notifications[req.user.id] || [];
+  res.json({ success: true, notifications: userNotifs });
+});
+
+app.post('/mark-notification-read', (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).send();
+  const { notifId } = req.body;
+  const userNotifs = notifications[req.user.id] || [];
+  const notif = userNotifs.find(n => n.id === notifId);
+  if (notif) notif.read = true;
+  res.json({ success: true });
 });
 
 // ======================== ADMIN ROUTES ========================

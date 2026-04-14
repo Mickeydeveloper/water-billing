@@ -404,6 +404,168 @@
       box-shadow: var(--shadow-md);
     }
 
+    /* PAY NOW Button */
+    .btn-pay {
+      padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, #059669, #047857);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: var(--transition);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .btn-pay:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    }
+
+    /* Notification Icon */
+    .notify-icon {
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: var(--transition);
+    }
+
+    .notify-icon:hover {
+      transform: scale(1.2);
+    }
+
+    /* Payment Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideIn 0.4s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 1rem;
+    }
+
+    .modal-header h2 {
+      color: var(--primary-color);
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .modal-close:hover {
+      color: var(--primary-color);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .modal-buttons button {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .btn-confirm {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+    }
+
+    .btn-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-cancel {
+      background: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-cancel:hover {
+      background: #cbd5e1;
+    }
+
     /* ============================================
        RESPONSIVE
        ============================================ */
@@ -491,6 +653,7 @@
       <table id="recordsTable">
         <thead>
           <tr>
+            <th>Action</th>
             <th onclick="sortTable(0)">Date</th>
             <th onclick="sortTable(1)">Customer</th>
             <th onclick="sortTable(2)">Phone</th>
@@ -499,12 +662,12 @@
             <th onclick="sortTable(5)">Usage (units)</th>
             <th onclick="sortTable(6)">Rate</th>
             <th onclick="sortTable(7)">Total Bill</th>
-            <th>Action</th>
+            <th>Notify</th>
           </tr>
         </thead>
         <tbody id="recordsBody">
           <tr>
-            <td colspan="9" style="text-align: center; padding: 3rem;">
+            <td colspan="10" style="text-align: center; padding: 3rem;">
               <div class="empty-state">
                 <div class="empty-state-icon">📋</div>
                 <div class="empty-state-text">No billing records found</div>
@@ -764,14 +927,33 @@
           throw new Error(data.error || 'Failed to load records');
         }
 
-        allRecords = (data.records || []).sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Check if user is admin
+        const adminResponse = await fetch('/api/is-admin', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: getAuthHeader()
+        });
+
+        const adminData = await adminResponse.json();
+        const isAdmin = adminData.isAdmin || false;
+
+        // Filter records: admins see all, users see only their own
+        let filteredData = data.records || [];
+        if (!isAdmin && data.currentUserId) {
+          filteredData = filteredData.filter(record => 
+            record.userId === data.currentUserId || 
+            record.email === data.currentUserEmail
+          );
+        }
+
+        allRecords = filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
         populateMonthFilter();
         filterByMonth('');
       } catch (err) {
         console.error('Error loading records:', err);
         recordsBody.innerHTML = `
           <tr>
-            <td colspan="9" style="padding: 3rem;">
+            <td colspan="10" style="padding: 3rem;">
               <div class="empty-state">
                 <div class="empty-state-icon">⚠️</div>
                 <div class="empty-state-text">Error loading records: ${err.message}</div>
@@ -899,7 +1081,7 @@
       if (records.length === 0) {
         recordsBody.innerHTML = `
           <tr>
-            <td colspan="9" style="padding: 3rem;">
+            <td colspan="10" style="padding: 3rem;">
               <div class="empty-state">
                 <div class="empty-state-icon">📋</div>
                 <div class="empty-state-text">No records match your filter</div>
@@ -914,16 +1096,20 @@
 
       recordsBody.innerHTML = records.map(record => `
         <tr>
+          <td class="action-cell">
+            <button class="btn-pay" onclick="openPaymentModal('${record._id || record.id}')">💵 PAY NOW</button>
+            <button class="btn-delete" onclick="deleteRecord('${record._id || record.id}')">❌ Delete</button>
+          </td>
           <td>${formatDate(record.date)}</td>
-          <td>${record.name || '-'}</td>
+          <td>${record.customerName || record.name || '-'}</td>
           <td>${record.phone || '-'}</td>
           <td>${record.prev !== undefined ? record.prev : '-'}</td>
           <td>${record.curr !== undefined ? record.curr : '-'}</td>
           <td>${record.usage || 0}</td>
           <td>TZS ${formatCurrency(record.rate || 0)}</td>
-          <td class="total-cell">TZS ${formatCurrency(record.total || 0)}</td>
-          <td class="action-cell">
-            <button class="btn-delete" onclick="deleteRecord('${record.id}')">Delete</button>
+          <td class="total-cell">TZS ${formatCurrency(record.outstandingBalance || record.total || 0)}</td>
+          <td class="notify-cell">
+            <button class="notify-icon" onclick="openNotificationModal('${record._id || record.id}')" title="Send notification">🔔</button>
           </td>
         </tr>
       `).join('');
@@ -1083,6 +1269,216 @@
     }
 
     console.log('Billing Records system initialized successfully');
+  </script>
+
+  <!-- PAYMENT MODAL -->
+  <div id="paymentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>💳 Make Payment</h2>
+        <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+      </div>
+      
+      <div class="form-group">
+        <label>Customer Name</label>
+        <input type="text" id="paymentCustomerName" readonly style="background: #f0f9ff; cursor: not-allowed;">
+      </div>
+
+      <div class="form-group">
+        <label>Amount Due (TZS)</label>
+        <input type="number" id="paymentAmount" readonly style="background: #f0f9ff; cursor: not-allowed;">
+      </div>
+
+      <div class="form-group">
+        <label>Billing Period</label>
+        <input type="text" id="paymentBillingPeriod" readonly style="background: #f0f9ff; cursor: not-allowed;">
+      </div>
+
+      <div class="form-group">
+        <label for="paymentMethod">Payment Method *</label>
+        <select id="paymentMethod" required>
+          <option value="">Select payment method...</option>
+          <option value="cash">💵 Cash Payment</option>
+          <option value="card">💳 Card (Visa/Mastercard)</option>
+          <option value="mobile_money">📱 Mobile Money (M-Pesa/Airtel)</option>
+          <option value="bank">🏦 Bank Transfer</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="sendNotification"> ✉️ Send me confirmation notification
+        </label>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-confirm" onclick="submitPayment()">Confirm Payment</button>
+        <button class="btn-cancel" onclick="closePaymentModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION MODAL -->
+  <div id="notificationModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🔔 Send Notification</h2>
+        <button class="modal-close" onclick="closeNotificationModal()">&times;</button>
+      </div>
+      
+      <div class="form-group">
+        <label>Notification Title *</label>
+        <input type="text" id="notificationTitle" placeholder="e.g., Payment Reminder, Bill Ready" required>
+      </div>
+
+      <div class="form-group">
+        <label>Message *</label>
+        <textarea id="notificationMessage" placeholder="Enter your message here..." style="width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 8px; font-family: 'Poppins', sans-serif; min-height: 100px;" required></textarea>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-confirm" onclick="submitNotification()">Send Notification</button>
+        <button class="btn-cancel" onclick="closeNotificationModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOAT CHAT WIDGET -->
+  <script src="/float-chat.js"></script>
+
+  <!-- PAYMENT & NOTIFICATION HANDLER SCRIPT -->
+  <script>
+    let currentPaymentRecord = null;
+
+    function openPaymentModal(recordId) {
+      const record = getRecordById(recordId);
+      if (!record) {
+        showNotification('Record not found', 'error');
+        return;
+      }
+
+      currentPaymentRecord = record;
+      document.getElementById('paymentCustomerName').value = record.customerName || 'N/A';
+      document.getElementById('paymentAmount').value = (record.outstandingBalance || 0).toFixed(2);
+      document.getElementById('paymentBillingPeriod').value = record.billingPeriod || 'N/A';
+      document.getElementById('paymentMethod').value = '';
+      document.getElementById('sendNotification').checked = false;
+
+      document.getElementById('paymentModal').classList.add('active');
+    }
+
+    function closePaymentModal() {
+      document.getElementById('paymentModal').classList.remove('active');
+      currentPaymentRecord = null;
+    }
+
+    function openNotificationModal(recordId) {
+      document.getElementById('notificationModal').classList.add('active');
+    }
+
+    function closeNotificationModal() {
+      document.getElementById('notificationModal').classList.remove('active');
+      document.getElementById('notificationTitle').value = '';
+      document.getElementById('notificationMessage').value = '';
+    }
+
+    function getRecordById(recordId) {
+      return records.find(r => r._id === recordId);
+    }
+
+    async function submitPayment() {
+      const method = document.getElementById('paymentMethod').value;
+      const sendNotif = document.getElementById('sendNotification').checked;
+
+      if (!method) {
+        showNotification('Please select a payment method', 'warning');
+        return;
+      }
+
+      if (!currentPaymentRecord) {
+        showNotification('No record selected', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('/save-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recordId: currentPaymentRecord._id,
+            amount: currentPaymentRecord.outstandingBalance,
+            method: method,
+            timestamp: new Date()
+          })
+        });
+
+        if (response.ok) {
+          showNotification('✅ Payment recorded successfully!', 'success', 3000);
+          closePaymentModal();
+          
+          if (sendNotif) {
+            await fetch('/send-notification', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: '💰 Payment Confirmed',
+                message: `Your payment of TZS ${currentPaymentRecord.outstandingBalance} via ${method} has been recorded.`,
+                type: 'payment_confirmation'
+              })
+            });
+          }
+
+          // Refresh records
+          await loadRecords();
+        } else {
+          showNotification('Failed to record payment', 'error');
+        }
+      } catch (error) {
+        console.error('Payment error:', error);
+        showNotification('Error processing payment', 'error');
+      }
+    }
+
+    async function submitNotification() {
+      const title = document.getElementById('notificationTitle').value;
+      const message = document.getElementById('notificationMessage').value;
+
+      if (!title || !message) {
+        showNotification('Please fill in all notification fields', 'warning');
+        return;
+      }
+
+      try {
+        const response = await fetch('/send-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: title,
+            message: message,
+            type: 'general'
+          })
+        });
+
+        if (response.ok) {
+          showNotification('✅ Notification sent successfully!', 'success', 2000);
+          closeNotificationModal();
+        } else {
+          showNotification('Failed to send notification', 'error');
+        }
+      } catch (error) {
+        console.error('Notification error:', error);
+        showNotification('Error sending notification', 'error');
+      }
+    }
+
+    // Close modals when clicking outside
+    window.addEventListener('click', (e) => {
+      const paymentModal = document.getElementById('paymentModal');
+      const notificationModal = document.getElementById('notificationModal');
+      
+      if (e.target === paymentModal) closePaymentModal();
+      if (e.target === notificationModal) closeNotificationModal();
+    });
   </script>
 </body>
 </html>
