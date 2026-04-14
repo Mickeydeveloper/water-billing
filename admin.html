@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Admin Dashboard - Water Billing System">
   <meta name="author" content="Mickey Hamza">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Admin Dashboard - Water Billing System</title>
-
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
-  <link rel="manifest" href="/manifest.json">
+  <script src="/translations.js"></script>
 
   <style>
     :root {
@@ -352,6 +350,46 @@
         </form>
       </div>
 
+      <!-- Payments Card -->
+      <div class="card">
+        <h3>💳 Payment Statistics</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-number" id="totalPayments">-</span>
+            <div class="stat-label">Total Payments</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="totalAmount">-</span>
+            <div class="stat-label">Total (TZS)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Card -->
+      <div class="card">
+        <h3>👥 Registered Users</h3>
+        <div id="usersCount" style="font-size: 2rem; font-weight: 700; color: var(--primary-color); margin-bottom: 10px;">-</div>
+        <button class="btn btn-secondary" onclick="loadUsersList()">View All Users</button>
+      </div>
+
+      <!-- Users List Table (Hidden by default) -->
+      <div class="card" id="usersListCard" style="display: none; grid-column: 1 / -1;">
+        <h3>👥 Users List</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: var(--background-light); border-bottom: 2px solid var(--border-color);">
+              <th style="padding: 12px; text-align: left;">Name</th>
+              <th style="padding: 12px; text-align: left;">Email</th>
+              <th style="padding: 12px; text-align: left;">Phone</th>
+              <th style="padding: 12px; text-align: left;">Provider</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="4" style="padding: 20px; text-align: center;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 
@@ -391,6 +429,7 @@
         if (userResponse.ok) {
           const userData = await userResponse.json();
           document.getElementById('totalUsers').textContent = userData.count || 0;
+          document.getElementById('usersCount').textContent = userData.count || 0;
         }
 
         // Load record stats
@@ -400,9 +439,46 @@
           document.getElementById('totalRecords').textContent = recordData.count || 0;
         }
 
+        // Load payment stats
+        const paymentResponse = await fetch('/api/payments/stats');
+        if (paymentResponse.ok) {
+          const paymentData = await paymentResponse.json();
+          document.getElementById('totalPayments').textContent = paymentData.totalPayments || 0;
+          document.getElementById('totalAmount').textContent = (paymentData.totalAmount || 0).toLocaleString();
+        }
+
       } catch (error) {
         console.error('Failed to load stats:', error);
         showNotification('Failed to load statistics', 'error');
+      }
+    }
+
+    // Load users list
+    async function loadUsersList() {
+      const card = document.getElementById('usersListCard');
+      card.style.display = card.style.display === 'none' ? 'block' : 'none';
+      
+      if (card.style.display === 'block') {
+        try {
+          const response = await fetch('/api/users/list');
+          const data = await response.json();
+          if (data.success && data.users) {
+            let html = '';
+            data.users.forEach(user => {
+              html += `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 12px;">${user.name}</td>
+                  <td style="padding: 12px;">${user.email}</td>
+                  <td style="padding: 12px;">${user.phone || 'N/A'}</td>
+                  <td style="padding: 12px;">${user.provider}</td>
+                </tr>
+              `;
+            });
+            document.getElementById('usersTableBody').innerHTML = html;
+          }
+        } catch (e) {
+          document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="4" style="padding: 20px;">Error loading users</td></tr>';
+        }
       }
     }
 
@@ -452,17 +528,86 @@
       }, duration);
     }
 
-    // Add some demo data for testing
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      // Add demo notification history
-      if (notificationHistory.length === 0) {
-        addToNotificationHistory({
-          title: 'Welcome to Admin Dashboard',
-          body: 'This is your first notification. The admin dashboard is now ready to send bulk notifications to all users.',
-          sent: 0,
-          failed: 0,
-          timestamp: new Date()
-        });
+    // Tab switching
+    async function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+
+      if (tabName === 'payments') await loadPayments();
+      if (tabName === 'users') await loadUsers();
+      if (tabName === 'records') await loadRecords();
+    }
+
+    async function loadPayments() {
+      try {
+        const response = await fetch('/api/payments/stats');
+        const data = await response.json();
+        document.getElementById('paymentsBody').innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-secondary);">
+              Payments system ready. Total: ${(data.totalAmount || 0).toLocaleString()} TZS
+            </td>
+          </tr>
+        `;
+      } catch (e) {
+        console.error('Payment load error:', e);
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const response = await fetch('/api/users/list');
+        const data = await response.json();
+        if (data.success && data.users) {
+          let html = '';
+          data.users.forEach(user => {
+            html += `
+              <tr>
+                <td>${user.name}</td>
+                <td>${user.email}</td>
+                <td>${user.phone || 'N/A'}</td>
+                <td>${user.provider}</td>
+              </tr>
+            `;
+          });
+          document.getElementById('usersBody').innerHTML = html;
+        }
+      } catch (e) {
+        document.getElementById('usersBody').innerHTML = '<tr><td colspan="4">Error loading users</td></tr>';
+      }
+    }
+
+    async function loadRecords() {
+      try {
+        const response = await fetch('/get-records');
+        const data = await response.json();
+        if (data.success && data.records) {
+          let html = '';
+          data.records.forEach(record => {
+            html += `
+              <tr>
+                <td>${record.name}</td>
+                <td>${record.phone}</td>
+                <td>${record.prev}</td>
+                <td>${record.curr}</td>
+                <td>${record.usage}</td>
+                <td>${record.total.toLocaleString()}</td>
+                <td>${record.date}</td>
+              </tr>
+            `;
+          });
+          if (html === '') html = '<tr><td colspan="7" style="text-align: center;">No records</td></tr>';
+          document.getElementById('recordsBody').innerHTML = html;
+        }
+      } catch (e) {
+        document.getElementById('recordsBody').innerHTML = '<tr><td colspan="7">Error loading</td></tr>';
       }
     }
   </script>

@@ -80,11 +80,25 @@ const recordSchema = new mongoose.Schema({
   rate: { type: Number, required: true },
   fixed: { type: Number, required: true },
   total: { type: Number, required: true },
-  date: { type: String, required: true }
+  date: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const paymentSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  recordId: { type: String, required: true },
+  amount: { type: Number, required: true },
+  method: { type: String, enum: ['cash', 'card', 'mobile_money', 'bank'], required: true },
+  status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
+  description: String,
+  transactionId: { type: String, unique: true },
+  paymentDate: { type: Date, default: Date.now },
+  createdAt: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model('User', userSchema);
 const Record = mongoose.model('Record', recordSchema);
+const Payment = mongoose.model('Payment', paymentSchema);
 
 // --- 5. PASSPORT CONFIG ---
 passport.use(new GoogleStrategy({
@@ -222,6 +236,125 @@ app.get('/get-records', checkMongoConnection, async (req, res) => {
   if (!req.isAuthenticated()) return res.status(401).send();
   const records = await Record.find({ userId: req.user.id }).sort({ date: -1 });
   res.json({ success: true, records });
+});
+
+// ======================== PAYMENT ROUTES ========================
+app.post('/save-payment', checkMongoConnection, async (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).send();
+  try {
+    const { recordId, amount, method, description } = req.body;
+    if (!recordId || !amount || !method) return res.status(400).json({ error: 'Missing fields' });
+
+    const payment = new Payment({
+      userId: req.user.id,
+      recordId,
+      amount,
+      method,
+      description,
+      transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      status: 'completed'
+    });
+    await payment.save();
+    res.json({ success: true, payment });
+  } catch (e) {
+    console.error('Payment error:', e);
+    res.status(500).json({ error: 'Payment save failed' });
+  }
+});
+
+app.get('/get-payments', checkMongoConnection, async (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).send();
+  try {
+    const payments = await Payment.find({ userId: req.user.id }).sort({ paymentDate: -1 });
+    res.json({ success: true, payments });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to fetch payments' });
+  }
+});
+
+app.get('/get-payment-stats', checkMongoConnection, async (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).send();
+  try {
+    const totalAmount = await Payment.aggregate([
+      { $match: { userId: req.user.id } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+    const completedPayments = await Payment.countDocuments({ userId: req.user.id, status: 'completed' });
+    const pendingPayments = await Payment.countDocuments({ userId: req.user.id, status: 'pending' });
+    
+    res.json({
+      success: true,
+      totalAmount: totalAmount[0]?.total || 0,
+      completedPayments,
+      pendingPayments
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});
+
+// ======================== ADMIN ROUTES ========================
+app.get('/api/users/count', checkMongoConnection, async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    res.json({ count, success: true });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to count users' });
+  }
+});
+
+app.get('/api/records/count', checkMongoConnection, async (req, res) => {
+  try {
+    const count = await Record.countDocuments();
+    res.json({ count, success: true });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to count records' });
+  }
+});
+
+app.get('/api/users/list', checkMongoConnection, async (req, res) => {
+  try {
+    const users = await User.find().select('id name email phone provider -_id').limit(100);
+    res.json({ success: true, users });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+app.get('/api/payments/stats', checkMongoConnection, async (req, res) => {
+  try {
+    const totalPayments = await Payment.countDocuments();
+    const totalAmount = await Payment.aggregate([
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+    const byStatus = await Payment.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+    
+    res.json({
+      success: true,
+      totalPayments,
+      totalAmount: totalAmount[0]?.total || 0,
+      byStatus
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to fetch payment stats' });
+  }
+});
+
+app.post('/api/user/update', checkMongoConnection, async (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).send();
+  try {
+    const { name, phone } = req.body;
+    await User.findOneAndUpdate(
+      { id: req.user.id },
+      { name, phone },
+      { new: true }
+    );
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: 'Update failed' });
+  }
 });
 
 app.get('/health', (req, res) => res.json({ status: 'ok', mongodb: isMongoConnected }));

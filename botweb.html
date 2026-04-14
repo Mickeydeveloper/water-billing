@@ -225,6 +225,188 @@
             box-shadow: 0 0 30px var(--primary-glow);
         }
 
+        /* FLOATING CHAT WIDGET */
+        .float-chat-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .float-chat-bubble {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            font-size: 1.8rem;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .float-chat-bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 32px rgba(0,245,255,0.4);
+        }
+
+        .float-chat-window {
+            position: absolute;
+            bottom: 90px;
+            right: 0;
+            width: 360px;
+            height: 500px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            animation: slideUp 0.4s ease;
+        }
+
+        .float-chat-window.active {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .float-chat-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+            font-weight: 700;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .float-chat-header .close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+
+        .float-chat-header .close-btn:hover {
+            background: rgba(255,255,255,0.4);
+        }
+
+        .float-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .float-chat-input {
+            padding: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .float-chat-input input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .float-chat-input input:focus {
+            border-color: var(--primary);
+        }
+
+        .float-chat-input button {
+            background: var(--primary);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 700;
+        }
+
+        .float-chat-input button:hover {
+            background: var(--accent);
+        }
+
+        .float-msg {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .float-bot-msg {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border-left: 3px solid var(--primary);
+            align-self: flex-start;
+        }
+
+        .float-user-msg {
+            background: var(--primary);
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        @media (max-width: 480px) {
+            .float-chat-window {
+                width: calc(100vw - 30px);
+                height: 400px;
+                bottom: 80px;
+            }
+
+            .float-chat-bubble {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
+
+        /* PULSE ANIMATION */
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 0 0 rgba(0,245,255,0.4);
+            }
+            50% {
+                box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 0 10px rgba(0,245,255,0);
+            }
+        }
+
+        .float-chat-bubble.pulse {
+            animation: pulse 2s infinite;
+        }
+
         /* CHAT INTERFACE */
         .chat-container {
             max-width: 800px;
@@ -381,6 +563,26 @@
         </footer>
     </main>
 
+    <!-- FLOATING CHAT WIDGET -->
+    <div class="float-chat-widget">
+        <div class="float-chat-bubble pulse" id="chatBubble" onclick="toggleFloatChat()">💬</div>
+        <div class="float-chat-window" id="chatWindow2">
+            <div class="float-chat-header">
+                <span>Mickey Support 🤖</span>
+                <button class="close-btn" onclick="toggleFloatChat()">✕</button>
+            </div>
+            <div class="float-chat-messages" id="floatMessages">
+                <div class="float-msg float-bot-msg">
+                    Habari! 👋 Karibu sana! Nitakusaidia kuhusu mfumo wetu.
+                </div>
+            </div>
+            <div class="float-chat-input">
+                <input type="text" id="floatChatInput" placeholder="Andika ujumbe..." onkeypress="handleFloatChatEnter(event)">
+                <button onclick="sendFloatMessage()">↑</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Update Ping
         setInterval(() => {
@@ -426,6 +628,54 @@
                 document.getElementById('clients').innerText = startCount.toFixed(1) + 'k';
             }
         }, 5000);
+
+        // ============ FLOATING CHAT WIDGET ============
+        function toggleFloatChat() {
+            const chatWindow = document.getElementById('chatWindow2');
+            const bubble = document.getElementById('chatBubble');
+            chatWindow.classList.toggle('active');
+            bubble.classList.toggle('pulse');
+        }
+
+        function handleFloatChatEnter(event) {
+            if (event.key === 'Enter') {
+                sendFloatMessage();
+            }
+        }
+
+        async function sendFloatMessage() {
+            const input = document.getElementById('floatChatInput');
+            const messagesDiv = document.getElementById('floatMessages');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'float-msg float-user-msg';
+            userMsg.textContent = text;
+            messagesDiv.appendChild(userMsg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            input.value = '';
+
+            // Add thinking indicator
+            const thinkingMsg = document.createElement('div');
+            thinkingMsg.className = 'float-msg float-bot-msg';
+            thinkingMsg.id = 'think-' + Date.now();
+            thinkingMsg.textContent = '⏳ Inafikiri...';
+            messagesDiv.appendChild(thinkingMsg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                const response = await fetch(`/api/chat?text=${encodeURIComponent(text)}`);
+                const data = await response.json();
+                thinkingMsg.textContent = data.reply || 'Samahani, simu inauma sasa.';
+            } catch (err) {
+                thinkingMsg.textContent = 'Kosa la mtandao. Jaribu tena.';
+            }
+
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
     </script>
 </body>
 </html>
