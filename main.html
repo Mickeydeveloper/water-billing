@@ -4,151 +4,180 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Water Billing Calculator</title>
+
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
+
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #1e3a8a, #1e40af, #06b6d4);
-      min-height: 100vh;
-      padding: 10px;
+      background: linear-gradient(135deg,#1e3a8a,#06b6d4);
+      padding:10px;
     }
-    .navbar {
-      background: linear-gradient(135deg, #2563eb, #06b6d4);
-      color: white;
-      padding: 1rem;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .hamburger { background:none; border:none; font-size:1.8rem; color:white; cursor:pointer; }
+
     .container {
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(10px);
-      max-width: 580px;
-      margin: 0 auto;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+      background:white;
+      max-width:580px;
+      margin:auto;
+      padding:2rem;
+      border-radius:16px;
     }
-    h2 { text-align:center; font-size:1.7rem; background:linear-gradient(135deg,#1e40af,#06b6d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:1.5rem; }
-    label { display:block; margin:1.2rem 0 0.5rem; font-weight:700; color:#1e3a8a; }
-    input { width:100%; padding:0.9rem; border:2px solid #cbd5e1; border-radius:10px; font-size:1rem; }
-    button { width:100%; padding:1.1rem; margin-top:1.8rem; background:linear-gradient(135deg,#2563eb,#0284c7); color:white; border:none; border-radius:10px; font-weight:800; font-size:1.05rem; cursor:pointer; }
-    .result { margin-top:1.5rem; padding:1.5rem; border-radius:12px; text-align:center; font-weight:700; display:none; }
-    .result.show { display:block; }
-    .result-success { background:#ecfdf5; color:#059669; border-left:5px solid #059669; }
-    .button-group { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.5rem; }
+
+    input {
+      width:100%;
+      padding:0.9rem;
+      margin-top:8px;
+      border:2px solid #ccc;
+      border-radius:8px;
+    }
+
+    button {
+      width:100%;
+      padding:1rem;
+      margin-top:1.5rem;
+      background:#2563eb;
+      color:white;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+    }
+
+    .result {
+      margin-top:1rem;
+      padding:1rem;
+      border-radius:8px;
+      display:none;
+    }
+
+    .success { background:#d1fae5; color:#065f46; }
+    .error { background:#fee2e2; color:#7f1d1d; }
   </style>
 </head>
+
 <body>
 
-  <nav class="navbar">
-    <a href="index.html" style="font-size:1.5rem; font-weight:800; color:white; text-decoration:none;">💧 Water Billing</a>
-    <button class="hamburger" id="hamburgerBtn">☰</button>
-  </nav>
+<div class="container">
 
-  <div class="container">
-    <h2>💧 Water Billing Calculator</h2>
+  <h2>💧 Billing Calculator</h2>
 
-    <form id="billingForm">
-      <label>Customer Name *</label>
-      <input type="text" id="name" placeholder="e.g. John Doe" required>
+  <form id="form">
 
-      <label>Phone Number (255...) *</label>
-      <input type="tel" id="phone" placeholder="255712345678" required>
+    <label>Name</label>
+    <input type="text" id="name" required>
 
-      <label>Previous Meter Reading *</label>
-      <input type="number" id="prev" value="0" required>
+    <label>Phone</label>
+    <input type="text" id="phone" required>
 
-      <label>Current Meter Reading *</label>
-      <input type="number" id="curr" required>
+    <label>Previous</label>
+    <input type="number" id="prev" value="0">
 
-      <label>Rate per Unit (TZS) *</label>
-      <input type="number" id="rate" value="2000" required>
+    <label>Current</label>
+    <input type="number" id="curr" required>
 
-      <label>Fixed Charge (TZS)</label>
-      <input type="number" id="fixed" value="0">
+    <label>Rate</label>
+    <input type="number" id="rate" value="2000">
 
-      <button type="submit">Calculate & Save to Database</button>
-    </form>
+    <label>Fixed</label>
+    <input type="number" id="fixed" value="0">
 
-    <div id="result" class="result"></div>
+    <button type="submit" id="submitBtn">Save Bill</button>
 
-    <div id="actionButtons" class="button-group" style="display:none;">
-      <button id="sendSMSBtn">📱 Send SMS</button>
-      <button onclick="window.location.href='records.html'">📊 View Records</button>
-    </div>
-  </div>
+  </form>
 
-  <script>
-    let currentRecord = null;
+  <div id="result" class="result"></div>
 
-    document.getElementById('billingForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+  <button id="smsBtn" style="display:none;">📱 Send SMS</button>
 
-      const name = document.getElementById('name').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const prev = parseFloat(document.getElementById('prev').value);
-      const curr = parseFloat(document.getElementById('curr').value);
-      const rate = parseFloat(document.getElementById('rate').value);
-      const fixed = parseFloat(document.getElementById('fixed').value);
+</div>
 
-      if (curr < prev) {
-        showResult("❌ Current reading must be greater than previous!", "error");
-        return;
-      }
+<script>
+let currentRecord = null;
 
-      const usage = curr - prev;
-      const total = usage * rate + fixed;
+// ================= SUBMIT =================
+document.getElementById('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-      currentRecord = {
-        name, phone, prev, curr, usage, rate, fixed,
-        total: parseFloat(total.toFixed(2)),
-        date: new Date().toISOString()
-      };
+  const btn = document.getElementById('submitBtn');
+  btn.innerText = "Saving...";
+  btn.disabled = true;
 
-      // === SAVE TO MONGODB (exactly as your server expects) ===
-      try {
-        const res = await fetch('/save-record', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(currentRecord)
-        });
+  try {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const prev = Number(document.getElementById('prev').value) || 0;
+    const curr = Number(document.getElementById('curr').value);
+    const rate = Number(document.getElementById('rate').value);
+    const fixed = Number(document.getElementById('fixed').value) || 0;
 
-        if (res.ok) {
-          showResult(`✅ Bill Saved Successfully!<br><strong>TZS ${total.toLocaleString()}</strong>`, "success");
-          document.getElementById('actionButtons').style.display = 'grid';
-        } else {
-          throw new Error("Save failed");
-        }
-      } catch (err) {
-        console.error(err);
-        showResult("❌ Failed to save to database. Check server.", "error");
-      }
-    });
+    if (!name || !phone) throw new Error("Fill all fields");
 
-    function showResult(html, type) {
-      const div = document.getElementById('result');
-      div.innerHTML = html;
-      div.className = `result show ${type === 'success' ? 'result-success' : ''}`;
+    if (curr < prev) {
+      throw new Error("Current must be greater than previous");
     }
 
-    // SMS
-    document.getElementById('sendSMSBtn').addEventListener('click', () => {
-      if (!currentRecord) return;
-      const msg = `BILL: ${currentRecord.name}\nUsage: ${currentRecord.usage} units\nTotal: TZS ${currentRecord.total.toLocaleString()}\nThank you!`;
-      window.open(`sms:\( {currentRecord.phone}?body= \){encodeURIComponent(msg)}`, '_self');
+    const usage = curr - prev;
+    const total = usage * rate + fixed;
+
+    currentRecord = {
+      name,
+      phone,
+      prev,
+      curr,
+      usage,
+      rate,
+      fixed,
+      total,
+      date: new Date().toISOString()
+    };
+
+    const res = await fetch('/save-record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(currentRecord)
     });
 
-    // Hamburger (simple)
-    document.getElementById('hamburgerBtn').addEventListener('click', () => {
-      alert("Full navigation coming in next update");
-    });
-  </script>
+    if (!res.ok) throw new Error("Server error");
+
+    showResult(`✅ Saved! Total: TZS ${total.toLocaleString()}`, "success");
+
+    document.getElementById('smsBtn').style.display = "block";
+
+    // reset form
+    document.getElementById('form').reset();
+
+  } catch (err) {
+    console.error(err);
+    showResult("❌ " + err.message, "error");
+  }
+
+  btn.innerText = "Save Bill";
+  btn.disabled = false;
+});
+
+// ================= RESULT =================
+function showResult(text, type) {
+  const box = document.getElementById('result');
+  box.innerText = text;
+  box.className = "result " + (type === "success" ? "success" : "error");
+  box.style.display = "block";
+}
+
+// ================= SMS =================
+document.getElementById('smsBtn').addEventListener('click', () => {
+  if (!currentRecord) return;
+
+  const msg =
+    `Bill for ${currentRecord.name}\n` +
+    `Usage: ${currentRecord.usage} units\n` +
+    `Total: TZS ${currentRecord.total.toLocaleString()}`;
+
+  window.location.href =
+    `sms:${currentRecord.phone}?body=${encodeURIComponent(msg)}`;
+});
+</script>
+
 </body>
 </html>
