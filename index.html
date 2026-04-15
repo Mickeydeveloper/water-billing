@@ -11,12 +11,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     :root {
       --primary-color: #2563eb;
       --secondary-color: #06b6d4;
@@ -26,11 +22,10 @@
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #06b6d4 100%);
       min-height: 100vh;
-      color: #0f172a;
       padding: 10px;
+      color: #0f172a;
     }
 
-    /* Navbar */
     .navbar {
       display: flex;
       justify-content: space-between;
@@ -45,20 +40,8 @@
       z-index: 100;
     }
 
-    .navbar-logo {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: white;
-      text-decoration: none;
-    }
-
-    .hamburger {
-      background: none;
-      border: none;
-      font-size: 1.8rem;
-      color: white;
-      cursor: pointer;
-    }
+    .navbar-logo { font-size: 1.5rem; font-weight: 800; color: white; text-decoration: none; }
+    .hamburger { background: none; border: none; font-size: 1.8rem; color: white; cursor: pointer; }
 
     .navbar-links {
       display: none;
@@ -73,12 +56,8 @@
       border-radius: 0 0 12px 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+    .navbar-links.active { display: flex; }
 
-    .navbar-links.active {
-      display: flex;
-    }
-
-    /* Dashboard */
     .dashboard {
       background: rgba(255, 255, 255, 0.95);
       border-radius: 16px;
@@ -87,12 +66,6 @@
       max-width: 600px;
       width: 100%;
       margin: 0 auto;
-      animation: fadeInUp 0.5s ease-out forwards;
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     h1 {
@@ -100,15 +73,10 @@
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 0.3rem;
     }
 
-    .subtitle {
-      color: #475569;
-      margin-bottom: 1.5rem;
-    }
+    .subtitle { color: #475569; margin-bottom: 1.5rem; }
 
-    /* Status Grid */
     .status-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -117,7 +85,7 @@
     }
 
     .status-box {
-      background: linear-gradient(135deg, rgba(30, 64, 175, 0.05), rgba(14, 165, 233, 0.05));
+      background: linear-gradient(135deg, rgba(30,64,175,0.05), rgba(14,165,233,0.05));
       border: 2px solid #2563eb;
       border-radius: 12px;
       padding: 1.2rem;
@@ -128,12 +96,10 @@
     .status-label { font-size: 0.85rem; text-transform: uppercase; font-weight: 600; color: #475569; }
     .status-value { font-size: 1.4rem; font-weight: 700; color: #2563eb; }
 
-    /* Buttons */
     .button-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 1rem;
-      margin-bottom: 2rem;
     }
 
     .btn {
@@ -148,17 +114,10 @@
       display: block;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #2563eb, #06b6d4);
-      color: white;
-    }
+    .btn-primary { background: linear-gradient(135deg, #2563eb, #06b6d4); color: white; }
+    .btn-success { background: linear-gradient(135deg, #059669, #047857); color: white; }
 
-    .btn-success {
-      background: linear-gradient(135deg, #059669, #047857);
-      color: white;
-    }
-
-    /* NEW FOOTER - Exactly as in your picture */
+    /* Footer kama picha yako */
     .main-footer {
       background: #0f172a;
       color: #cbd5e1;
@@ -177,7 +136,6 @@
     .footer-column h4 {
       color: white;
       margin-bottom: 1rem;
-      font-size: 1.1rem;
     }
 
     .footer-column a {
@@ -185,11 +143,6 @@
       color: #cbd5e1;
       text-decoration: none;
       margin-bottom: 0.6rem;
-      font-size: 0.95rem;
-    }
-
-    .footer-column a:hover {
-      color: #06b6d4;
     }
 
     .footer-bottom {
@@ -200,18 +153,13 @@
     }
 
     @media (max-width: 480px) {
-      .footer-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-        gap: 1.5rem;
-      }
-      .status-grid { grid-template-columns: 1fr; }
+      .footer-content { grid-template-columns: 1fr; text-align: center; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Navbar (Sign In & Sign Up removed) -->
+  <!-- Navbar -->
   <nav class="navbar">
     <a href="index.html" class="navbar-logo">💧 Water Billing</a>
     <button class="hamburger" id="hamburgerBtn">☰</button>
@@ -260,7 +208,7 @@
     </div>
 
     <!-- Quick Guide -->
-    <div style="background: rgba(16,185,129,0.08); border: 1px solid #86efac; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align:left;">
+    <div style="background: rgba(16,185,129,0.08); border: 1px solid #86efac; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
       <h3 style="color:#059669; margin-bottom:1rem;">📌 Quick Guide</h3>
       <ul style="list-style:none; padding:0;">
         <li style="padding:0.4rem 0;">✓ Create and calculate water bills</li>
@@ -270,7 +218,6 @@
       </ul>
     </div>
 
-    <!-- Action Buttons -->
     <div class="button-grid">
       <a href="main.html" class="btn btn-primary">📝 Create Bill</a>
       <a href="records.html" class="btn btn-success">📊 View History</a>
@@ -278,7 +225,7 @@
     </div>
   </div>
 
-  <!-- Footer - Exactly as in your picture -->
+  <!-- Footer -->
   <footer class="main-footer">
     <div class="footer-content">
       <div class="footer-column">
@@ -288,14 +235,12 @@
         <a href="records.html">Records</a>
         <a href="botweb.html">Chat Support</a>
       </div>
-      
       <div class="footer-column">
         <h4>📚 Resources</h4>
         <a href="#">API Docs</a>
         <a href="#">Updates</a>
         <a href="#">Features</a>
       </div>
-      
       <div class="footer-column">
         <h4>👤 Account</h4>
         <a href="login.html">Sign In</a>
@@ -303,25 +248,90 @@
         <a href="records.html">My Records</a>
       </div>
     </div>
-    
     <div class="footer-bottom">
       © 2026 Water Billing System | Built by Mickey Hamza ❤️
     </div>
   </footer>
 
   <script>
-    // Mobile menu toggle
-    document.getElementById('hamburgerBtn').addEventListener('click', () => {
-      document.getElementById('navLinks').classList.toggle('active');
+    // ====================== BACKEND FUNCTIONS (MongoDB) ======================
+    const AUTH_CONFIG = {
+      redirectDelay: 1500
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuthentication();
+      initMobileMenu();
     });
 
+    async function checkAuthentication() {
+      try {
+        const resp = await fetch('/api/me', { credentials: 'same-origin' });
+        
+        if (!resp.ok) {
+          showNotification("Please log in to continue", "error");
+          setTimeout(() => window.location.href = 'login.html', AUTH_CONFIG.redirectDelay);
+          return;
+        }
+
+        const data = await resp.json();
+        const user = data.user || data;
+
+        if (user && user.name) {
+          document.getElementById('userName') ? document.getElementById('userName').textContent = user.name : null;
+          loadStatsFromServer();
+        } else {
+          window.location.href = 'login.html';
+        }
+      } catch (err) {
+        console.error(err);
+        showNotification("Connection error. Please try again.", "error");
+      }
+    }
+
+    async function loadStatsFromServer() {
+      try {
+        // Hii inaweza kubadilishwa kulingana na API yako
+        const resp = await fetch('/api/stats', { credentials: 'same-origin' });
+        if (resp.ok) {
+          const stats = await resp.json();
+          
+          document.getElementById('totalBills').textContent = stats.totalBills || 0;
+          document.getElementById('totalRevenue').textContent = `TZS ${stats.totalRevenue?.toLocaleString() || 0}`;
+          document.getElementById('avgBill').textContent = `TZS ${stats.avgBill?.toLocaleString() || 0}`;
+          document.getElementById('totalUsage').textContent = `${stats.totalUsage || 0} units`;
+        }
+      } catch (e) {
+        console.log("Stats loading failed (using demo data)");
+      }
+    }
+
     function logout() {
-      alert("Logged out successfully!");
-      window.location.href = "login.html";
+      fetch('/api/logout', { method: 'POST', credentials: 'same-origin' })
+        .then(() => {
+          localStorage.clear();
+          window.location.href = 'login.html';
+        });
     }
 
     function refreshStats() {
-      alert("Statistics refreshed!");
+      loadStatsFromServer();
+      alert("✅ Statistics refreshed from database");
+    }
+
+    function showNotification(msg, type = "info") {
+      alert(msg); // Unaweza kubadilisha baadaye kuwa notification nzuri
+    }
+
+    // Mobile Menu
+    function initMobileMenu() {
+      const hamburger = document.getElementById('hamburgerBtn');
+      const navLinks = document.getElementById('navLinks');
+      
+      hamburger.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        hamburger.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
+      });
     }
   </script>
 </body>
