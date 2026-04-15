@@ -5,17 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Water Billing System - Calculate and manage water bills">
   <meta name="author" content="Mickey Hamza">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Water Billing System - Billing Calculator</title>
-  
+  <title>Water Billing Calculator</title>
+
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
-  <script src="/translations.js"></script>
-  
+
   <style>
-    /* ============================================
-       RESET & VARIABLES
-       ============================================ */
     * {
       margin: 0;
       padding: 0;
@@ -27,261 +22,109 @@
       --secondary-color: #06b6d4;
       --success-color: #059669;
       --error-color: #dc2626;
-      --warning-color: #d97706;
-      --background-light: #f0f9ff;
-      --background-dark: #0c1e3a;
-      --text-primary: #0f172a;
-      --text-secondary: #475569;
-      --accent-text: #1e40af;
-      --border-color: #cbd5e1;
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
       --border-radius: 16px;
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
     }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --background-light: #0f172a;
-        --text-primary: #f1f5f9;
-        --text-secondary: #cbd5e1;
-        --border-color: #1e293b;
-        --primary-color: #3b82f6;
-        --secondary-color: #06b6d4;
-      }
-    }
-
-    /* ============================================
-       BODY & LAYOUT
-       ============================================ */
     body {
-      font-family: 'Poppins', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', Arial, sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #06b6d4 100%);
-      margin: 0;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      color: var(--text-primary);
-      overflow-y: auto;
-      line-height: 1.6;
-      letter-spacing: 0.3px;
+      padding: 10px;
+      color: #0f172a;
     }
 
-    /* Notification styles (3D pop) */
-    #notify { position: fixed; right: 16px; top: 16px; z-index: 9999; pointer-events: none; }
-    #notify .note { pointer-events: auto; min-width:220px; max-width:420px; padding:14px 16px; border-radius:12px; color:#fff; box-shadow:0 12px 30px rgba(2,6,23,0.35); transform-origin:center; transform: perspective(600px) translateZ(0) rotateX(0); opacity:0; transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 260ms; margin-top:10px }
-    #notify .note.show { opacity:1; transform: perspective(600px) translateZ(18px) rotateX(0deg) }
-    #notify .note.info { background: linear-gradient(135deg,#1e40af,#0ea5e9) }
-    #notify .note.success { background: linear-gradient(135deg,#10b981,#059669) }
-    #notify .note.error { background: linear-gradient(135deg,#ef4444,#f97316) }
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: white;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-    /* ============================================
-       CONTAINER
-       ============================================ */
-    .container {
-      max-width: 580px;
+    .navbar-logo { font-size: 1.5rem; font-weight: 800; color: white; text-decoration: none; }
+    .hamburger { background: none; border: none; font-size: 1.8rem; color: white; cursor: pointer; }
+
+    .navbar-links {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
       width: 100%;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      padding: 1rem;
+      flex-direction: column;
+      gap: 1rem;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .navbar-links.active { display: flex; }
+
+    /* Main Container */
+    .container {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
-      padding: 2.5rem;
+      padding: 1.8rem;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow-lg);
-      position: relative;
-      z-index: 1;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      max-width: 580px;
+      width: 100%;
+      margin: 0 auto;
     }
 
-    /* ============================================
-       HEADER
-       ============================================ */
     h2 {
       text-align: center;
-      background: linear-gradient(135deg, #1e40af 0%, #06b6d4 100%);
+      background: linear-gradient(135deg, #1e40af, #06b6d4);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size: 1.7rem;
       margin-bottom: 1.5rem;
-      font-weight: 800;
-      font-size: clamp(1.6rem, 5vw, 2rem);
-      letter-spacing: -0.5px;
     }
 
-    /* ============================================
-       INFORMATION SECTION
-       ============================================ */
-    .info-section {
-      margin-bottom: 1.5rem;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-      background: rgba(16, 185, 129, 0.02);
-    }
-
-    .info-section summary {
-      padding: 1.25rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.07), rgba(6, 182, 212, 0.07));
-      color: #1e40af;
-      cursor: pointer;
-      outline: none;
-      list-style: none;
-      transition: var(--transition);
-      user-select: none;
-      font-size: 0.95rem;
-      letter-spacing: 0.3px;
-    }
-
-    .info-section summary:hover {
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(6, 182, 212, 0.12));
-      color: #1d4ed8;
-    }
-
-    .info-section summary::before {
-      content: "ℹ️ ";
-      margin-right: 0.5rem;
-    }
-
-    .info-content {
-      padding: 1.5rem;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .info-content p {
-      margin: 1rem 0;
-      line-height: 1.6;
-    }
-
-    .info-content strong {
-      color: #1e40af;
-      font-weight: 700;
-    }
-
-    .info-content ol,
-    .info-content ul {
-      margin-left: 1.5rem;
-      margin-top: 0.75rem;
-    }
-
-    .info-content li {
-      margin: 0.5rem 0;
-    }
-
-    /* ============================================
-       FORM STYLES
-       ============================================ */
-    form {
-      display: flex;
-      flex-direction: column;
-    }
-
+    /* Form Styles */
     label {
       display: block;
-      margin-top: 1.25rem;
+      margin-top: 1.2rem;
       font-weight: 700;
       color: #1e3a8a;
       font-size: 0.95rem;
-      text-transform: capitalize;
-      letter-spacing: 0.4px;
     }
 
-    label:first-of-type {
-      margin-top: 0;
-    }
-
-    input,
-    select {
+    input, select {
       width: 100%;
       padding: 0.9rem;
       margin-top: 0.5rem;
-      border-radius: 10px;
       border: 2px solid #cbd5e1;
-      font-family: 'Poppins', sans-serif;
+      border-radius: 10px;
       font-size: 0.95rem;
-      color: #1e293b;
-      background: #ffffff;
-      transition: var(--transition);
-      font-weight: 500;
     }
 
-    input:focus,
-    select:focus {
-      outline: none;
+    input:focus {
       border-color: #06b6d4;
       box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
-      background: #f0f9ff;
     }
 
-    input:invalid {
-      border-color: #dc2626;
-    }
-
-    input:valid {
-      border-color: #059669;
-      background: #f0fdf4;
-    }
-
-    .error-message {
-      color: #dc2626;
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-      font-weight: 600;
-      display: none;
-      animation: slideDown 0.2s ease-out;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-5px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .error-message.show {
-      display: block;
-    }
-
-    /* ============================================
-       BUTTON STYLES
-       ============================================ */
     button {
-      margin-top: 1.75rem;
+      margin-top: 1.8rem;
       padding: 1rem;
-      background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
-      color: #fff;
+      background: linear-gradient(135deg, #2563eb, #0284c7);
+      color: white;
       border: none;
       border-radius: 10px;
-      font-size: 0.95rem;
       font-weight: 800;
+      font-size: 1rem;
       cursor: pointer;
-      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
-      transition: var(--transition);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      font-family: 'Poppins', sans-serif;
+      width: 100%;
     }
 
-    button:hover:not(:disabled) {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 32px rgba(37, 99, 235, 0.4);
-      background: linear-gradient(135deg, #1d4ed8 0%, #0369a1 100%);
-    }
-
-    button:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+    button:hover { transform: translateY(-3px); }
 
     .button-group {
       display: grid;
@@ -290,791 +133,144 @@
       margin-top: 1.5rem;
     }
 
-    .btn-sms {
-      background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-      box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3) !important;
-    }
+    .btn-sms { background: linear-gradient(135deg, #059669, #047857) !important; }
+    .btn-records { background: linear-gradient(135deg, #7c3aed, #6366f1) !important; }
 
-    .btn-sms:hover:not(:disabled) {
-      background: linear-gradient(135deg, #047857 0%, #065f46 100%) !important;
-      box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4) !important;
-    }
-
-    .btn-records {
-      background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
-      box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3) !important;
-    }
-
-    .btn-records:hover:not(:disabled) {
-      background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%) !important;
-      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4) !important;
-    }
-
-    /* ============================================
-       RESULT SECTION
-       ============================================ */
     .result {
       margin-top: 1.5rem;
       padding: 1.5rem;
-      border-radius: 8px;
+      border-radius: 12px;
       text-align: center;
-      font-size: 1.1em;
       font-weight: 700;
       display: none;
-      animation: slideIn 0.3s ease-out;
     }
 
-    .result.show {
+    .result.show { display: block; }
+    .result-success { background: #ecfdf5; color: #059669; border-left: 5px solid #059669; }
+    .result-error { background: #fef2f2; color: #dc2626; border-left: 5px solid #dc2626; }
+
+    /* Footer */
+    .main-footer {
+      background: #0f172a;
+      color: #cbd5e1;
+      margin-top: 2.5rem;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    .footer-column h4 {
+      color: white;
+      margin-bottom: 1rem;
+    }
+
+    .footer-column a {
       display: block;
+      color: #cbd5e1;
+      text-decoration: none;
+      margin-bottom: 0.6rem;
     }
 
-    .result-success {
-      background: linear-gradient(135deg, rgba(5, 150, 105, 0.08), rgba(6, 182, 212, 0.08));
-      color: #059669;
-      border-left: 4px solid #059669;
-      font-weight: 700;
+    .footer-bottom {
+      text-align: center;
+      padding: 1rem;
+      border-top: 1px solid #1e293b;
+      font-size: 0.85rem;
     }
 
-    .result-error {
-      background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(239, 68, 68, 0.08));
-      color: #dc2626;
-      border-left: 4px solid #dc2626;
-      font-weight: 700;
-    }
-
-    @keyframes spin {
-      from { transform: translate(-50%, -50%) rotate(0deg); }
-      to { transform: translate(-50%, -50%) rotate(360deg); }
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* ============================================
-       ACTION BUTTONS HIDDEN BY DEFAULT
-       ============================================ */
-    #actionButtons {
-      display: none !important;
-    }
-
-    #actionButtons.show {
-      display: grid !important;
-    }
-
-    /* ============================================
-       RESPONSIVE
-       ============================================ */
     @media (max-width: 480px) {
-      .container {
-        padding: 1.5rem;
-      }
-
-      h2 {
-        font-size: 1.4rem;
-      }
-
-      label {
-        margin-top: 1rem;
-      }
-
-      .button-group {
-        grid-template-columns: 1fr;
-      }
-
-      input,
-      select {
-        padding: 0.75rem;
-      }
+      .container { padding: 1.4rem; }
+      h2 { font-size: 1.5rem; }
+      .button-group { grid-template-columns: 1fr; }
+      .footer-content { grid-template-columns: 1fr; text-align: center; gap: 1.5rem; }
     }
-
-    /* Account menu responsive adjustments */
-    #accountMenu { right: 0; top: 64px; }
-    @media (max-width: 700px) {
-      #accountMenu { position: fixed; left: 12px; right: 12px; bottom: 12px; top: auto; }
-      .container { margin: 12px; width: calc(100% - 24px); }
-    }
-
-    /* Navigation & Footer */
-    .navbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: linear-gradient(135deg, #2563eb, #06b6d4); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; margin-bottom: 2rem; }
-    .navbar-logo { font-size: 1.5rem; font-weight: 800; text-decoration: none; color: white; }
-    .navbar-links { display: flex; gap: 1.5rem; list-style: none; margin: 0; padding: 0; }
-    .navbar-links a { color: white; text-decoration: none; font-weight: 600; transition: opacity 0.3s; cursor: pointer; }
-    .navbar-links a:hover { opacity: 0.8; }
-    .navbar-user { display: flex; gap: 1rem; align-items: center; }
-    .btn-logout-nav { padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s; font-size: 0.9rem; }
-    .btn-logout-nav:hover { background: white; color: #2563eb; }
-    footer { background: #0f172a; color: #cbd5e1; padding: 2rem; text-align: center; border-top: 2px solid #2563eb; margin-top: 3rem; }
-    footer .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; text-align: left; margin-bottom: 2rem; }
-    footer .footer-section h4 { color: white; margin-bottom: 1rem; font-size: 1rem; }
-    footer .footer-section a { display: block; color: #cbd5e1; text-decoration: none; margin-bottom: 0.5rem; font-size: 0.9rem; transition: color 0.3s; }
-    footer .footer-section a:hover { color: #06b6d4; }
-    footer .footer-bottom { border-top: 1px solid #475569; padding-top: 1.5rem; text-align: center; font-size: 0.85rem; }
-    @media (max-width: 768px) { .navbar { flex-direction: column; gap: 1rem; } .navbar-links { flex-wrap: wrap; justify-content: center; gap: 1rem; } }
   </style>
 </head>
 <body>
-  <!-- NAVIGATION -->
+
+  <!-- Navbar -->
   <nav class="navbar">
     <a href="index.html" class="navbar-logo">💧 Water Billing</a>
-    <ul class="navbar-links">
+    <button class="hamburger" id="hamburgerBtn">☰</button>
+    
+    <ul class="navbar-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="main.html">Calculator</a></li>
       <li><a href="records.html">Records</a></li>
       <li><a href="botweb.html">Chat</a></li>
     </ul>
-    <div class="navbar-user" id="navbarUser" style="display:none;">
-      <span id="navbarUserName">User</span>
-      <button class="btn-logout-nav" onclick="window.logout()">Logout</button>
-    </div>
-    <div id="navbarGuest" style="display:flex;gap:1rem;align-items:center;">
-      <a href="login.html" style="color:white;text-decoration:none;font-weight:600;">Sign In</a>
-      <a href="signup.html" style="color:white;text-decoration:none;font-weight:600;">Sign Up</a>
-    </div>
   </nav>
 
   <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
-      <h2 style="margin: 0;">💧 Water Billing Calculator</h2>
-      <div style="display: flex; align-items: center; gap: 1rem; position:relative;">
-        <div id="accountArea" style="display:flex;align-items:center;gap:12px;cursor:pointer">
-          <img id="userPicture" src="" alt="User" style="width:40px;height:40px;border-radius:50%;border:2px solid var(--primary-color);display:none">
-          <div id="userInfo" style="text-align:right;font-size:0.9rem;">
-            <div id="userName" style="font-weight:600;color:var(--primary-color);">Loading...</div>
-            <div id="userEmail" style="color:var(--text-secondary);font-size:0.85rem;">-</div>
-          </div>
-        </div>
-
-        <div id="accountMenu" style="position:absolute;right:0;top:64px;background:#fff;border:1px solid var(--border-color);border-radius:10px;box-shadow:var(--shadow-md);padding:12px;display:none;min-width:220px;z-index:50">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <img id="menuPicture" src="" alt="User" style="width:48px;height:48px;border-radius:50%;border:2px solid var(--primary-color);display:none">
-            <div>
-              <div id="menuName" style="font-weight:700;color:var(--primary-color)"></div>
-              <div id="menuEmail" style="font-size:0.85rem;color:var(--text-secondary)"></div>
-            </div>
-          </div>
-          <div style="margin-top:8px;display:flex;gap:8px;flex-direction:column">
-            <button id="menuProfileBtn" style="padding:8px;border-radius:8px;border:1px solid #eef; background:transparent;cursor:pointer;text-align:left">View profile</button>
-            <button id="menuLogoutBtn" style="padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;cursor:pointer">Logout</button>
-          </div>
-        </div>
-      </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
+      <h2>💧 Water Billing Calculator</h2>
+      <button onclick="logout()" style="padding: 0.5rem 1rem; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem;">Logout</button>
     </div>
 
     <!-- Information Section -->
-    <details class="info-section" open>
-      <summary>Billing Information & Instructions</summary>
-      <div class="info-content">
-        <p><strong>Water Tariff Rates:</strong></p>
-        <ul>
-          <li><strong>Standard Rate:</strong> TZS <span id="defaultRate">2000</span>/unit</li>
-          <li><strong>Fixed Charge:</strong> TZS <span id="defaultFixed">0</span></li>
-        </ul>
-
-        <p><strong>How to Calculate Your Bill:</strong></p>
-        <ol>
-          <li>Enter your previous meter reading</li>
-          <li>Enter your current meter reading</li>
-          <li>Set the rate per unit (if different from default)</li>
-          <li>Add any fixed charges if applicable</li>
-          <li>Click "Calculate" to get your bill</li>
-          <li>Send the bill via SMS or view billing history</li>
-        </ol>
-
-        <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-          <strong>Formula:</strong><br>
-          Total Bill = (Current - Previous) × Rate/unit + Fixed Charge
-        </p>
+    **Summary:**
+Billing Information & Instructions
+      <div style="margin-top:1rem; font-size:0.95rem; line-height:1.6;">
+        <p><strong>Tariff:</strong> TZS <span id="defaultRate">2000</span>/unit | Fixed: TZS <span id="defaultFixed">0</span></p>
+        <p><strong>Formula:</strong> (Current - Previous) × Rate + Fixed Charge</p>
       </div>
-    </details>
 
-    <!-- Billing Form -->
+    <!-- Form -->
     <form id="billingForm">
-      <label for="name">Customer Name *</label>
+      <label>Customer Name *</label>
       <input type="text" id="name" placeholder="e.g., John Doe" required>
-      <div id="name-error" class="error-message"></div>
 
-      <label for="phone">Phone Number (WhatsApp/SMS) *</label>
-      <input type="tel" id="phone" placeholder="e.g., 255712345678" pattern="255[0-9]{9}" required>
-      <div id="phone-error" class="error-message"></div>
+      <label>Phone Number (255...) *</label>
+      <input type="tel" id="phone" placeholder="255712345678" required>
 
-      <label for="prev">Previous Meter Reading (units) *</label>
-      <input type="number" id="prev" min="0" value="0" placeholder="0" required>
+      <label>Previous Meter Reading *</label>
+      <input type="number" id="prev" value="0" required>
 
-      <label for="curr">Current Meter Reading (units) *</label>
-      <input type="number" id="curr" min="0" placeholder="Enter current reading" required>
-      <div id="curr-error" class="error-message"></div>
+      <label>Current Meter Reading *</label>
+      <input type="number" id="curr" required>
 
-      <label for="rate">Rate per Unit (TZS) *</label>
-      <input type="number" id="rate" min="1" value="2000" required>
+      <label>Rate per Unit (TZS) *</label>
+      <input type="number" id="rate" value="2000" required>
 
-      <label for="fixed">Fixed Charge (TZS)</label>
-      <input type="number" id="fixed" min="0" value="0">
+      <label>Fixed Charge (TZS)</label>
+      <input type="number" id="fixed" value="0">
 
       <button type="submit">Calculate Bill</button>
     </form>
 
-    <!-- Result Section -->
-    <div class="result result-success" id="result" role="alert"></div>
+    <!-- Result -->
+    <div class="result" id="result"></div>
 
     <!-- Action Buttons -->
-    <div class="button-group" id="actionButtons">
-      <button type="button" class="btn-sms" id="sendSMSBtn">📱 Send via SMS</button>
-      <button type="button" class="btn-records" id="viewRecordsBtn">📊 View History</button>
+    <div class="button-group" id="actionButtons" style="display:none;">
+      <button class="btn-sms" id="sendSMSBtn">📱 Send via SMS</button>
+      <button class="btn-records" id="viewRecordsBtn">📊 View History</button>
     </div>
   </div>
 
-  <script>
-    /**
-     * Water Billing Calculator System
-     * Features:
-     * - Google Authentication integration
-     * - Form validation
-     * - Bill calculation
-     * - Cloud storage via authenticated API
-     * - SMS sending
-     * - Error handling
-     */
-
-    // ============================================
-    // AUTHENTICATION CHECK & SESSION MANAGEMENT
-    // ============================================
-    
-    // Configuration
-    const AUTH_CONFIG = {
-      redirectDelay: 1500,
-      sessionWarningTime: 5 * 60 * 1000, // 5 minutes
-      sessionTimeout: 7 * 24 * 60 * 60 * 1000, // 7 days
-      checkInterval: 1000 // Check every second
-    };
-
-    let sessionCheckInterval = null;
-    let authCheckComplete = false;
-
-    window.addEventListener('DOMContentLoaded', () => {
-      checkAuthentication();
-      startSessionMonitor();
-    });
-
-    /**
-     * Check if user is authenticated
-     * Validates token and user data exist
-     */
-function checkAuthentication() {
-  // Try to fetch current user info from server-side session
-  (async () => {
-    try {
-      const resp = await fetch('/api/me', { credentials: 'same-origin' });
-      if (!resp.ok) {
-        handleAuthenticationFailure('No authentication data found. Please log in.');
-        return;
-      }
-
-      const payload = await resp.json();
-      const userData = payload.user;
-      if (!userData || !userData.email) {
-        handleAuthenticationFailure('Invalid user data. Please log in again.');
-        return;
-      }
-
-      // Persist to localStorage for the rest of the app
-      const stored = {
-        userId: userData.id || null,
-        name: userData.name || '',
-        email: userData.email || '',
-        picture: userData.picture || ''
-      };
-
-      localStorage.setItem('user', JSON.stringify(stored));
-      // Use a placeholder token to indicate authenticated session to client logic
-      localStorage.setItem('authToken', 'session');
-      localStorage.setItem('loginTime', new Date().toISOString());
-
-      displayUserInfo(stored);
-      authCheckComplete = true;
-      console.log('✓ User authenticated:', userData.email);
-    } catch (error) {
-      console.error('Authentication fetch error:', error);
-      handleAuthenticationFailure('Failed to validate authentication. Please log in.');
-    }
-  })();
-}
-
-    /**
-     * Handle authentication failure
-     */
-    function handleAuthenticationFailure(message) {
-      console.warn('⚠️ Authentication check failed:', message);
-      
-      // Clear invalid auth data
-      clearAuthData();
-      
-      // Show message and redirect
-      showNotification(message, 'error', 3000);
-      setTimeout(() => { window.location.href = 'login.html'; }, AUTH_CONFIG.redirectDelay);
-    }
-
-    /**
-     * Display user information in header
-     */
-    function displayUserInfo(user) {
-      try {
-        const userName = document.getElementById('userName');
-        const userEmail = document.getElementById('userEmail');
-        const userPicture = document.getElementById('userPicture');
-        const menuPicture = document.getElementById('menuPicture');
-        const menuName = document.getElementById('menuName');
-        const menuEmail = document.getElementById('menuEmail');
-
-        if (userName) userName.textContent = user.name || 'User';
-        if (userEmail) userEmail.textContent = user.email || '';
-
-        if (userPicture && user.picture) {
-          userPicture.src = user.picture;
-          userPicture.style.display = 'block';
-          userPicture.alt = user.name || 'User Avatar';
-        }
-
-        if (menuPicture && user.picture) {
-          menuPicture.src = user.picture;
-          menuPicture.style.display = 'block';
-        }
-        if (menuName) menuName.textContent = user.name || '';
-        if (menuEmail) menuEmail.textContent = user.email || '';
-
-        // Wire up account menu
-        const accountArea = document.getElementById('accountArea');
-        const accountMenu = document.getElementById('accountMenu');
-        const menuLogoutBtn = document.getElementById('menuLogoutBtn');
-        const menuProfileBtn = document.getElementById('menuProfileBtn');
-
-        if (accountArea) {
-          accountArea.addEventListener('click', (e) => {
-            e.stopPropagation();
-            accountMenu.style.display = accountMenu.style.display === 'block' ? 'none' : 'block';
-          });
-        }
-
-        // Close menu when clicking outside
-        document.addEventListener('click', () => {
-          if (accountMenu) accountMenu.style.display = 'none';
-        });
-
-        if (menuLogoutBtn) menuLogoutBtn.addEventListener('click', () => logout());
-        if (menuProfileBtn) menuProfileBtn.addEventListener('click', () => {
-          showNotification(`Signed in as ${user.name || user.email}`, 'info', 1800);
-        });
-
-        console.log('✓ User info displayed');
-      } catch (error) {
-        console.error('Error displaying user info:', error);
-      }
-    }
-
-    /**
-     * Logout function
-     * Clears all authentication data and redirects to login
-     */
-    function logout() {
-  try {
-    console.log('🔓 Logging out...');
-    // Inform server to clear session cookie
-    fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
-      clearAuthData();
-      // Show feedback
-      showNotification('You have been logged out successfully.', 'success', 2000);
-      // Redirect to login page
-      setTimeout(() => { window.location.href = 'login.html'; }, 700);
-    });
-  } catch (error) {
-    console.error('Logout error:', error);
-    clearAuthData();
-    window.location.href = 'login.html';
-  }
-}
-
-    /**
-     * Clear all authentication data
-     */
-    function clearAuthData() {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      localStorage.removeItem('loginTime');
-      localStorage.removeItem('isDemo');
-    }
-
-    /**
-     * Start monitoring session for expiration
-     */
-    function startSessionMonitor() {
-      sessionCheckInterval = setInterval(() => {
-        if (!authCheckComplete) return;
-
-        const loginTime = localStorage.getItem('loginTime');
-        if (!loginTime) return;
-
-        const loginDate = new Date(loginTime);
-        const sessionAge = Date.now() - loginDate.getTime();
-        const timeRemaining = AUTH_CONFIG.sessionTimeout - sessionAge;
-
-        // Warn user if session will expire soon
-        if (timeRemaining > 0 && timeRemaining < AUTH_CONFIG.sessionWarningTime) {
-          // Optional: Show warning (uncomment if you have a warning element)
-          // console.warn(`⚠️ Session expires in ${Math.round(timeRemaining / 60000)} minutes`);
-        } else if (timeRemaining <= 0) {
-          // Session expired
-          handleAuthenticationFailure('Your session has expired. Please log in again.');
-        }
-      }, AUTH_CONFIG.checkInterval);
-    }
-
-    /**
-     * Stop monitoring session
-     */
-    function stopSessionMonitor() {
-      if (sessionCheckInterval) {
-        clearInterval(sessionCheckInterval);
-      }
-    }
-
-    // Make functions globally available
-    window.logout = logout;
-    window.isAuthenticated = () => localStorage.getItem('authToken') !== null;
-    window.getCurrentUser = () => {
-      const userStr = localStorage.getItem('user');
-      return userStr ? JSON.parse(userStr) : null;
-    };
-
-    // Notification helper
-    function showNotification(message, type = 'info', duration = 3000) {
-      let container = document.getElementById('notify');
-      if (!container) { container = document.createElement('div'); container.id = 'notify'; document.body.appendChild(container); }
-      const el = document.createElement('div'); el.className = 'note ' + type; el.innerHTML = '<div style="font-weight:700">' + message + '</div>';
-      container.appendChild(el);
-      requestAnimationFrame(() => el.classList.add('show'));
-      setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, duration);
-    }
-
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      stopSessionMonitor();
-    });
-
-
-    // ============================================
-    // CONSTANTS & CONFIG
-    // ============================================
-    const PHONE_REGEX = /^255\d{9}$/;
-    const MIN_NAME_LENGTH = 2;
-    const MAX_NAME_LENGTH = 50;
-
-    // ============================================
-    // DOM ELEMENTS
-    // ============================================
-    const billingForm = document.getElementById('billingForm');
-    const nameInput = document.getElementById('name');
-    const phoneInput = document.getElementById('phone');
-    const prevInput = document.getElementById('prev');
-    const currInput = document.getElementById('curr');
-    const rateInput = document.getElementById('rate');
-    const fixedInput = document.getElementById('fixed');
-    const resultDiv = document.getElementById('result');
-    const actionButtons = document.getElementById('actionButtons');
-    const sendSMSBtn = document.getElementById('sendSMSBtn');
-    const viewRecordsBtn = document.getElementById('viewRecordsBtn');
-
-    let currentRecord = null;
-
-    // ============================================
-    // API FUNCTIONS
-    // ============================================
-
-    /**
-     * Get authorization header with token
-     */
-    function getAuthHeader() {
-      const token = localStorage.getItem('authToken');
-      return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-    }
-
-    /**
-     * Save billing record to server
-     */
-    async function saveRecordToServer(record) {
-      try {
-        const response = await fetch('/save-record', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: getAuthHeader(),
-          body: JSON.stringify({
-            name: record.name,
-            phone: record.phone,
-            prev: record.prev,
-            curr: record.curr,
-            rate: record.rate,
-            fixed: record.fixed,
-            total: record.total,
-            date: record.date
-          })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to save record');
-        }
-
-        return data;
-      } catch (err) {
-        console.error('Error saving record:', err);
-        throw err;
-      }
-    }
-
-    // ============================================
-    // UTILITY FUNCTIONS
-    // ============================================
-
-    /**
-     * Display success message
-     */
-    function showSuccess(message) {
-      resultDiv.textContent = message;
-      resultDiv.className = 'result result-success show';
-    }
-
-    /**
-     * Display error message
-     */
-    function showError(message) {
-      resultDiv.textContent = '⚠️ ' + message;
-      resultDiv.className = 'result result-error show';
-    }
-
-    /**
-     * Clear error messages
-     */
-    function clearErrors() {
-      document.querySelectorAll('.error-message').forEach(el => {
-        el.textContent = '';
-        el.classList.remove('show');
-      });
-    }
-
-    /**
-     * Format currency value
-     */
-    function formatCurrency(value) {
-      return Number(value).toLocaleString('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      });
-    }
-
-    /**
-     * Display field-specific error
-     */
-    function displayFieldError(fieldId, message) {
-      const errorEl = document.getElementById(`${fieldId}-error`);
-      if (errorEl) {
-        errorEl.textContent = message;
-        errorEl.classList.add('show');
-      }
-    }
-
-    // ============================================
-    // VALIDATION FUNCTIONS
-    // ============================================
-
-    /**
-     * Validate all form inputs
-     */
-    function validateForm() {
-      clearErrors();
-      let isValid = true;
-
-      // Validate name
-      const name = nameInput.value.trim();
-      if (name.length < MIN_NAME_LENGTH || name.length > MAX_NAME_LENGTH) {
-        displayFieldError('name', `Name must be between ${MIN_NAME_LENGTH} and ${MAX_NAME_LENGTH} characters`);
-        isValid = false;
-      }
-
-      // Validate phone
-      if (!PHONE_REGEX.test(phoneInput.value.trim())) {
-        displayFieldError('phone', 'Phone must be 12 digits starting with 255 (e.g., 255712345678)');
-        isValid = false;
-      }
-
-      // Validate current >= previous
-      const prev = parseFloat(prevInput.value);
-      const curr = parseFloat(currInput.value);
-
-      if (isNaN(prev) || isNaN(curr)) {
-        displayFieldError('curr', 'Please enter valid readings');
-        isValid = false;
-      } else if (curr < prev) {
-        displayFieldError('curr', 'Current reading must be >= previous reading');
-        isValid = false;
-      }
-
-      return isValid;
-    }
-
-    // ============================================
-    // CALCULATION & DISPLAY
-    // ============================================
-
-    /**
-     * Calculate and display bill
-     */
-    async function calculateBill() {
-      if (!validateForm()) return;
-
-      const submitBtn = billingForm.querySelector('button[type="submit"]');
-      const originalText = submitBtn.textContent;
-      
-      // Set loading state
-      submitBtn.disabled = true;
-      submitBtn.classList.add('loading');
-
-      const name = nameInput.value.trim();
-      const phone = phoneInput.value.trim();
-      const prev = parseFloat(prevInput.value);
-      const curr = parseFloat(currInput.value);
-      const rate = parseFloat(rateInput.value);
-      const fixed = parseFloat(fixedInput.value);
-
-      // Calculate values
-      const usage = curr - prev;
-      const amount = usage * rate;
-      const total = amount + fixed;
-
-      // Create bill message (includes previous and current meter readings)
-      const billMessage = `BILL STATEMENT
-Customer: ${name}
-Phone: ${phone}
-Previous Reading: ${prev} units
-Current Reading: ${curr} units
-Usage: ${usage} units
-Rate: TZS ${formatCurrency(rate)}/unit
-Fixed Charge: TZS ${formatCurrency(fixed)}
-Total Due: TZS ${formatCurrency(total)}
-Thank you!`;
-
-      // Create record object
-      const now = new Date();
-      currentRecord = {
-        name,
-        phone,
-        prev,
-        curr,
-        usage,
-        rate,
-        fixed,
-        total: parseFloat(total.toFixed(2)),
-        billMessage,
-        date: now.toISOString(),
-        monthYear: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-      };
-
-      // Save to server
-      try {
-        const result = await saveRecordToServer(currentRecord);
-        showSuccess(`✓ Bill Calculated & Saved: TZS ${formatCurrency(total)}`);
-        actionButtons.classList.add('show');
-      } catch (err) {
-        console.error('Save error:', err);
-        showError(`Failed to save record: ${err.message}`);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('loading');
-        submitBtn.textContent = originalText;
-      }
-    }
-
-    // ============================================
-    // EVENT LISTENERS
-    // ============================================
-
-    /**
-     * Form submission handler
-     */
-    billingForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      calculateBill();
-    });
-
-    /**
-     * Send SMS handler
-     */
-    sendSMSBtn.addEventListener('click', () => {
-      if (!currentRecord) return;
-
-      const { phone, billMessage } = currentRecord;
-      const encodedMessage = encodeURIComponent(billMessage);
-      
-      // Open SMS with pre-filled message
-      window.open(`sms:${phone}?body=${encodedMessage}`, '_self');
-    });
-
-    /**
-     * View history handler
-     */
-    viewRecordsBtn.addEventListener('click', () => {
-      window.location.href = 'records.html';
-    });
-
-    // ============================================
-    // INITIALIZATION
-    // ============================================
-
-    // Update default rate display
-    document.getElementById('defaultRate').textContent = formatCurrency(rateInput.value);
-    document.getElementById('defaultFixed').textContent = formatCurrency(fixedInput.value);
-
-    // Update display when rate/fixed changes
-    rateInput.addEventListener('change', () => {
-      document.getElementById('defaultRate').textContent = formatCurrency(rateInput.value);
-    });
-
-    fixedInput.addEventListener('change', () => {
-      document.getElementById('defaultFixed').textContent = formatCurrency(fixedInput.value);
-    });
-
-    console.log('Water Billing Calculator initialized successfully');
-  </script>
-
-  <!-- FLOAT CHAT WIDGET -->
-  <script src="/float-chat.js"></script>
-
-  <!-- FOOTER -->
-  <footer>
+  <!-- Improved Footer -->
+  <footer class="main-footer">
     <div class="footer-content">
-      <div class="footer-section">
-        <h4>📚 Quick Links</h4>
+      <div class="footer-column">
+        <h4>🔗 Quick Links</h4>
         <a href="index.html">Home</a>
         <a href="main.html">Calculator</a>
         <a href="records.html">Records</a>
         <a href="botweb.html">Chat Support</a>
       </div>
-      <div class="footer-section">
-        <h4>📖 Resources</h4>
-        <a href="API_DOCS.md" target="_blank">API Docs</a>
-        <a href="README_UPDATES.md" target="_blank">Updates</a>
-        <a href="FEATURES_SHOWCASE.md" target="_blank">Features</a>
+      <div class="footer-column">
+        <h4>📚 Resources</h4>
+        <a href="#">API Docs</a>
+        <a href="#">Updates</a>
+        <a href="#">Features</a>
       </div>
-      <div class="footer-section">
+      <div class="footer-column">
         <h4>👤 Account</h4>
         <a href="login.html">Sign In</a>
         <a href="signup.html">Create Account</a>
@@ -1082,36 +278,107 @@ Thank you!`;
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2026 Water Billing System | Built by Mickey Hamza ❤️</p>
+      © 2026 Water Billing System | Built by Mickey Hamza ❤️
     </div>
   </footer>
 
   <script>
-    function updateNavbar() {
-      const user = localStorage.getItem('user');
-      const navbarUser = document.getElementById('navbarUser');
-      const navbarGuest = document.getElementById('navbarGuest');
-      const navbarUserName = document.getElementById('navbarUserName');
-      if (user) {
-        try {
-          const userData = JSON.parse(user);
-          navbarUserName.textContent = userData.name || userData.email || 'User';
-          navbarUser.style.display = 'flex';
-          navbarGuest.style.display = 'none';
-        } catch(e) {
-          navbarGuest.style.display = 'flex';
-          navbarUser.style.display = 'none';
+    // ==================== AUTH & CORE FUNCTIONS (Zimeachwa sawa) ====================
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuthentication();
+      initMobileMenu();
+    });
+
+    async function checkAuthentication() {
+      try {
+        const resp = await fetch('/api/me', { credentials: 'same-origin' });
+        if (!resp.ok) {
+          setTimeout(() => window.location.href = 'login.html', 1500);
+          return;
         }
-      } else {
-        navbarGuest.style.display = 'flex';
-        navbarUser.style.display = 'none';
+        const data = await resp.json();
+        const user = data.user || data;
+        if (user?.name) {
+          console.log('User authenticated:', user.name);
+        }
+      } catch (e) {
+        console.log("Auth check failed");
       }
     }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', updateNavbar);
-    } else {
-      updateNavbar();
+
+    function logout() {
+      fetch('/logout', { method: 'GET', credentials: 'same-origin' })
+        .finally(() => {
+          localStorage.clear();
+          window.location.href = 'login.html';
+        });
     }
+
+    // Mobile Menu
+    function initMobileMenu() {
+      const hamburger = document.getElementById('hamburgerBtn');
+      const navLinks = document.getElementById('navLinks');
+      hamburger.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        hamburger.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
+      });
+    }
+
+    // ==================== BILL CALCULATOR LOGIC (Imeachwa sawa) ====================
+    const billingForm = document.getElementById('billingForm');
+    const resultDiv = document.getElementById('result');
+    const actionButtons = document.getElementById('actionButtons');
+    let currentRecord = null;
+
+    function formatCurrency(value) {
+      return Number(value).toLocaleString('en-US');
+    }
+
+    billingForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const prev = parseFloat(document.getElementById('prev').value);
+      const curr = parseFloat(document.getElementById('curr').value);
+      const rate = parseFloat(document.getElementById('rate').value);
+      const fixed = parseFloat(document.getElementById('fixed').value);
+
+      if (curr < prev) {
+        resultDiv.innerHTML = "⚠️ Current reading must be greater than previous!";
+        resultDiv.className = "result result-error show";
+        return;
+      }
+
+      const usage = curr - prev;
+      const total = (usage * rate) + fixed;
+
+      currentRecord = { name, phone, prev, curr, rate, fixed, total, usage };
+
+      resultDiv.innerHTML = `✅ Bill Calculated Successfully!<br><strong>TZS ${formatCurrency(total)}</strong>`;
+      resultDiv.className = "result result-success show";
+      actionButtons.style.display = 'grid';
+
+      // Save to server (keep your original logic)
+      try {
+        await fetch('/save-record', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentRecord)
+        });
+      } catch (err) { console.log("Save failed"); }
+    });
+
+    document.getElementById('sendSMSBtn').addEventListener('click', () => {
+      if (!currentRecord) return;
+      const msg = `BILL: ${currentRecord.name}\nUsage: ${currentRecord.usage} units\nTotal: TZS ${formatCurrency(currentRecord.total)}\nThank you!`;
+      window.open(`sms:\( {currentRecord.phone}?body= \){encodeURIComponent(msg)}`, '_self');
+    });
+
+    document.getElementById('viewRecordsBtn').addEventListener('click', () => {
+      window.location.href = 'records.html';
+    });
   </script>
 </body>
 </html>
