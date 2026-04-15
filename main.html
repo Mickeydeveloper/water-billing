@@ -4,79 +4,51 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Water Billing Calculator</title>
-
-  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
-
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #06b6d4 100%);
+      background: linear-gradient(135deg, #1e3a8a, #1e40af, #06b6d4);
       min-height: 100vh;
       padding: 10px;
     }
-
+    .navbar {
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: white;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .hamburger { background:none; border:none; font-size:1.8rem; color:white; cursor:pointer; }
     .container {
       background: rgba(255,255,255,0.95);
       backdrop-filter: blur(10px);
       max-width: 580px;
       margin: 0 auto;
-      padding: 1.8rem;
+      padding: 2rem;
       border-radius: 16px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
     }
-
-    h2 {
-      text-align: center;
-      background: linear-gradient(135deg, #1e40af, #06b6d4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-size: 1.7rem;
-      margin-bottom: 1.5rem;
-    }
-
-    label { display: block; margin: 1.2rem 0 0.5rem; font-weight: 700; color: #1e3a8a; }
-    input { width: 100%; padding: 0.9rem; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 1rem; }
-
-    button {
-      width: 100%;
-      padding: 1.1rem;
-      margin-top: 1.8rem;
-      background: linear-gradient(135deg, #2563eb, #0284c7);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-weight: 800;
-      font-size: 1.05rem;
-      cursor: pointer;
-    }
-
-    .result {
-      margin-top: 1.5rem;
-      padding: 1.5rem;
-      border-radius: 12px;
-      text-align: center;
-      font-weight: 700;
-      display: none;
-    }
-    .result.show { display: block; }
-    .result-success { background: #ecfdf5; color: #059669; border-left: 5px solid #059669; }
-
-    .button-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
+    h2 { text-align:center; font-size:1.7rem; background:linear-gradient(135deg,#1e40af,#06b6d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:1.5rem; }
+    label { display:block; margin:1.2rem 0 0.5rem; font-weight:700; color:#1e3a8a; }
+    input { width:100%; padding:0.9rem; border:2px solid #cbd5e1; border-radius:10px; font-size:1rem; }
+    button { width:100%; padding:1.1rem; margin-top:1.8rem; background:linear-gradient(135deg,#2563eb,#0284c7); color:white; border:none; border-radius:10px; font-weight:800; font-size:1.05rem; cursor:pointer; }
+    .result { margin-top:1.5rem; padding:1.5rem; border-radius:12px; text-align:center; font-weight:700; display:none; }
+    .result.show { display:block; }
+    .result-success { background:#ecfdf5; color:#059669; border-left:5px solid #059669; }
+    .button-group { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.5rem; }
   </style>
 </head>
 <body>
 
-  <nav class="navbar" style="background: linear-gradient(135deg, #2563eb, #06b6d4); color:white; padding:1rem; border-radius:12px; margin-bottom:20px;">
+  <nav class="navbar">
     <a href="index.html" style="font-size:1.5rem; font-weight:800; color:white; text-decoration:none;">💧 Water Billing</a>
-    <button class="hamburger" id="hamburgerBtn" style="background:none;border:none;font-size:1.8rem;color:white;">☰</button>
+    <button class="hamburger" id="hamburgerBtn">☰</button>
   </nav>
 
   <div class="container">
@@ -101,29 +73,21 @@
       <label>Fixed Charge (TZS)</label>
       <input type="number" id="fixed" value="0">
 
-      <button type="submit">Calculate & Save Bill</button>
+      <button type="submit">Calculate & Save to Database</button>
     </form>
 
-    <div class="result" id="result"></div>
+    <div id="result" class="result"></div>
 
-    <div class="button-group" id="actionButtons" style="display:none;">
+    <div id="actionButtons" class="button-group" style="display:none;">
       <button id="sendSMSBtn">📱 Send SMS</button>
-      <button id="viewRecordsBtn">📊 View Records</button>
+      <button onclick="window.location.href='records.html'">📊 View Records</button>
     </div>
   </div>
 
   <script>
-    const form = document.getElementById('billingForm');
-    const resultDiv = document.getElementById('result');
-    const actionButtons = document.getElementById('actionButtons');
     let currentRecord = null;
 
-    // Mobile Menu
-    document.getElementById('hamburgerBtn').addEventListener('click', () => {
-      alert("Navigation will be improved in full version");
-    });
-
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('billingForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const name = document.getElementById('name').value.trim();
@@ -134,63 +98,56 @@
       const fixed = parseFloat(document.getElementById('fixed').value);
 
       if (curr < prev) {
-        resultDiv.innerHTML = "❌ Current reading must be greater than previous reading!";
-        resultDiv.className = "result show";
-        resultDiv.style.background = "#fee2e2";
-        resultDiv.style.color = "#ef4444";
+        showResult("❌ Current reading must be greater than previous!", "error");
         return;
       }
 
       const usage = curr - prev;
-      const total = (usage * rate) + fixed;
+      const total = usage * rate + fixed;
 
       currentRecord = {
-        name: name,
-        phone: phone,
-        prev: prev,
-        curr: curr,
-        usage: usage,
-        rate: rate,
-        fixed: fixed,
-        total: total,
+        name, phone, prev, curr, usage, rate, fixed,
+        total: parseFloat(total.toFixed(2)),
         date: new Date().toISOString()
       };
 
-      // === SAVE TO MONGODB ===
+      // === SAVE TO MONGODB (exactly as your server expects) ===
       try {
-        const response = await fetch('/save-record', {
+        const res = await fetch('/save-record', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(currentRecord)
         });
 
-        if (response.ok) {
-          resultDiv.innerHTML = `✅ Bill Calculated Successfully!<br><strong>TZS ${total.toLocaleString()}</strong><br>Saved to Database`;
-          resultDiv.className = "result result-success show";
-          actionButtons.style.display = "grid";
+        if (res.ok) {
+          showResult(`✅ Bill Saved Successfully!<br><strong>TZS ${total.toLocaleString()}</strong>`, "success");
+          document.getElementById('actionButtons').style.display = 'grid';
         } else {
-          throw new Error("Failed to save");
+          throw new Error("Save failed");
         }
       } catch (err) {
         console.error(err);
-        resultDiv.innerHTML = "❌ Failed to save bill to database. Please try again.";
-        resultDiv.className = "result show";
-        resultDiv.style.background = "#fee2e2";
-        resultDiv.style.color = "#ef4444";
+        showResult("❌ Failed to save to database. Check server.", "error");
       }
     });
 
-    // Send SMS
+    function showResult(html, type) {
+      const div = document.getElementById('result');
+      div.innerHTML = html;
+      div.className = `result show ${type === 'success' ? 'result-success' : ''}`;
+    }
+
+    // SMS
     document.getElementById('sendSMSBtn').addEventListener('click', () => {
       if (!currentRecord) return;
-      const msg = `BILL from Water Billing System\nCustomer: ${currentRecord.name}\nUsage: ${currentRecord.usage} units\nTotal: TZS ${currentRecord.total.toLocaleString()}\nThank you!`;
+      const msg = `BILL: ${currentRecord.name}\nUsage: ${currentRecord.usage} units\nTotal: TZS ${currentRecord.total.toLocaleString()}\nThank you!`;
       window.open(`sms:\( {currentRecord.phone}?body= \){encodeURIComponent(msg)}`, '_self');
     });
 
-    // View Records
-    document.getElementById('viewRecordsBtn').addEventListener('click', () => {
-      window.location.href = 'records.html';
+    // Hamburger (simple)
+    document.getElementById('hamburgerBtn').addEventListener('click', () => {
+      alert("Full navigation coming in next update");
     });
   </script>
 </body>
