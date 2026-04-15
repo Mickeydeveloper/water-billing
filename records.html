@@ -5,259 +5,81 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Billing Records History - Water Billing System">
   <meta name="author" content="Mickey Hamza">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Billing Records - History & Reports</title>
-  
+
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
-  
-  <style>
-    /* ============================================
-       RESET & VARIABLES
-       ============================================ */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
 
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     :root {
       --primary-color: #2563eb;
       --secondary-color: #06b6d4;
       --success-color: #059669;
       --error-color: #dc2626;
-      --warning-color: #d97706;
-      --background-light: #f0f9ff;
-      --text-primary: #0f172a;
-      --text-secondary: #475569;
-      --accent-text: #1e40af;
-      --border-color: #cbd5e1;
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
       --border-radius: 16px;
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
     }
 
-    /* ============================================
-       BODY & LAYOUT
-       ============================================ */
     body {
-      font-family: 'Poppins', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', Arial, sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #06b6d4 100%);
-      margin: 0;
-      padding: 20px;
       min-height: 100vh;
-      color: var(--text-primary);
-      line-height: 1.6;
-      letter-spacing: 0.3px;
+      padding: 10px;
+      color: #0f172a;
     }
 
-    /* Notification styles (3D pop) */
-    #notify { position: fixed; right: 16px; top: 16px; z-index: 9999; pointer-events: none; }
-    #notify .note { pointer-events: auto; min-width:220px; max-width:420px; padding:14px 16px; border-radius:12px; color:#fff; box-shadow:0 12px 30px rgba(0,0,0,0.2); transform-origin:center; transform: perspective(600px) translateZ(0) rotateX(0); opacity:0; transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 260ms; margin-top:10px; font-weight:700 }
-    #notify .note.show { opacity:1; transform: perspective(600px) translateZ(18px) rotateX(0deg) }
-    #notify .note.info { background: linear-gradient(135deg,#2563eb,#06b6d4) }
-    #notify .note.success { background: linear-gradient(135deg,#059669,#047857) }
-    #notify .note.error { background: linear-gradient(135deg,#dc2626,#b91c1c) }
-
-    /* ============================================
-       CONTAINER
-       ============================================ */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      padding: 2.5rem;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow-lg);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    /* ============================================
-       HEADER
-       ============================================ */
-    h1 {
-      text-align: center;
-      background: linear-gradient(135deg, #1e40af 0%, #06b6d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 2rem;
-      font-weight: 800;
-      font-size: clamp(1.8rem, 5vw, 2.2rem);
-      letter-spacing: -0.5px;
-    }
-
-    /* ============================================
-       CONTROLS SECTION
-       ============================================ */
-    .controls {
+    /* Navbar */
+    .navbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 2px solid var(--border-color);
-    }
-
-    .controls-left,
-    .controls-right {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    button,
-    a.btn {
-      padding: 0.85rem 1.25rem;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: var(--transition);
-      font-family: 'Poppins', sans-serif;
-      border: none;
-      cursor: pointer;
-      font-size: 0.95rem;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn-back {
-      background: linear-gradient(135deg, #6366f1, #6b7280);
-      color: #fff;
-    }
-
-    .btn-back:hover {
-      background: linear-gradient(135deg, #6b7280, #4b5563);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .btn-clear {
-      background: linear-gradient(135deg, var(--error-color), #dc2626);
-      color: #fff;
-    }
-
-    .btn-clear:hover {
-      background: linear-gradient(135deg, #dc2626, #991b1b);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .btn-export {
-      background: linear-gradient(135deg, var(--success-color), #059669);
-      color: #fff;
-    }
-
-    .btn-export:hover {
-      background: linear-gradient(135deg, #059669, #047857);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    /* ============================================
-       FILTER SECTION
-       ============================================ */
-    .filter-group {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .filter-group label {
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    select {
-      padding: 0.85rem;
-      border: 2px solid var(--border-color);
-      background: #fff;
-      border-radius: 8px;
-      transition: var(--transition);
-      color: var(--text-primary);
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.95rem;
-      min-width: 200px;
-    }
-
-    select:focus {
-      outline: none;
-      border-color: var(--secondary-color);
-      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-    }
-
-    /* ============================================
-       STATISTICS SECTION
-       ============================================ */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, rgba(30, 64, 175, 0.05), rgba(14, 165, 233, 0.05));
-      padding: 1.5rem;
+      padding: 1rem;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: white;
       border-radius: 12px;
-      border: 2px solid var(--border-color);
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-card::before {
-      content: '';
-      position: absolute;
+      margin-bottom: 20px;
+      position: sticky;
       top: 0;
+      z-index: 100;
+    }
+
+    .navbar-logo { font-size: 1.5rem; font-weight: 800; color: white; text-decoration: none; }
+    .hamburger { background: none; border: none; font-size: 1.8rem; color: white; cursor: pointer; }
+
+    .navbar-links {
+      display: none;
+      position: absolute;
+      top: 100%;
       left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.2));
-      pointer-events: none;
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      padding: 1rem;
+      flex-direction: column;
+      gap: 1rem;
+      border-radius: 0 0 12px 12px;
+    }
+    .navbar-links.active { display: flex; }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1.8rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-lg);
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
     }
 
-    .stat-card > * {
-      position: relative;
-      z-index: 1;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-md);
-      border-color: var(--secondary-color);
-      background: linear-gradient(135deg, rgba(30, 64, 175, 0.1), rgba(14, 165, 233, 0.1));
-    }
-
-    .stat-label {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-value {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--primary-color);
-    }
-
-    /* ============================================
-       TABLE SECTION
-       ============================================ */
-    .table-wrapper {
-      max-height: 70vh;
-      overflow-y: auto;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      box-shadow: var(--shadow-sm);
+    h1 {
+      text-align: center;
+      background: linear-gradient(135deg, #1e40af, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
     }
 
     table {
@@ -266,1282 +88,352 @@
       font-size: 0.95rem;
     }
 
-    thead {
-      position: sticky;
-      top: 0;
-      z-index: 10;
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
     }
 
     th {
-      padding: 1.25rem;
-      text-align: left;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: #fff;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: white;
       font-weight: 700;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      user-select: none;
-      position: relative;
-      transition: var(--transition);
     }
 
-    th::after {
-      content: ' ↕';
-      font-size: 0.8rem;
-      opacity: 0.5;
-      margin-left: 0.5rem;
-    }
-
-    th:hover {
-      opacity: 0.95;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    td {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--border-color);
-      background: #fff;
-      color: var(--text-primary);
-    }
-
-    tbody tr {
-      transition: var(--transition);
-    }
-
-    tbody tr:hover {
-      background-color: rgba(14, 165, 233, 0.08);
-      box-shadow: inset 1px 0 0 var(--secondary-color);
-    }
-
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    .total-cell {
-      font-weight: 700;
-      color: var(--success-color);
-    }
-
-    .action-cell {
-      text-align: center;
+    tr:hover {
+      background-color: #f0f9ff;
     }
 
     .btn-delete {
-      padding: 0.5rem 0.75rem;
-      background: var(--error-color);
-      color: #fff;
+      background: #ef4444;
+      color: white;
       border: none;
+      padding: 0.4rem 0.8rem;
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.85rem;
-      font-weight: 600;
-      transition: var(--transition);
-      font-family: 'Poppins', sans-serif;
-      position: relative;
-      overflow: hidden;
     }
 
-    .btn-delete::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.4s, height 0.4s;
-    }
-
-    .btn-delete:hover::before {
-      width: 200px;
-      height: 200px;
-    }
-
-    .btn-delete:hover {
-      background: #dc2626;
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-    }
-
-    /* ============================================
-       EMPTY STATE
-       ============================================ */
-    .empty-state {
-      text-align: center;
-      padding: 3rem;
-      color: var(--text-secondary);
-    }
-
-    .empty-state-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      opacity: 0.5;
-    }
-
-    .empty-state-text {
-      font-size: 1.1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .empty-state-btn {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: #fff;
-      padding: 0.85rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-family: 'Poppins', sans-serif;
-      transition: var(--transition);
-    }
-
-    .empty-state-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    /* PAY NOW Button */
     .btn-pay {
-      padding: 0.5rem 1rem;
       background: linear-gradient(135deg, #059669, #047857);
-      color: #fff;
+      color: white;
       border: none;
+      padding: 0.5rem 1rem;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 0.8rem;
       font-weight: 700;
-      transition: var(--transition);
-      font-family: 'Poppins', sans-serif;
     }
 
-    .btn-pay:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-    }
-
-    /* Notification Icon */
-    .notify-icon {
+    .btn-notify {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 0.5rem 0.9rem;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 1.2rem;
-      transition: var(--transition);
     }
 
-    .notify-icon:hover {
-      transform: scale(1.2);
-    }
-
-    /* Payment Modal */
     .modal {
       display: none;
       position: fixed;
       z-index: 10000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .modal.active {
-      display: flex;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
       align-items: center;
       justify-content: center;
     }
+
+    .modal.active { display: flex; }
 
     .modal-content {
       background: white;
       padding: 2rem;
       border-radius: 16px;
-      max-width: 500px;
       width: 90%;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      animation: slideIn 0.4s ease;
+      max-width: 500px;
     }
 
-    @keyframes slideIn {
-      from { transform: translateY(-50px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    /* Footer */
+    .main-footer {
+      background: #0f172a;
+      color: #cbd5e1;
+      margin-top: 3rem;
+      border-radius: 12px;
+      overflow: hidden;
     }
 
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      border-bottom: 2px solid var(--border-color);
-      padding-bottom: 1rem;
+    .footer-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 2rem;
+      padding: 2rem;
     }
 
-    .modal-header h2 {
-      color: var(--primary-color);
-      margin: 0;
-      font-size: 1.5rem;
-    }
+    .footer-column h4 { color: white; margin-bottom: 1rem; }
 
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--text-secondary);
-    }
-
-    .modal-close:hover {
-      color: var(--primary-color);
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    .form-group label {
+    .footer-column a {
       display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: var(--text-primary);
+      color: #cbd5e1;
+      text-decoration: none;
+      margin-bottom: 0.6rem;
     }
 
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 2px solid var(--border-color);
-      border-radius: 8px;
-      font-family: 'Poppins', sans-serif;
-      font-size: 1rem;
-      transition: var(--transition);
-    }
-
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-
-    .modal-buttons {
-      display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-
-    .modal-buttons button {
-      flex: 1;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: var(--transition);
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .btn-confirm {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-    }
-
-    .btn-confirm:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .btn-cancel {
-      background: var(--border-color);
-      color: var(--text-primary);
-    }
-
-    .btn-cancel:hover {
-      background: #cbd5e1;
-    }
-
-    /* ============================================
-       RESPONSIVE
-       ============================================ */
-    @media (max-width: 768px) {
-      .container {
-        padding: 1.5rem;
-      }
-
-      .controls {
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .controls-left,
-      .controls-right {
-        width: 100%;
-        justify-content: center;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-
-      table {
-        font-size: 0.85rem;
-      }
-
-      th,
-      td {
-        padding: 0.75rem;
-      }
-
-      .table-wrapper {
-        max-height: 50vh;
-      }
+    @media (max-width: 480px) {
+      .footer-content { grid-template-columns: 1fr; text-align: center; }
+      table { font-size: 0.85rem; }
     }
   </style>
 </head>
 <body>
-  <!-- NAVIGATION -->
+
+  <!-- Navbar -->
   <nav class="navbar">
     <a href="index.html" class="navbar-logo">💧 Water Billing</a>
-    <ul class="navbar-links">
+    <button class="hamburger" id="hamburgerBtn">☰</button>
+    
+    <ul class="navbar-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="main.html">Calculator</a></li>
       <li><a href="records.html">Records</a></li>
       <li><a href="botweb.html">Chat</a></li>
     </ul>
-    <div class="navbar-user" id="navbarUser" style="display:none;">
-      <span id="navbarUserName">User</span>
-      <button class="btn-logout-nav" onclick="window.logout()">Logout</button>
-    </div>
-    <div id="navbarGuest" style="display:flex;gap:1rem;align-items:center;">
-      <a href="login.html" style="color:white;text-decoration:none;font-weight:600;">Sign In</a>
-      <a href="signup.html" style="color:white;text-decoration:none;font-weight:600;">Sign Up</a>
-    </div>
   </nav>
 
   <div class="container">
     <h1>📊 Billing Records History</h1>
 
-    <!-- Controls Section -->
-    <div class="controls">
-      <div class="controls-left">
-        <a href="index.html" class="btn btn-back">← Back Home</a>
-        <select id="monthFilter" style="padding: 0.6rem 1rem; border-radius: 8px; border: 2px solid var(--border-color); font-family: 'Poppins', sans-serif; cursor: pointer; font-size: 0.95rem; color: var(--text-primary);">
-          <option value="">All Records</option>
-        </select>
-      </div>
-
-      <div style="text-align: right;">
-        <div id="userName" style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.5rem;">Loading...</div>
-      </div>
-
-      <div class="controls-right">
-        <button class="btn btn-export" id="exportBtn" disabled>📥 Export to CSV</button>
-        <button class="btn" id="clearBtn" style="background: linear-gradient(135deg, #f59e0b, #d97706); display: none;">🗑️ Clear All</button>
-        <button onclick="window.logout()" style="padding: 0.6rem 1rem; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Poppins', sans-serif;">Logout</button>
-      </div>
+    <div style="margin-bottom: 1.5rem; text-align: right;">
+      <span id="userName" style="font-weight: 600; color: #2563eb;">Loading...</span>
     </div>
 
-    <!-- Statistics Section -->
-    <div class="stats-grid" id="statsGrid" style="display: none;">
-      <div class="stat-card">
-        <div class="stat-label">Total Records</div>
-        <div class="stat-value" id="totalRecords">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total Revenue</div>
-        <div class="stat-value" id="totalRevenue">TZS 0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Average Bill</div>
-        <div class="stat-value" id="averageBill">TZS 0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total Usage</div>
-        <div class="stat-value" id="totalUsage">0 units</div>
-      </div>
-    </div>
-
-    <!-- Table Section -->
-    <div class="table-wrapper" id="tableWrapper">
+    <div class="table-wrapper" style="overflow-x:auto;">
       <table id="recordsTable">
         <thead>
           <tr>
-            <th>Action</th>
-            <th onclick="sortTable(0)">Date</th>
-            <th onclick="sortTable(1)">Customer</th>
-            <th onclick="sortTable(2)">Phone</th>
-            <th onclick="sortTable(3)">Prev</th>
-            <th onclick="sortTable(4)">Curr</th>
-            <th onclick="sortTable(5)">Usage (units)</th>
-            <th onclick="sortTable(6)">Rate</th>
-            <th onclick="sortTable(7)">Total Bill</th>
-            <th>Notify</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Usage</th>
+            <th>Total (TZS)</th>
+            <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
-        <tbody id="recordsBody">
-          <tr>
-            <td colspan="10" style="text-align: center; padding: 3rem;">
-              <div class="empty-state">
-                <div class="empty-state-icon">📋</div>
-                <div class="empty-state-text">No billing records found</div>
-                <button class="empty-state-btn" onclick="window.location.href='main.html'">Create First Bill</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+        <tbody id="recordsBody"></tbody>
       </table>
     </div>
   </div>
 
+  <!-- Payment Modal -->
+  <div id="paymentModal" class="modal">
+    <div class="modal-content">
+      <h2>💳 Make Payment</h2>
+      <p id="payCustomer"></p>
+      <p><strong>Amount Due: TZS <span id="payAmount"></span></strong></p>
+      
+      <select id="paymentMethod" style="width:100%; padding:1rem; margin:1rem 0; border-radius:8px;">
+        <option value="">Select Payment Method</option>
+        <option value="cash">Cash</option>
+        <option value="mobile">Mobile Money</option>
+        <option value="bank">Bank Transfer</option>
+      </select>
+
+      <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+        <button onclick="confirmPayment()" style="flex:1; padding:1rem; background:#059669; color:white; border:none; border-radius:8px;">Confirm Payment</button>
+        <button onclick="closePaymentModal()" style="flex:1; padding:1rem; background:#64748b; color:white; border:none; border-radius:8px;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="footer-content">
+      <div class="footer-column">
+        <h4>🔗 Quick Links</h4>
+        <a href="index.html">Home</a>
+        <a href="main.html">Calculator</a>
+        <a href="records.html">Records</a>
+        <a href="botweb.html">Chat Support</a>
+      </div>
+      <div class="footer-column">
+        <h4>📚 Resources</h4>
+        <a href="#">API Docs</a>
+        <a href="#">Updates</a>
+        <a href="#">Features</a>
+      </div>
+      <div class="footer-column">
+        <h4>👤 Account</h4>
+        <a href="login.html">Sign In</a>
+        <a href="signup.html">Create Account</a>
+        <a href="records.html">My Records</a>
+      </div>
+    </div>
+    <div style="text-align:center; padding:1rem; border-top:1px solid #1e293b;">
+      © 2026 Water Billing System | Built by Mickey Hamza ❤️
+    </div>
+  </footer>
+
   <script>
-    /**
-     * Billing Records Management System
-     * Features:
-     * - Load records from authenticated API
-     * - Display billing history
-     * - Export to CSV
-     * - Delete records
-     * - Statistics calculation
-     */
-
-    // ============================================
-    // AUTHENTICATION CHECK & SESSION MANAGEMENT
-    // ============================================
-    
-    // Configuration
-    const AUTH_CONFIG = {
-      redirectDelay: 1500,
-      sessionWarningTime: 5 * 60 * 1000, // 5 minutes
-      sessionTimeout: 7 * 24 * 60 * 60 * 1000, // 7 days
-      checkInterval: 1000 // Check every second
-    };
-
-    let sessionCheckInterval = null;
-    let authCheckComplete = false;
+    let allRecords = [];
+    let isAdmin = false;
 
     window.addEventListener('DOMContentLoaded', () => {
       checkAuthentication();
-      startSessionMonitor();
+      initMobileMenu();
     });
 
-    /**
-     * Check if user is authenticated
-     * Validates token and user data exist
-     */
-    function checkAuthentication() {
-      const authToken = localStorage.getItem('authToken');
-      const user = localStorage.getItem('user');
-      const loginTime = localStorage.getItem('loginTime');
-
-      // If localStorage is empty, try to validate with server session
-      if (!authToken || !user) {
-        validateServerSession();
-        return;
-      }
-
+    async function checkAuthentication() {
       try {
-        // Validate user data is valid JSON
-        const userData = JSON.parse(user);
-        
-        // Validate required fields
-        if (!userData.userId || !userData.email) {
-          throw new Error('Invalid user data');
-        }
+        const resp = await fetch('/api/me', { credentials: 'same-origin' });
+        if (!resp.ok) throw new Error("Not logged in");
 
-        // Check session age
-        if (loginTime) {
-          const loginDate = new Date(loginTime);
-          const sessionAge = Date.now() - loginDate.getTime();
-          
-          if (sessionAge > AUTH_CONFIG.sessionTimeout) {
-            handleAuthenticationFailure('Your session has expired. Please log in again.');
-            return;
-          }
-        }
+        const data = await resp.json();
+        const user = data.user || data;
 
-        // Authentication successful
-        displayUserInfo(userData);
-        authCheckComplete = true;
-        loadRecordsFromServer();
-        console.log('✓ User authenticated:', userData.email);
-        
-      } catch (error) {
-        console.error('❌ Authentication validation error:', error);
-        handleAuthenticationFailure('Invalid authentication data. Please log in again.');
+        document.getElementById('userName').textContent = user.name || 'User';
+
+        // Check if admin
+        const adminCheck = await fetch('/api/is-admin', { credentials: 'same-origin' });
+        const adminData = await adminCheck.json();
+        isAdmin = adminData.isAdmin || false;
+
+        loadRecords();
+      } catch (e) {
+        setTimeout(() => window.location.href = 'login.html', 1000);
       }
     }
 
-    /**
-     * Validate authentication with server session
-     * Fallback for users coming from OAuth or with missing localStorage
-     */
-    async function validateServerSession() {
+    async function loadRecords() {
       try {
-        const response = await fetch('/api/me', {
-          method: 'GET',
-          credentials: 'same-origin'
-        });
-
-        if (!response.ok) {
-          handleAuthenticationFailure('No authentication data found. Please log in.');
-          return;
-        }
-
-        const data = await response.json();
-        if (data.user) {
-          const userData = {
-            userId: data.user.id,
-            email: data.user.email,
-            name: data.user.name,
-            picture: data.user.picture || ''
-          };
-
-          // Store in localStorage for next time
-          localStorage.setItem('authToken', 'session_' + Date.now());
-          localStorage.setItem('user', JSON.stringify(userData));
-          localStorage.setItem('loginTime', new Date().toISOString());
-
-          // Continue with authenticated flow
-          displayUserInfo(userData);
-          authCheckComplete = true;
-          loadRecordsFromServer();
-          console.log('✓ User authenticated via server session:', userData.email);
-        } else {
-          handleAuthenticationFailure('No authentication data found. Please log in.');
-        }
-      } catch (error) {
-        console.error('❌ Server session validation error:', error);
-        handleAuthenticationFailure('Unable to verify authentication. Please log in.');
-      }
-    }
-
-    /**
-     * Handle authentication failure
-     */
-    function handleAuthenticationFailure(message) {
-      console.warn('⚠️ Authentication check failed:', message);
-      
-      // Clear invalid auth data
-      clearAuthData();
-      
-      // Show message and redirect
-      showNotification(message, 'error', 3000);
-      setTimeout(() => { window.location.href = 'login.html'; }, AUTH_CONFIG.redirectDelay);
-    }
-
-    /**
-     * Display user information in header
-     */
-    function displayUserInfo(user) {
-      try {
-        const userName = document.getElementById('userName');
-        if (userName) {
-          userName.textContent = user.name || 'User';
-        }
-        console.log('✓ User info displayed');
-      } catch (error) {
-        console.error('Error displaying user info:', error);
-      }
-    }
-
-    /**
-     * Logout function
-     * Clears all authentication data and redirects to login
-     */
-    function logout() {
-      try {
-        console.log('🔓 Logging out...');
-        // Call server to clear session, then client cleanup
-        fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
-          clearAuthData();
-          showNotification('You have been logged out successfully.', 'success', 2000);
-          setTimeout(() => { window.location.href = 'login.html'; }, 700);
-        });
-      } catch (error) {
-        console.error('Logout error:', error);
-        // Force redirect even if error occurs
-        window.location.href = 'login.html';
-      }
-    }
-
-    /**
-     * Clear all authentication data
-     */
-    function clearAuthData() {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      localStorage.removeItem('loginTime');
-      localStorage.removeItem('isDemo');
-    }
-
-    /**
-     * Start monitoring session for expiration
-     */
-    function startSessionMonitor() {
-      sessionCheckInterval = setInterval(() => {
-        if (!authCheckComplete) return;
-
-        const loginTime = localStorage.getItem('loginTime');
-        if (!loginTime) return;
-
-        const loginDate = new Date(loginTime);
-        const sessionAge = Date.now() - loginDate.getTime();
-        const timeRemaining = AUTH_CONFIG.sessionTimeout - sessionAge;
-
-        // Warn user if session will expire soon
-        if (timeRemaining > 0 && timeRemaining < AUTH_CONFIG.sessionWarningTime) {
-          // Optional: Show warning
-          // console.warn(`⚠️ Session expires in ${Math.round(timeRemaining / 60000)} minutes`);
-        } else if (timeRemaining <= 0) {
-          // Session expired
-          handleAuthenticationFailure('Your session has expired. Please log in again.');
-        }
-      }, AUTH_CONFIG.checkInterval);
-    }
-
-    /**
-     * Stop monitoring session
-     */
-    function stopSessionMonitor() {
-      if (sessionCheckInterval) {
-        clearInterval(sessionCheckInterval);
-      }
-    }
-
-    // Make functions globally available
-    window.logout = logout;
-    window.isAuthenticated = () => localStorage.getItem('authToken') !== null;
-    window.getCurrentUser = () => {
-      const userStr = localStorage.getItem('user');
-      return userStr ? JSON.parse(userStr) : null;
-    };
-
-    // Notification helper
-    function showNotification(message, type = 'info', duration = 3000) {
-      let container = document.getElementById('notify');
-      if (!container) { container = document.createElement('div'); container.id = 'notify'; document.body.appendChild(container); }
-      const el = document.createElement('div'); el.className = 'note ' + type; el.innerHTML = '<div style="font-weight:700">' + message + '</div>';
-      container.appendChild(el);
-      requestAnimationFrame(() => el.classList.add('show'));
-      setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, duration);
-    }
-
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      stopSessionMonitor();
-    });
-
-    // ============================================
-    // CONSTANTS & CONFIG
-    // ============================================
-    let allRecords = [];
-    let filteredRecords = [];
-    let sortColumn = 0;
-    let sortAscending = false;
-
-    // ============================================
-    // DOM ELEMENTS
-    // ============================================
-    const monthFilter = document.getElementById('monthFilter') || { innerHTML: '' };
-    const recordsBody = document.getElementById('recordsBody') || { innerHTML: '' };
-    const exportBtn = document.getElementById('exportBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const statsGrid = document.getElementById('statsGrid');
-    const totalRecords = document.getElementById('totalRecords');
-    const totalRevenue = document.getElementById('totalRevenue');
-    const averageBill = document.getElementById('averageBill');
-    const totalUsage = document.getElementById('totalUsage');
-
-    // ============================================
-    // API FUNCTIONS
-    // ============================================
-
-    /**
-     * Get authorization header with token
-     */
-    function getAuthHeader() {
-      const token = localStorage.getItem('authToken');
-      return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-    }
-
-    /**
-     * Load records from authenticated API
-     */
-    async function loadRecordsFromServer() {
-      try {
-        const response = await fetch('/get-records', {
-          method: 'GET',
-          credentials: 'same-origin',
-          headers: getAuthHeader()
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to load records');
-        }
-
-        // Check if user is admin
-        const adminResponse = await fetch('/api/is-admin', {
-          method: 'GET',
-          credentials: 'same-origin',
-          headers: getAuthHeader()
-        });
-
-        const adminData = await adminResponse.json();
-        const isAdmin = adminData.isAdmin || false;
-
-        // Filter records: admins see all, users see only their own
-        let filteredData = data.records || [];
-        if (!isAdmin && data.currentUserId) {
-          filteredData = filteredData.filter(record => 
-            record.userId === data.currentUserId || 
-            record.email === data.currentUserEmail
-          );
-        }
-
-        allRecords = filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
-        populateMonthFilter();
-        filterByMonth('');
+        const resp = await fetch('/get-records', { credentials: 'same-origin' });
+        const data = await resp.json();
+        allRecords = data.records || [];
+        renderTable();
       } catch (err) {
-        console.error('Error loading records:', err);
-        recordsBody.innerHTML = `
-          <tr>
-            <td colspan="10" style="padding: 3rem;">
-              <div class="empty-state">
-                <div class="empty-state-icon">⚠️</div>
-                <div class="empty-state-text">Error loading records: ${err.message}</div>
-              </div>
-            </td>
-          </tr>
-        `;
+        console.error(err);
       }
     }
 
-    /**
-     * Delete record from server
-     */
-    async function deleteRecordFromServer(recordId) {
-      try {
-        const response = await fetch(`/delete-record/${recordId}`, {
-          method: 'DELETE',
-          credentials: 'same-origin',
-          headers: getAuthHeader()
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to delete record');
-        }
-
-        return true;
-      } catch (err) {
-        console.error('Error deleting record:', err);
-        showNotification(`Failed to delete record: ${err.message}`, 'error', 3000);
-        return false;
-      }
-    }
-
-    // ============================================
-    // UTILITY FUNCTIONS
-    // ============================================
-
-    /**
-     * Format currency
-     */
-    function formatCurrency(value) {
-      return Number(value).toLocaleString('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      });
-    }
-
-    /**
-     * Format date
-     */
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-
-    /**
-     * Get unique months from records
-     */
-    function getUniqueMonths() {
-      const months = new Set();
-      allRecords.forEach(record => {
-        const date = new Date(record.date);
-        const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        months.add(monthYear);
-      });
-      return Array.from(months).sort().reverse();
-    }
-
-    /**
-     * Populate month filter dropdown
-     */
-    function populateMonthFilter() {
-      if (!monthFilter || typeof monthFilter.appendChild !== 'function') return;
-      const months = getUniqueMonths();
-      monthFilter.innerHTML = '<option value="">All Records</option>';
-
-      months.forEach(month => {
-        const [year, monthNum] = month.split('-');
-        const monthName = new Date(year, monthNum - 1).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long'
-        });
-        const option = document.createElement('option');
-        option.value = month;
-        option.textContent = monthName;
-        monthFilter.appendChild(option);
-      });
-    }
-
-    /**
-     * Calculate statistics
-     */
-    function calculateStats(records) {
-      if (!statsGrid) return;
-      
-      if (records.length === 0) {
-        statsGrid.style.display = 'none';
-        return;
-      }
-
-      const total = records.reduce((sum, r) => sum + (r.total || 0), 0);
-      const usage = records.reduce((sum, r) => sum + (r.usage || 0), 0);
-      const average = records.length > 0 ? total / records.length : 0;
-
-      if (totalRecords) totalRecords.textContent = records.length;
-      if (totalRevenue) totalRevenue.textContent = 'TZS ' + formatCurrency(total);
-      if (averageBill) averageBill.textContent = 'TZS ' + formatCurrency(average);
-      if (totalUsage) totalUsage.textContent = usage + ' units';
-
-      statsGrid.style.display = 'grid';
-    }
-
-    /**
-     * Display records in table
-     */
-    function displayRecords(records) {
-      if (!recordsBody) return;
-      
-      if (records.length === 0) {
-        recordsBody.innerHTML = `
-          <tr>
-            <td colspan="10" style="padding: 3rem;">
-              <div class="empty-state">
-                <div class="empty-state-icon">📋</div>
-                <div class="empty-state-text">No records match your filter</div>
-              </div>
-            </td>
-          </tr>
-        `;
-        if (statsGrid) statsGrid.style.display = 'none';
-        if (exportBtn) exportBtn.disabled = true;
-        return;
-      }
-
-      recordsBody.innerHTML = records.map(record => `
+    function renderTable() {
+      const tbody = document.getElementById('recordsBody');
+      tbody.innerHTML = allRecords.map(record => `
         <tr>
-          <td class="action-cell">
-            <button class="btn-pay" onclick="openPaymentModal('${record._id || record.id}')">💵 PAY NOW</button>
-            <button class="btn-delete" onclick="deleteRecord('${record._id || record.id}')">❌ Delete</button>
-          </td>
-          <td>${formatDate(record.date)}</td>
-          <td>${record.customerName || record.name || '-'}</td>
-          <td>${record.phone || '-'}</td>
-          <td>${record.prev !== undefined ? record.prev : '-'}</td>
-          <td>${record.curr !== undefined ? record.curr : '-'}</td>
-          <td>${record.usage || 0}</td>
-          <td>TZS ${formatCurrency(record.rate || 0)}</td>
-          <td class="total-cell">TZS ${formatCurrency(record.outstandingBalance || record.total || 0)}</td>
-          <td class="notify-cell">
-            <button class="notify-icon" onclick="openNotificationModal('${record._id || record.id}')" title="Send notification">🔔</button>
+          <td>${new Date(record.date).toLocaleDateString('en-US')}</td>
+          <td>${record.name || record.customerName}</td>
+          <td>${record.phone}</td>
+          <td>${record.usage || (record.curr - record.prev)} units</td>
+          <td><strong>TZS ${Number(record.total).toLocaleString()}</strong></td>
+          <td><span style="color:\( {record.status === 'Paid' ? 'green' : 'orange'}"> \){record.status || 'Unpaid'}</span></td>
+          <td>
+            <button class="btn-pay" onclick="openPaymentModal('${record._id}')">Pay Now</button>
+            <button class="btn-notify" onclick="sendSMSNotification('${record._id}')">🔔 SMS</button>
+            \( {isAdmin ? `<button class="btn-delete" onclick="deleteRecord(' \){record._id}')">Delete</button>` : ''}
           </td>
         </tr>
       `).join('');
-
-      calculateStats(records);
-      if (exportBtn) exportBtn.disabled = false;
     }
 
-    /**
-     * Filter records by month
-     */
-    function filterByMonth(month) {
-      if (!month) {
-        filteredRecords = [...allRecords];
-      } else {
-        filteredRecords = allRecords.filter(r => {
-          const date = new Date(r.date);
-          const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-          return monthYear === month;
-        });
+    // ==================== PAY NOW ====================
+    let currentPayId = null;
+
+    function openPaymentModal(id) {
+      currentPayId = id;
+      const record = allRecords.find(r => r._id === id);
+      if (record) {
+        document.getElementById('payCustomer').textContent = `Customer: ${record.name}`;
+        document.getElementById('payAmount').textContent = Number(record.total).toLocaleString();
+        document.getElementById('paymentModal').classList.add('active');
       }
-      displayRecords(filteredRecords);
-    }
-
-    /**
-     * Sort table
-     */
-    function sortTable(column) {
-      sortColumn = column;
-      sortAscending = !sortAscending;
-
-      filteredRecords.sort((a, b) => {
-        let aVal, bVal;
-
-        switch (column) {
-          case 0: // Date
-            aVal = new Date(a.date);
-            bVal = new Date(b.date);
-            break;
-          case 1: // Name
-            aVal = a.name || '';
-            bVal = b.name || '';
-            break;
-          case 2: // Phone
-            aVal = a.phone || '';
-            bVal = b.phone || '';
-            break;
-          case 3: // Prev
-            aVal = a.prev || 0;
-            bVal = b.prev || 0;
-            break;
-          case 4: // Curr
-            aVal = a.curr || 0;
-            bVal = b.curr || 0;
-            break;
-          case 5: // Usage
-            aVal = a.usage || 0;
-            bVal = b.usage || 0;
-            break;
-          case 6: // Rate
-            aVal = a.rate || 0;
-            bVal = b.rate || 0;
-            break;
-          case 7: // Total
-            aVal = a.total || 0;
-            bVal = b.total || 0;
-            break;
-          default:
-            return 0;
-        }
-
-        if (typeof aVal === 'string') {
-          aVal = aVal.toLowerCase();
-          bVal = bVal.toLowerCase();
-          return sortAscending ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-        }
-
-        return sortAscending ? aVal - bVal : bVal - aVal;
-      });
-
-      displayRecords(filteredRecords);
-    }
-
-    /**
-     * Delete a record
-     */
-    async function deleteRecord(id) {
-      if (!confirm('Are you sure you want to delete this record?')) {
-        return;
-      }
-
-      const success = await deleteRecordFromServer(id);
-      if (success) {
-        allRecords = allRecords.filter(r => r.id !== id);
-        if (monthFilter && monthFilter.value !== undefined) {
-          monthFilter.value = '';
-          populateMonthFilter();
-        }
-        filterByMonth('');
-      }
-    }
-
-    /**
-     * Export to CSV
-     */
-    function exportToCSV() {
-      if (filteredRecords.length === 0) {
-        showNotification('No records to export', 'info', 2200);
-        return;
-      }
-
-      const headers = ['Date', 'Customer', 'Phone', 'Previous', 'Current', 'Usage', 'Rate', 'Fixed', 'Total'];
-      const rows = filteredRecords.map(r => [
-        formatDate(r.date),
-        r.name,
-        r.phone,
-        r.prev,
-        r.curr,
-        r.usage,
-        r.rate,
-        r.fixed,
-        r.total
-      ]);
-
-      let csv = headers.join(',') + '\n';
-      rows.forEach(row => {
-        csv += row.map(cell => `"${cell}"`).join(',') + '\n';
-      });
-
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `billing-records-${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    }
-
-    // ============================================
-    // EVENT LISTENERS
-    // ============================================
-
-    if (monthFilter && monthFilter.addEventListener) {
-      monthFilter.addEventListener('change', (e) => {
-        filterByMonth(e.target.value);
-      });
-    }
-
-    if (exportBtn) {
-      exportBtn.addEventListener('click', exportToCSV);
-    }
-
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        showNotification('To delete all records, please contact system administrator.', 'info', 3000);
-      });
-    }
-
-    console.log('Billing Records system initialized successfully');
-  </script>
-
-  <!-- PAYMENT MODAL -->
-  <div id="paymentModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>💳 Make Payment</h2>
-        <button class="modal-close" onclick="closePaymentModal()">&times;</button>
-      </div>
-      
-      <div class="form-group">
-        <label>Customer Name</label>
-        <input type="text" id="paymentCustomerName" readonly style="background: #f0f9ff; cursor: not-allowed;">
-      </div>
-
-      <div class="form-group">
-        <label>Amount Due (TZS)</label>
-        <input type="number" id="paymentAmount" readonly style="background: #f0f9ff; cursor: not-allowed;">
-      </div>
-
-      <div class="form-group">
-        <label>Billing Period</label>
-        <input type="text" id="paymentBillingPeriod" readonly style="background: #f0f9ff; cursor: not-allowed;">
-      </div>
-
-      <div class="form-group">
-        <label for="paymentMethod">Payment Method *</label>
-        <select id="paymentMethod" required>
-          <option value="">Select payment method...</option>
-          <option value="cash">💵 Cash Payment</option>
-          <option value="card">💳 Card (Visa/Mastercard)</option>
-          <option value="mobile_money">📱 Mobile Money (M-Pesa/Airtel)</option>
-          <option value="bank">🏦 Bank Transfer</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>
-          <input type="checkbox" id="sendNotification"> ✉️ Send me confirmation notification
-        </label>
-      </div>
-
-      <div class="modal-buttons">
-        <button class="btn-confirm" onclick="submitPayment()">Confirm Payment</button>
-        <button class="btn-cancel" onclick="closePaymentModal()">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- NOTIFICATION MODAL -->
-  <div id="notificationModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>🔔 Send Notification</h2>
-        <button class="modal-close" onclick="closeNotificationModal()">&times;</button>
-      </div>
-      
-      <div class="form-group">
-        <label>Notification Title *</label>
-        <input type="text" id="notificationTitle" placeholder="e.g., Payment Reminder, Bill Ready" required>
-      </div>
-
-      <div class="form-group">
-        <label>Message *</label>
-        <textarea id="notificationMessage" placeholder="Enter your message here..." style="width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 8px; font-family: 'Poppins', sans-serif; min-height: 100px;" required></textarea>
-      </div>
-
-      <div class="modal-buttons">
-        <button class="btn-confirm" onclick="submitNotification()">Send Notification</button>
-        <button class="btn-cancel" onclick="closeNotificationModal()">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- FLOAT CHAT WIDGET -->
-  <script src="/float-chat.js"></script>
-
-  <!-- PAYMENT & NOTIFICATION HANDLER SCRIPT -->
-  <script>
-    let currentPaymentRecord = null;
-
-    function openPaymentModal(recordId) {
-      const record = getRecordById(recordId);
-      if (!record) {
-        showNotification('Record not found', 'error');
-        return;
-      }
-
-      currentPaymentRecord = record;
-      document.getElementById('paymentCustomerName').value = record.customerName || 'N/A';
-      document.getElementById('paymentAmount').value = (record.outstandingBalance || 0).toFixed(2);
-      document.getElementById('paymentBillingPeriod').value = record.billingPeriod || 'N/A';
-      document.getElementById('paymentMethod').value = '';
-      document.getElementById('sendNotification').checked = false;
-
-      document.getElementById('paymentModal').classList.add('active');
     }
 
     function closePaymentModal() {
       document.getElementById('paymentModal').classList.remove('active');
-      currentPaymentRecord = null;
     }
 
-    function openNotificationModal(recordId) {
-      document.getElementById('notificationModal').classList.add('active');
-    }
-
-    function closeNotificationModal() {
-      document.getElementById('notificationModal').classList.remove('active');
-      document.getElementById('notificationTitle').value = '';
-      document.getElementById('notificationMessage').value = '';
-    }
-
-    function getRecordById(recordId) {
-      return records.find(r => r._id === recordId);
-    }
-
-    async function submitPayment() {
-      const method = document.getElementById('paymentMethod').value;
-      const sendNotif = document.getElementById('sendNotification').checked;
-
-      if (!method) {
-        showNotification('Please select a payment method', 'warning');
-        return;
-      }
-
-      if (!currentPaymentRecord) {
-        showNotification('No record selected', 'error');
-        return;
-      }
+    async function confirmPayment() {
+      if (!currentPayId) return;
 
       try {
-        const response = await fetch('/save-payment', {
+        await fetch('/mark-paid', {
           method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recordId: currentPayId })
+        });
+
+        showNotification("Payment recorded successfully!", "success");
+        closePaymentModal();
+        loadRecords(); // Refresh table
+      } catch (e) {
+        showNotification("Payment failed", "error");
+      }
+    }
+
+    // ==================== SMS NOTIFICATION ====================
+    async function sendSMSNotification(id) {
+      const record = allRecords.find(r => r._id === id);
+      if (!record || !record.phone) {
+        showNotification("Phone number not found", "error");
+        return;
+      }
+
+      const message = `Hello ${record.name}, your water bill of TZS ${Number(record.total).toLocaleString()} is due. Please pay soon. Thank you!`;
+
+      try {
+        await fetch('/send-sms', {
+          method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            recordId: currentPaymentRecord._id,
-            amount: currentPaymentRecord.outstandingBalance,
-            method: method,
-            timestamp: new Date()
+            phone: record.phone,
+            message: message
           })
         });
 
-        if (response.ok) {
-          showNotification('✅ Payment recorded successfully!', 'success', 3000);
-          closePaymentModal();
-          
-          if (sendNotif) {
-            await fetch('/send-notification', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                title: '💰 Payment Confirmed',
-                message: `Your payment of TZS ${currentPaymentRecord.outstandingBalance} via ${method} has been recorded.`,
-                type: 'payment_confirmation'
-              })
-            });
-          }
-
-          // Refresh records
-          await loadRecords();
-        } else {
-          showNotification('Failed to record payment', 'error');
-        }
-      } catch (error) {
-        console.error('Payment error:', error);
-        showNotification('Error processing payment', 'error');
+        showNotification(`SMS sent to ${record.phone}`, "success");
+      } catch (e) {
+        showNotification("Failed to send SMS", "error");
       }
     }
 
-    async function submitNotification() {
-      const title = document.getElementById('notificationTitle').value;
-      const message = document.getElementById('notificationMessage').value;
-
-      if (!title || !message) {
-        showNotification('Please fill in all notification fields', 'warning');
+    // ==================== DELETE (Admin Only) ====================
+    async function deleteRecord(id) {
+      if (!isAdmin) {
+        showNotification("Only Admin can delete records", "error");
         return;
       }
+      if (!confirm("Delete this record permanently?")) return;
 
       try {
-        const response = await fetch('/send-notification', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: title,
-            message: message,
-            type: 'general'
-          })
-        });
-
-        if (response.ok) {
-          showNotification('✅ Notification sent successfully!', 'success', 2000);
-          closeNotificationModal();
-        } else {
-          showNotification('Failed to send notification', 'error');
-        }
-      } catch (error) {
-        console.error('Notification error:', error);
-        showNotification('Error sending notification', 'error');
+        await fetch(`/delete-record/${id}`, { method: 'DELETE', credentials: 'same-origin' });
+        showNotification("Record deleted", "success");
+        loadRecords();
+      } catch (e) {
+        showNotification("Delete failed", "error");
       }
     }
 
-    // Close modals when clicking outside
-    window.addEventListener('click', (e) => {
-      const paymentModal = document.getElementById('paymentModal');
-      const notificationModal = document.getElementById('notificationModal');
-      
-      if (e.target === paymentModal) closePaymentModal();
-      if (e.target === notificationModal) closeNotificationModal();
-    });
+    function showNotification(msg, type = "info") {
+      alert(msg); // Unaweza kubadilisha baadaye kuwa notification nzuri
+    }
+
+    // Mobile Menu
+    function initMobileMenu() {
+      const hamburger = document.getElementById('hamburgerBtn');
+      const navLinks = document.getElementById('navLinks');
+      hamburger.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        hamburger.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
+      });
+    }
+
+    window.logout = () => {
+      fetch('/logout', { credentials: 'same-origin' }).finally(() => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      });
+    };
   </script>
 </body>
 </html>
