@@ -30,7 +30,6 @@
       color: #0f172a;
     }
 
-    /* Navbar */
     .navbar {
       display: flex;
       justify-content: space-between;
@@ -100,38 +99,20 @@
       font-weight: 700;
     }
 
-    tr:hover {
-      background-color: #f0f9ff;
-    }
+    tr:hover { background-color: #f0f9ff; }
 
-    .btn-delete {
-      background: #ef4444;
-      color: white;
-      border: none;
-      padding: 0.4rem 0.8rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-
-    .btn-pay {
-      background: linear-gradient(135deg, #059669, #047857);
-      color: white;
-      border: none;
+    .btn-pay, .btn-notify, .btn-delete {
       padding: 0.5rem 1rem;
+      border: none;
       border-radius: 6px;
       cursor: pointer;
-      font-weight: 700;
+      font-weight: 600;
+      margin-right: 5px;
     }
 
-    .btn-notify {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 0.5rem 0.9rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+    .btn-pay { background: #059669; color: white; }
+    .btn-notify { background: #3b82f6; color: white; }
+    .btn-delete { background: #ef4444; color: white; }
 
     .modal {
       display: none;
@@ -143,7 +124,6 @@
       align-items: center;
       justify-content: center;
     }
-
     .modal.active { display: flex; }
 
     .modal-content {
@@ -151,7 +131,7 @@
       padding: 2rem;
       border-radius: 16px;
       width: 90%;
-      max-width: 500px;
+      max-width: 480px;
     }
 
     /* Footer */
@@ -187,11 +167,9 @@
 </head>
 <body>
 
-  <!-- Navbar -->
   <nav class="navbar">
     <a href="index.html" class="navbar-logo">💧 Water Billing</a>
     <button class="hamburger" id="hamburgerBtn">☰</button>
-    
     <ul class="navbar-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="main.html">Calculator</a></li>
@@ -202,12 +180,11 @@
 
   <div class="container">
     <h1>📊 Billing Records History</h1>
-
-    <div style="margin-bottom: 1.5rem; text-align: right;">
-      <span id="userName" style="font-weight: 600; color: #2563eb;">Loading...</span>
+    <div style="text-align:right; margin-bottom:1rem;">
+      <strong id="userName">Loading...</strong>
     </div>
 
-    <div class="table-wrapper" style="overflow-x:auto;">
+    <div style="overflow-x:auto;">
       <table id="recordsTable">
         <thead>
           <tr>
@@ -228,18 +205,18 @@
   <!-- Payment Modal -->
   <div id="paymentModal" class="modal">
     <div class="modal-content">
-      <h2>💳 Make Payment</h2>
-      <p id="payCustomer"></p>
-      <p><strong>Amount Due: TZS <span id="payAmount"></span></strong></p>
+      <h2>💳 Record Payment</h2>
+      <p id="payCustomer" style="font-weight:600;"></p>
+      <p>Amount: <strong>TZS <span id="payAmount"></span></strong></p>
       
-      <select id="paymentMethod" style="width:100%; padding:1rem; margin:1rem 0; border-radius:8px;">
-        <option value="">Select Payment Method</option>
+      <select id="paymentMethod" style="width:100%; padding:1rem; margin:15px 0; border-radius:8px;">
+        <option value="">Choose Payment Method</option>
         <option value="cash">Cash</option>
-        <option value="mobile">Mobile Money</option>
+        <option value="mobile_money">Mobile Money</option>
         <option value="bank">Bank Transfer</option>
       </select>
 
-      <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+      <div style="display:flex; gap:10px; margin-top:20px;">
         <button onclick="confirmPayment()" style="flex:1; padding:1rem; background:#059669; color:white; border:none; border-radius:8px;">Confirm Payment</button>
         <button onclick="closePaymentModal()" style="flex:1; padding:1rem; background:#64748b; color:white; border:none; border-radius:8px;">Cancel</button>
       </div>
@@ -269,7 +246,7 @@
         <a href="records.html">My Records</a>
       </div>
     </div>
-    <div style="text-align:center; padding:1rem; border-top:1px solid #1e293b;">
+    <div style="text-align:center; padding:1rem; border-top:1px solid #1e293b; font-size:0.9rem;">
       © 2026 Water Billing System | Built by Mickey Hamza ❤️
     </div>
   </footer>
@@ -277,72 +254,86 @@
   <script>
     let allRecords = [];
     let isAdmin = false;
+    let currentPaymentId = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       checkAuthentication();
       initMobileMenu();
     });
 
+    // ===================== AUTH & DATA FETCHING =====================
     async function checkAuthentication() {
       try {
         const resp = await fetch('/api/me', { credentials: 'same-origin' });
-        if (!resp.ok) throw new Error("Not logged in");
+        if (!resp.ok) throw new Error("Not authenticated");
 
         const data = await resp.json();
         const user = data.user || data;
+        document.getElementById('userName').textContent = user.name || user.email || "User";
 
-        document.getElementById('userName').textContent = user.name || 'User';
+        // Check if Admin
+        const adminResp = await fetch('/api/is-admin', { credentials: 'same-origin' });
+        if (adminResp.ok) {
+          const adminData = await adminResp.json();
+          isAdmin = adminData.isAdmin || false;
+        }
 
-        // Check if admin
-        const adminCheck = await fetch('/api/is-admin', { credentials: 'same-origin' });
-        const adminData = await adminCheck.json();
-        isAdmin = adminData.isAdmin || false;
-
-        loadRecords();
+        loadRecordsFromServer();
       } catch (e) {
-        setTimeout(() => window.location.href = 'login.html', 1000);
+        console.error(e);
+        setTimeout(() => window.location.href = 'login.html', 1500);
       }
     }
 
-    async function loadRecords() {
+    async function loadRecordsFromServer() {
       try {
-        const resp = await fetch('/get-records', { credentials: 'same-origin' });
+        const resp = await fetch('/get-records', { 
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!resp.ok) throw new Error("Failed to load records");
+
         const data = await resp.json();
-        allRecords = data.records || [];
-        renderTable();
+        allRecords = Array.isArray(data.records) ? data.records : data;
+        renderRecords();
       } catch (err) {
-        console.error(err);
+        console.error("Error loading records:", err);
+        document.getElementById('recordsBody').innerHTML = `
+          <tr><td colspan="7" style="text-align:center; padding:3rem; color:red;">
+            Failed to load records from database. Please try again.
+          </td></tr>`;
       }
     }
 
-    function renderTable() {
+    function renderRecords() {
       const tbody = document.getElementById('recordsBody');
-      tbody.innerHTML = allRecords.map(record => `
+      tbody.innerHTML = allRecords.map(r => `
         <tr>
-          <td>${new Date(record.date).toLocaleDateString('en-US')}</td>
-          <td>${record.name || record.customerName}</td>
-          <td>${record.phone}</td>
-          <td>${record.usage || (record.curr - record.prev)} units</td>
-          <td><strong>TZS ${Number(record.total).toLocaleString()}</strong></td>
-          <td><span style="color:\( {record.status === 'Paid' ? 'green' : 'orange'}"> \){record.status || 'Unpaid'}</span></td>
+          <td>${new Date(r.date).toLocaleDateString('en-US')}</td>
+          <td>${r.name || r.customerName || '-'}</td>
+          <td>${r.phone || '-'}</td>
+          <td>${r.usage || (r.curr - r.prev) || 0} units</td>
+          <td><strong>TZS ${Number(r.total || 0).toLocaleString()}</strong></td>
+          <td style="color: ${r.status === 'Paid' ? 'green' : 'orange'}">
+            ${r.status || 'Unpaid'}
+          </td>
           <td>
-            <button class="btn-pay" onclick="openPaymentModal('${record._id}')">Pay Now</button>
-            <button class="btn-notify" onclick="sendSMSNotification('${record._id}')">🔔 SMS</button>
-            \( {isAdmin ? `<button class="btn-delete" onclick="deleteRecord(' \){record._id}')">Delete</button>` : ''}
+            <button class="btn-pay" onclick="openPaymentModal('${r._id || r.id}')">Pay Now</button>
+            <button class="btn-notify" onclick="sendSMS('${r._id || r.id}')">🔔 SMS</button>
+            \( {isAdmin ? `<button class="btn-delete" onclick="deleteRecord(' \){r._id || r.id}')">Delete</button>` : ''}
           </td>
         </tr>
       `).join('');
     }
 
-    // ==================== PAY NOW ====================
-    let currentPayId = null;
-
+    // ===================== PAYMENT =====================
     function openPaymentModal(id) {
-      currentPayId = id;
-      const record = allRecords.find(r => r._id === id);
+      currentPaymentId = id;
+      const record = allRecords.find(r => (r._id || r.id) === id);
       if (record) {
-        document.getElementById('payCustomer').textContent = `Customer: ${record.name}`;
-        document.getElementById('payAmount').textContent = Number(record.total).toLocaleString();
+        document.getElementById('payCustomer').textContent = `Customer: ${record.name || record.customerName}`;
+        document.getElementById('payAmount').textContent = Number(record.total || 0).toLocaleString();
         document.getElementById('paymentModal').classList.add('active');
       }
     }
@@ -352,79 +343,78 @@
     }
 
     async function confirmPayment() {
-      if (!currentPayId) return;
+      if (!currentPaymentId) return;
 
       try {
         await fetch('/mark-paid', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ recordId: currentPayId })
+          body: JSON.stringify({ recordId: currentPaymentId })
         });
 
         showNotification("Payment recorded successfully!", "success");
         closePaymentModal();
-        loadRecords(); // Refresh table
+        loadRecordsFromServer();
       } catch (e) {
-        showNotification("Payment failed", "error");
+        showNotification("Failed to record payment", "error");
       }
     }
 
-    // ==================== SMS NOTIFICATION ====================
-    async function sendSMSNotification(id) {
-      const record = allRecords.find(r => r._id === id);
+    // ===================== SMS NOTIFICATION =====================
+    async function sendSMS(id) {
+      const record = allRecords.find(r => (r._id || r.id) === id);
       if (!record || !record.phone) {
-        showNotification("Phone number not found", "error");
+        showNotification("Phone number not available", "error");
         return;
       }
 
-      const message = `Hello ${record.name}, your water bill of TZS ${Number(record.total).toLocaleString()} is due. Please pay soon. Thank you!`;
+      const message = `Mheshimiwa ${record.name || 'Customer'}, Bill yako ya maji ni TZS ${Number(record.total).toLocaleString()}. Tafadhali lipa ili kuepuka kukatwa. Asante!`;
 
       try {
         await fetch('/send-sms', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phone: record.phone,
-            message: message
-          })
+          body: JSON.stringify({ phone: record.phone, message: message })
         });
-
         showNotification(`SMS sent to ${record.phone}`, "success");
       } catch (e) {
         showNotification("Failed to send SMS", "error");
       }
     }
 
-    // ==================== DELETE (Admin Only) ====================
+    // ===================== DELETE (Admin Only) =====================
     async function deleteRecord(id) {
       if (!isAdmin) {
-        showNotification("Only Admin can delete records", "error");
+        showNotification("Only Administrator can delete records!", "error");
         return;
       }
-      if (!confirm("Delete this record permanently?")) return;
+      if (!confirm("Are you sure you want to permanently delete this record?")) return;
 
       try {
-        await fetch(`/delete-record/${id}`, { method: 'DELETE', credentials: 'same-origin' });
-        showNotification("Record deleted", "success");
-        loadRecords();
+        await fetch(`/delete-record/${id}`, { 
+          method: 'DELETE', 
+          credentials: 'same-origin' 
+        });
+        showNotification("Record deleted successfully", "success");
+        loadRecordsFromServer();
       } catch (e) {
-        showNotification("Delete failed", "error");
+        showNotification("Failed to delete record", "error");
       }
     }
 
     function showNotification(msg, type = "info") {
-      alert(msg); // Unaweza kubadilisha baadaye kuwa notification nzuri
+      alert(msg);   // Unaweza kubadilisha baadaye kuwa notification nzuri zaidi
     }
 
     // Mobile Menu
     function initMobileMenu() {
-      const hamburger = document.getElementById('hamburgerBtn');
-      const navLinks = document.getElementById('navLinks');
-      hamburger.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
-        hamburger.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
+      const ham = document.getElementById('hamburgerBtn');
+      const links = document.getElementById('navLinks');
+      ham.addEventListener('click', () => {
+        links.classList.toggle('active');
+        ham.textContent = links.classList.contains('active') ? '✕' : '☰';
       });
     }
 
