@@ -4,134 +4,207 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Billing Records</title>
+
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Poppins',sans-serif; background:linear-gradient(135deg,#1e3a8a,#1e40af,#06b6d4); min-height:100vh; padding:10px; }
-    .navbar { background:linear-gradient(135deg,#2563eb,#06b6d4); color:white; padding:1rem; border-radius:12px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; }
-    .hamburger { background:none; border:none; font-size:1.8rem; color:white; cursor:pointer; }
-    .container { background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); max-width:1200px; margin:0 auto; padding:2rem; border-radius:16px; box-shadow:0 12px 32px rgba(0,0,0,0.15); }
+
+    body {
+      font-family:'Poppins',sans-serif;
+      background:linear-gradient(135deg,#1e3a8a,#1e40af,#06b6d4);
+      min-height:100vh;
+      padding:10px;
+    }
+
+    .navbar {
+      background:linear-gradient(135deg,#2563eb,#06b6d4);
+      color:white;
+      padding:1rem;
+      border-radius:12px;
+      margin-bottom:20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .container {
+      background:rgba(255,255,255,0.95);
+      backdrop-filter:blur(10px);
+      max-width:1200px;
+      margin:0 auto;
+      padding:2rem;
+      border-radius:16px;
+      box-shadow:0 12px 32px rgba(0,0,0,0.15);
+    }
+
     table { width:100%; border-collapse:collapse; }
-    th, td { padding:1rem; text-align:left; border-bottom:1px solid #e2e8f0; }
-    th { background:linear-gradient(135deg,#2563eb,#06b6d4); color:white; }
+
+    th, td {
+      padding:1rem;
+      text-align:left;
+      border-bottom:1px solid #e2e8f0;
+    }
+
+    th {
+      background:linear-gradient(135deg,#2563eb,#06b6d4);
+      color:white;
+    }
+
     tr:hover { background:#f0f9ff; }
-    .btn { padding:0.5rem 1rem; border:none; border-radius:6px; cursor:pointer; margin-right:5px; }
+
+    .btn {
+      padding:0.4rem 0.8rem;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      margin-right:5px;
+      font-size:0.8rem;
+    }
+
     .btn-pay { background:#059669; color:white; }
     .btn-sms { background:#3b82f6; color:white; }
     .btn-delete { background:#ef4444; color:white; }
   </style>
 </head>
+
 <body>
 
-  <nav class="navbar">
-    <a href="index.html" style="font-size:1.5rem;font-weight:800;color:white;text-decoration:none;">💧 Water Billing</a>
-    <button class="hamburger" id="hamburgerBtn">☰</button>
-  </nav>
+<nav class="navbar">
+  <a href="index.html" style="font-size:1.5rem;font-weight:800;color:white;text-decoration:none;">
+    💧 Water Billing
+  </a>
+</nav>
 
-  <div class="container">
-    <h1 style="text-align:center;margin-bottom:1.5rem;">📊 Billing Records History</h1>
-    <div style="text-align:right;margin-bottom:1rem;"><strong id="userName">Loading user...</strong></div>
-
-    <div style="overflow-x:auto;">
-      <table id="recordsTable">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Customer</th>
-            <th>Phone</th>
-            <th>Usage</th>
-            <th>Total (TZS)</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="recordsBody"></tbody>
-      </table>
-    </div>
+<div class="container">
+  <h1 style="text-align:center;margin-bottom:1.5rem;">📊 Billing Records History</h1>
+  <div style="text-align:right;margin-bottom:1rem;">
+    <strong id="userName">Loading...</strong>
   </div>
 
-  <script>
-    let allRecords = [];
-    let isAdmin = false;
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Usage</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="recordsBody"></tbody>
+    </table>
+  </div>
+</div>
 
-    window.addEventListener('DOMContentLoaded', () => {
-      checkAuth();
-      initMenu();
+<script>
+let allRecords = [];
+let isAdmin = false;
+
+window.addEventListener('DOMContentLoaded', () => {
+  checkAuth();
+});
+
+async function checkAuth() {
+  try {
+    const res = await fetch('/api/me', { credentials: 'same-origin' });
+
+    if (!res.ok) throw new Error();
+
+    const data = await res.json();
+    document.getElementById('userName').textContent =
+      data.user.name || data.user.email;
+
+    const adminRes = await fetch('/api/is-admin', { credentials: 'same-origin' });
+    const adminData = await adminRes.json();
+    isAdmin = adminData.isAdmin || false;
+
+    loadRecords();
+
+  } catch(e) {
+    window.location.href = 'login.html';
+  }
+}
+
+async function loadRecords() {
+  try {
+    const res = await fetch('/get-records', {
+      credentials: 'same-origin'
     });
 
-    async function checkAuth() {
-      try {
-        const res = await fetch('/api/me', { credentials: 'same-origin' });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        document.getElementById('userName').textContent = data.user.name || data.user.email;
-
-        // Check admin
-        const adminRes = await fetch('/api/is-admin', { credentials: 'same-origin' });
-        const adminData = await adminRes.json();
-        isAdmin = adminData.isAdmin || false;
-
-        loadRecords();
-      } catch(e) {
-        window.location.href = 'login.html';
-      }
+    if (!res.ok) {
+      console.error("API error:", res.status);
+      return;
     }
 
-    async function loadRecords() {
-      try {
-        const res = await fetch('/get-records', { credentials: 'same-origin' });
-        const data = await res.json();
-        allRecords = data.records || [];
-        renderTable();
-      } catch(e) {
-        console.error(e);
-      }
-    }
+    const data = await res.json();
+    allRecords = data.records || [];
 
-    function renderTable() {
-      const tbody = document.getElementById('recordsBody');
-      tbody.innerHTML = allRecords.map(r => `
-        <tr>
-          <td>${new Date(r.date).toLocaleDateString('en-US')}</td>
-          <td>${r.name}</td>
-          <td>${r.phone}</td>
-          <td>${r.usage} units</td>
-          <td><strong>TZS ${Number(r.total).toLocaleString()}</strong></td>
-          <td style="color:\( {r.status==='Paid'?'green':'orange'}"> \){r.status || 'Unpaid'}</td>
-          <td>
-            <button class="btn btn-pay" onclick="payNow('${r.id || r._id}')">Pay Now</button>
-            <button class="btn btn-sms" onclick="sendSMS('\( {r.phone}', ' \){r.name}', ${r.total})">SMS</button>
-            \( {isAdmin ? `<button class="btn btn-delete" onclick="deleteRecord(' \){r.id || r._id}')">Delete</button>` : ''}
-          </td>
-        </tr>
-      `).join('');
-    }
+    renderTable();
 
-    function payNow(id) {
-      alert("Payment recorded (demo). In full version this will call /save-payment");
-      // You can later connect to /save-payment if you want
-      loadRecords();
-    }
+  } catch(e) {
+    console.error("Load error:", e);
+  }
+}
 
-    function sendSMS(phone, name, total) {
-      const msg = `Mheshimiwa ${name}, Bill yako ya maji ni TZS ${Number(total).toLocaleString()}. Tafadhali lipa. Asante!`;
-      window.open(`sms:\( {phone}?body= \){encodeURIComponent(msg)}`, '_self');
-    }
+function renderTable() {
+  const tbody = document.getElementById('recordsBody');
 
-    async function deleteRecord(id) {
-      if (!isAdmin) return alert("Admin only!");
-      if (!confirm("Delete this record permanently?")) return;
-      // Server yako haina /delete-record bado, so just alert for now
-      alert("Record deleted (demo). Add delete route in server.js if needed.");
-      loadRecords();
-    }
+  if (allRecords.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center;">
+          No records found
+        </td>
+      </tr>
+    `;
+    return;
+  }
 
-    function initMenu() {
-      document.getElementById('hamburgerBtn').addEventListener('click', () => {
-        alert("Full menu coming soon");
-      });
-    }
-  </script>
+  tbody.innerHTML = allRecords.map(r => {
+    const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-';
+    const status = r.status || 'Unpaid';
+    const color = status === 'Paid' ? 'green' : 'orange';
+
+    return `
+      <tr>
+        <td>${date}</td>
+        <td>${r.name}</td>
+        <td>${r.phone}</td>
+        <td>${r.usage} units</td>
+        <td><strong>TZS ${Number(r.total).toLocaleString()}</strong></td>
+        <td style="color:${color}; font-weight:bold;">${status}</td>
+        <td>
+          <button class="btn btn-pay" onclick="payNow('${r._id}')">Pay</button>
+          <button class="btn btn-sms" onclick="sendSMS('${r.phone}','${r.name}',${r.total})">SMS</button>
+          ${isAdmin ? `<button class="btn btn-delete" onclick="deleteRecord('${r._id}')">Delete</button>` : ''}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function payNow(id) {
+  alert("Payment feature coming soon");
+}
+
+function sendSMS(phone, name, total) {
+  const msg = `Mheshimiwa ${name}, bill yako ni TZS ${Number(total).toLocaleString()}`;
+  window.location.href = `sms:${phone}?body=${encodeURIComponent(msg)}`;
+}
+
+function deleteRecord(id) {
+  if (!isAdmin) return alert("Admin only");
+
+  if (!confirm("Delete this record?")) return;
+
+  alert("Delete route haijawekwa bado server");
+}
+</script>
+
 </body>
 </html>
