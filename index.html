@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Dashboard - Mickey Water Billing System">
-  <meta name="author" content="Mickey Hamza">
+  <meta name="description" content="Water Billing System Dashboard">
   <title>Dashboard - Water Billing System</title>
 
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
@@ -14,8 +13,8 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     :root {
-      --primary-color: #2563eb;
-      --secondary-color: #06b6d4;
+      --primary: #2563eb;
+      --secondary: #06b6d4;
     }
 
     body {
@@ -54,74 +53,74 @@
       flex-direction: column;
       gap: 1rem;
       border-radius: 0 0 12px 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .navbar-links.active { display: flex; }
 
     .dashboard {
       background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
       border-radius: 16px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-      padding: 1.5rem;
-      max-width: 600px;
-      width: 100%;
+      padding: 2rem;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+      max-width: 800px;
       margin: 0 auto;
     }
 
     h1 {
-      font-size: 1.8rem;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      text-align: center;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
     }
 
-    .subtitle { color: #475569; margin-bottom: 1.5rem; }
+    .subtitle { text-align: center; color: #475569; margin-bottom: 2rem; }
 
     .status-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-      margin-bottom: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2.5rem;
     }
 
     .status-box {
-      background: linear-gradient(135deg, rgba(30,64,175,0.05), rgba(14,165,233,0.05));
-      border: 2px solid #2563eb;
+      background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(6,182,212,0.08));
+      border: 2px solid var(--primary);
       border-radius: 12px;
-      padding: 1.2rem;
+      padding: 1.5rem;
       text-align: center;
     }
 
-    .status-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .status-icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
     .status-label { font-size: 0.85rem; text-transform: uppercase; font-weight: 600; color: #475569; }
-    .status-value { font-size: 1.4rem; font-weight: 700; color: #2563eb; }
+    .status-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
 
     .button-grid {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 1rem;
     }
 
     .btn {
       padding: 1rem;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-weight: 700;
-      font-size: 1rem;
+      color: white;
       cursor: pointer;
       text-decoration: none;
       text-align: center;
-      display: block;
     }
 
-    .btn-primary { background: linear-gradient(135deg, #2563eb, #06b6d4); color: white; }
-    .btn-success { background: linear-gradient(135deg, #059669, #047857); color: white; }
+    .btn-primary { background: linear-gradient(135deg, #2563eb, #06b6d4); }
+    .btn-success { background: linear-gradient(135deg, #059669, #047857); }
 
-    /* Footer kama picha yako */
+    /* Footer */
     .main-footer {
       background: #0f172a;
       color: #cbd5e1;
-      margin-top: 2.5rem;
+      margin-top: 3rem;
       border-radius: 12px;
       overflow: hidden;
     }
@@ -133,10 +132,7 @@
       padding: 2rem;
     }
 
-    .footer-column h4 {
-      color: white;
-      margin-bottom: 1rem;
-    }
+    .footer-column h4 { color: white; margin-bottom: 1rem; }
 
     .footer-column a {
       display: block;
@@ -145,14 +141,8 @@
       margin-bottom: 0.6rem;
     }
 
-    .footer-bottom {
-      text-align: center;
-      padding: 1rem;
-      border-top: 1px solid #1e293b;
-      font-size: 0.85rem;
-    }
-
     @media (max-width: 480px) {
+      .status-grid { grid-template-columns: 1fr; }
       .footer-content { grid-template-columns: 1fr; text-align: center; }
     }
   </style>
@@ -172,18 +162,13 @@
     </ul>
   </nav>
 
-  <div class="dashboard" id="dashboard">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
-      <div>
-        <h1>💧 Water Billing System</h1>
-        <p class="subtitle">Management Dashboard</p>
-      </div>
-      <div>
-        <button onclick="logout()" style="padding: 0.6rem 1.2rem; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 600;">Logout</button>
-      </div>
-    </div>
+  <div class="dashboard">
+    <h1>💧 Water Billing System</h1>
+    <p class="subtitle">Management Dashboard</p>
 
-    <!-- Status Grid -->
+    <div id="userInfo" style="text-align:center; margin-bottom:1.5rem; font-weight:600; color:var(--primary);"></div>
+
+    <!-- Stats -->
     <div class="status-grid">
       <div class="status-box">
         <div class="status-icon">📋</div>
@@ -207,21 +192,11 @@
       </div>
     </div>
 
-    <!-- Quick Guide -->
-    <div style="background: rgba(16,185,129,0.08); border: 1px solid #86efac; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-      <h3 style="color:#059669; margin-bottom:1rem;">📌 Quick Guide</h3>
-      <ul style="list-style:none; padding:0;">
-        <li style="padding:0.4rem 0;">✓ Create and calculate water bills</li>
-        <li style="padding:0.4rem 0;">✓ Send bills via SMS directly</li>
-        <li style="padding:0.4rem 0;">✓ View complete billing history</li>
-        <li style="padding:0.4rem 0;">✓ Generate monthly reports</li>
-      </ul>
-    </div>
-
+    <!-- Quick Actions -->
     <div class="button-grid">
-      <a href="main.html" class="btn btn-primary">📝 Create Bill</a>
-      <a href="records.html" class="btn btn-success">📊 View History</a>
-      <button class="btn btn-primary" onclick="refreshStats()">🔄 Refresh Stats</button>
+      <a href="main.html" class="btn btn-primary">📝 Create New Bill</a>
+      <a href="records.html" class="btn btn-success">📊 View All Records</a>
+      <button onclick="refreshDashboard()" class="btn btn-primary">🔄 Refresh</button>
     </div>
   </div>
 
@@ -248,16 +223,13 @@
         <a href="records.html">My Records</a>
       </div>
     </div>
-    <div class="footer-bottom">
+    <div style="text-align:center; padding:1rem; border-top:1px solid #1e293b; font-size:0.85rem;">
       © 2026 Water Billing System | Built by Mickey Hamza ❤️
     </div>
   </footer>
 
   <script>
-    // ====================== BACKEND FUNCTIONS (MongoDB) ======================
-    const AUTH_CONFIG = {
-      redirectDelay: 1500
-    };
+    let isAdmin = false;
 
     window.addEventListener('DOMContentLoaded', () => {
       checkAuthentication();
@@ -267,72 +239,66 @@
     async function checkAuthentication() {
       try {
         const resp = await fetch('/api/me', { credentials: 'same-origin' });
-        
-        if (!resp.ok) {
-          showNotification("Please log in to continue", "error");
-          setTimeout(() => window.location.href = 'login.html', AUTH_CONFIG.redirectDelay);
-          return;
-        }
+        if (!resp.ok) throw new Error();
 
         const data = await resp.json();
         const user = data.user || data;
+        document.getElementById('userInfo').textContent = `Welcome back, ${user.name || 'User'}!`;
 
-        if (user && user.name) {
-          document.getElementById('userName') ? document.getElementById('userName').textContent = user.name : null;
-          loadStatsFromServer();
-        } else {
-          window.location.href = 'login.html';
+        // Check if admin
+        const adminResp = await fetch('/api/is-admin', { credentials: 'same-origin' });
+        if (adminResp.ok) {
+          const adminData = await adminResp.json();
+          isAdmin = adminData.isAdmin || false;
         }
-      } catch (err) {
-        console.error(err);
-        showNotification("Connection error. Please try again.", "error");
-      }
-    }
 
-    async function loadStatsFromServer() {
-      try {
-        // Hii inaweza kubadilishwa kulingana na API yako
-        const resp = await fetch('/api/stats', { credentials: 'same-origin' });
-        if (resp.ok) {
-          const stats = await resp.json();
-          
-          document.getElementById('totalBills').textContent = stats.totalBills || 0;
-          document.getElementById('totalRevenue').textContent = `TZS ${stats.totalRevenue?.toLocaleString() || 0}`;
-          document.getElementById('avgBill').textContent = `TZS ${stats.avgBill?.toLocaleString() || 0}`;
-          document.getElementById('totalUsage').textContent = `${stats.totalUsage || 0} units`;
-        }
+        loadDashboardStats();
       } catch (e) {
-        console.log("Stats loading failed (using demo data)");
+        window.location.href = 'login.html';
       }
     }
 
-    function logout() {
-      fetch('/api/logout', { method: 'POST', credentials: 'same-origin' })
-        .then(() => {
-          localStorage.clear();
-          window.location.href = 'login.html';
-        });
+    async function loadDashboardStats() {
+      try {
+        const resp = await fetch('/get-records', { credentials: 'same-origin' });
+        const data = await resp.json();
+        const records = data.records || [];
+
+        let totalBills = records.length;
+        let totalRevenue = records.reduce((sum, r) => sum + (r.total || 0), 0);
+        let totalUsage = records.reduce((sum, r) => sum + (r.usage || 0), 0);
+        let avgBill = totalBills > 0 ? (totalRevenue / totalBills) : 0;
+
+        document.getElementById('totalBills').textContent = totalBills;
+        document.getElementById('totalRevenue').textContent = `TZS ${totalRevenue.toLocaleString()}`;
+        document.getElementById('avgBill').textContent = `TZS ${avgBill.toLocaleString()}`;
+        document.getElementById('totalUsage').textContent = `${totalUsage} units`;
+      } catch (e) {
+        console.log("Could not load stats");
+      }
     }
 
-    function refreshStats() {
-      loadStatsFromServer();
-      alert("✅ Statistics refreshed from database");
-    }
-
-    function showNotification(msg, type = "info") {
-      alert(msg); // Unaweza kubadilisha baadaye kuwa notification nzuri
+    function refreshDashboard() {
+      loadDashboardStats();
+      alert("Dashboard refreshed!");
     }
 
     // Mobile Menu
     function initMobileMenu() {
       const hamburger = document.getElementById('hamburgerBtn');
       const navLinks = document.getElementById('navLinks');
-      
       hamburger.addEventListener('click', () => {
         navLinks.classList.toggle('active');
         hamburger.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
       });
     }
+
+    window.logout = () => {
+      fetch('/logout', { credentials: 'same-origin' }).finally(() => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      });
+    };
   </script>
 </body>
 </html>
