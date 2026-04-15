@@ -650,6 +650,71 @@
 
   <!-- FLOAT CHAT WIDGET -->
   <script src="/float-chat.js"></script>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>📚 Quick Links</h4>
+        <a href="index.html">Home</a>
+        <a href="main.html">Calculator</a>
+        <a href="records.html">Records</a>
+        <a href="botweb.html">Chat Support</a>
+      </div>
+      <div class="footer-section">
+        <h4>📖 Resources</h4>
+        <a href="API_DOCS.md" target="_blank">API Docs</a>
+        <a href="README_UPDATES.md" target="_blank">Updates</a>
+        <a href="FEATURES_SHOWCASE.md" target="_blank">Features</a>
+      </div>
+      <div class="footer-section">
+        <h4>👤 Account</h4>
+        <a href="login.html">Sign In</a>
+        <a href="signup.html">Create Account</a>
+        <a href="records.html">My Records</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Water Billing System | Built by Mickey Hamza ❤️</p>
+    </div>
+  </footer>
+
+  <script>
+    function updateNavbar() {
+      const user = localStorage.getItem('user');
+      const navbarUser = document.getElementById('navbarUser');
+      const navbarGuest = document.getElementById('navbarGuest');
+      const navbarUserName = document.getElementById('navbarUserName');
+      if (user) {
+        try {
+          const userData = JSON.parse(user);
+          navbarUserName.textContent = userData.name || userData.email || 'User';
+          navbarUser.style.display = 'flex';
+          navbarGuest.style.display = 'none';
+        } catch(e) {
+          navbarGuest.style.display = 'flex';
+          navbarUser.style.display = 'none';
+        }
+      } else {
+        navbarGuest.style.display = 'flex';
+        navbarUser.style.display = 'none';
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', updateNavbar);
+    } else {
+      updateNavbar();
+    }
+    function logout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('loginTime');
+      fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
+        window.location.href = 'login.html';
+      });
+    }
+    window.logout = logout;
+  </script>
 </body>
 </html></content>
 <parameter name="filePath">vscode-vfs://github/Mickeydeveloper/water-billing/admin.html
