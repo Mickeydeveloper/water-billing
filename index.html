@@ -3,148 +3,492 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
-
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+  <title>Water Billing Dashboard</title>
+  <link rel="icon" data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='75' font-size='75'%3E💧%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap">
 
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg,#1e3a8a,#06b6d4);
-      padding: 10px;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #06b6d4 100%);
+      background-attachment: fixed;
+      background-size: 400% 400%;
+      min-height: 100vh;
+      padding: 20px;
+      animation: gradientShift 15s ease infinite;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
 
     .dashboard {
       background: white;
-      max-width: 800px;
-      margin: auto;
-      padding: 2rem;
-      border-radius: 16px;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      animation: slideUp 0.6s ease-out;
     }
 
-    .box {
-      border: 2px solid #2563eb;
-      padding: 1rem;
+    @keyframes slideUp {
+      from {
+        transform: translateY(40px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-info {
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: white;
+      padding: 12px 18px;
       border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      animation: slideInRight 0.6s ease-out 0.1s both;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(40px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-box {
+      background: linear-gradient(135deg, #f0f9ff 0%, #ecf0f1 100%);
+      border: 2px solid transparent;
+      padding: 1.5rem;
+      border-radius: 16px;
       text-align: center;
-      margin-bottom: 10px;
+      transition: all 0.3s ease;
+      cursor: default;
+      animation: popIn 0.6s ease-out backwards;
+    }
+
+    .stat-box:nth-child(1) { animation-delay: 0s; }
+    .stat-box:nth-child(2) { animation-delay: 0.1s; }
+    .stat-box:nth-child(3) { animation-delay: 0.2s; }
+    .stat-box:nth-child(4) { animation-delay: 0.3s; }
+
+    @keyframes popIn {
+      from {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .stat-box:hover {
+      transform: translateY(-5px);
+      border-color: #2563eb;
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.15);
+    }
+
+    .stat-box:nth-child(1) {
+      background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
+      border: 2px solid #0284c7;
+    }
+
+    .stat-box:nth-child(2) {
+      background: linear-gradient(135deg, #fef3c7, #fef9e7);
+      border: 2px solid #f59e0b;
+    }
+
+    .stat-box:nth-child(3) {
+      background: linear-gradient(135deg, #f0fdf4, #f0fdf4);
+      border: 2px solid #10b981;
+    }
+
+    .stat-box:nth-child(4) {
+      background: linear-gradient(135deg, #fce7f3, #fce7f3);
+      border: 2px solid #ec4899;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #0f172a;
+      word-break: break-word;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 2rem;
     }
 
     .btn {
-      padding: 1rem;
-      background: #2563eb;
+      flex: 1;
+      min-width: 160px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
       color: white;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      margin-top: 10px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    }
+
+    .btn.secondary:hover:not(:disabled) {
+      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.4);
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .status-message {
+      margin-top: 1.5rem;
+      padding: 14px;
+      border-radius: 10px;
+      display: none;
+      animation: slideDown 0.3s ease-out;
+      border-left: 4px solid;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-10px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .status-message.success {
+      background: #d1fae5;
+      color: #065f46;
+      border-left-color: #10b981;
+    }
+
+    .status-message.error {
+      background: #fee2e2;
+      color: #7f1d1d;
+      border-left-color: #ef4444;
+    }
+
+    .status-message.info {
+      background: #e0f2fe;
+      color: #0c4a6e;
+      border-left-color: #0284c7;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard {
+        padding: 1.5rem;
+        margin: 20px auto;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .user-info {
+        width: 100%;
+        text-align: center;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+      }
+
+      .stat-value {
+        font-size: 1.4rem;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+        min-width: unset;
+      }
+    }
+
+    .dashboard.loading {
+      pointer-events: none;
+    }
+
+    .dashboard.loading .stats-grid {
+      opacity: 0.5;
     }
   </style>
 </head>
 
 <body>
 
-<div class="dashboard">
+  <div class="dashboard">
+    <div class="header">
+      <h2>💧 Dashboard</h2>
+      <p class="user-info" id="userInfo">Loading user...</p>
+    </div>
 
-  <h2>💧 Dashboard</h2>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Total Bills</div>
+        <div class="stat-value" id="totalBills">—</div>
+      </div>
 
-  <p id="userInfo">Loading user...</p>
+      <div class="stat-box">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value" id="totalRevenue">—</div>
+      </div>
 
-  <div class="box">
-    Total Bills: <span id="totalBills">0</span>
+      <div class="stat-box">
+        <div class="stat-label">Avg. Bill</div>
+        <div class="stat-value" id="avgBill">—</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">Total Usage</div>
+        <div class="stat-value" id="totalUsage">—</div>
+      </div>
+    </div>
+
+    <div class="status-message" id="statusMessage"></div>
+
+    <div class="action-buttons">
+      <button class="btn" onclick="refreshDashboard()">🔄 Refresh</button>
+      <button class="btn secondary" onclick="navigateTo('/main.html')">➕ New Bill</button>
+      <button class="btn secondary" onclick="navigateTo('/records.html')">📋 View Records</button>
+    </div>
   </div>
 
-  <div class="box">
-    Total Revenue: <span id="totalRevenue">0</span>
-  </div>
+  <script>
+    let retryCount = 3;
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+    let cachedData = null;
+    let cacheTime = 0;
 
-  <div class="box">
-    Avg Bill: <span id="avgBill">0</span>
-  </div>
-
-  <div class="box">
-    Total Usage: <span id="totalUsage">0</span>
-  </div>
-
-  <button class="btn" onclick="refreshDashboard()">Refresh</button>
-
-</div>
-
-<script>
-let retryCount = 3;
-
-window.addEventListener('DOMContentLoaded', () => {
-  checkAuth();
-});
-
-// ================= AUTH =================
-async function checkAuth() {
-  try {
-    const res = await fetch('/api/me', {
-      credentials: 'same-origin'
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
     });
 
-    if (!res.ok) throw new Error("Not logged in");
-
-    const data = await res.json();
-    document.getElementById('userInfo').innerText =
-      "Welcome " + (data.user.name || data.user.email);
-
-    loadDashboard();
-
-  } catch(e) {
-    console.error("Auth error:", e);
-    window.location.href = "login.html";
-  }
-}
-
-// ================= LOAD DASHBOARD =================
-async function loadDashboard() {
-  try {
-    console.log("📡 Fetching records...");
-
-    const res = await fetch('/get-records', {
-      credentials: 'same-origin'
-    });
-
-    if (!res.ok) throw new Error("API ERROR " + res.status);
-
-    const data = await res.json();
-    console.log("📊 DATA:", data);
-
-    const records = data.records || [];
-
-    let totalBills = records.length;
-    let totalRevenue = records.reduce((a,b)=>a+(b.total||0),0);
-    let totalUsage = records.reduce((a,b)=>a+(b.usage||0),0);
-    let avg = totalBills ? totalRevenue/totalBills : 0;
-
-    document.getElementById('totalBills').innerText = totalBills;
-    document.getElementById('totalRevenue').innerText = "TZS " + totalRevenue.toLocaleString();
-    document.getElementById('avgBill').innerText = "TZS " + avg.toLocaleString();
-    document.getElementById('totalUsage').innerText = totalUsage + " units";
-
-    console.log("✅ Dashboard loaded");
-
-  } catch(e) {
-    console.error("❌ Dashboard error:", e);
-
-    if (retryCount > 0) {
-      retryCount--;
-      console.log("🔁 Retrying...", retryCount);
-      setTimeout(loadDashboard, 2000);
-    } else {
-      alert("Failed to load dashboard");
+    // Utility function for navigation
+    function navigateTo(url) {
+      window.location.href = url;
     }
-  }
-}
 
-// ================= REFRESH =================
-function refreshDashboard() {
-  retryCount = 3;
-  loadDashboard();
-}
-</script>
+    // Show status message
+    function showStatus(message, type = 'info') {
+      const el = document.getElementById('statusMessage');
+      el.textContent = message;
+      el.className = 'status-message ' + type;
+      el.style.display = 'block';
+
+      if (type !== 'error') {
+        setTimeout(() => {
+          el.style.display = 'none';
+        }, 4000);
+      }
+    }
+
+    // ================= AUTH CHECK =================
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/me', {
+          credentials: 'same-origin',
+          signal: AbortSignal.timeout(8000)
+        });
+
+        if (!res.ok) throw new Error('Not logged in');
+
+        const data = await res.json();
+        document.getElementById('userInfo').innerText =
+          'Welcome, ' + (data.user.name || data.user.email);
+
+        loadDashboard();
+
+      } catch (e) {
+        console.error('Auth error:', e);
+        showStatus('Session expired. Redirecting to login...', 'error');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 2000);
+      }
+    }
+
+    // ================= LOAD DASHBOARD =================
+    async function loadDashboard() {
+      const dashboard = document.querySelector('.dashboard');
+      dashboard.classList.add('loading');
+
+      try {
+        // Check cache first
+        if (cachedData && (Date.now() - cacheTime) < CACHE_DURATION) {
+          updateDashboardUI(cachedData);
+          dashboard.classList.remove('loading');
+          return;
+        }
+
+        console.log('📡 Fetching records...');
+
+        const res = await fetch('/get-records?limit=1000', {
+          credentials: 'same-origin',
+          signal: AbortSignal.timeout(10000)
+        });
+
+        if (!res.ok) throw new Error('API ERROR ' + res.status);
+
+        const data = await res.json();
+        console.log('📊 Received data:', data);
+
+        // Cache the data
+        cachedData = data;
+        cacheTime = Date.now();
+
+        updateDashboardUI(data);
+        showStatus('Dashboard updated', 'success');
+
+      } catch (e) {
+        console.error('❌ Dashboard error:', e);
+
+        if (retryCount > 0) {
+          retryCount--;
+          console.log('🔁 Retrying...', retryCount);
+          showStatus(`Loading... (${3 - retryCount}/3)`, 'info');
+          setTimeout(loadDashboard, 2000);
+        } else {
+          showStatus('Failed to load dashboard. Please try again.', 'error');
+        }
+      } finally {
+        dashboard.classList.remove('loading');
+      }
+    }
+
+    function updateDashboardUI(data) {
+      const records = data.records || [];
+
+      const totalBills = records.length;
+      const totalRevenue = records.reduce((a, b) => a + (b.total || 0), 0);
+      const totalUsage = records.reduce((a, b) => a + (b.usage || 0), 0);
+      const avgBill = totalBills ? totalRevenue / totalBills : 0;
+
+      document.getElementById('totalBills').innerText = totalBills.toLocaleString();
+      document.getElementById('totalRevenue').innerText =
+        'TZS ' + totalRevenue.toLocaleString('en-TZ', { maximumFractionDigits: 0 });
+      document.getElementById('avgBill').innerText =
+        'TZS ' + avgBill.toLocaleString('en-TZ', { maximumFractionDigits: 0 });
+      document.getElementById('totalUsage').innerText =
+        totalUsage.toFixed(2) + ' units';
+
+      console.log('✅ Dashboard updated');
+    }
+
+    // ================= REFRESH DASHBOARD =================
+    function refreshDashboard() {
+      retryCount = 3;
+      cachedData = null;
+      cacheTime = 0;
+      loadDashboard();
+    }
+  </script>
 
 </body>
 </html>

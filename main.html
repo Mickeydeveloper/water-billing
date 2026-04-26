@@ -4,180 +4,509 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Water Billing Calculator</title>
-
-  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='75' font-size='75'%3E💧%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
 
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg,#1e3a8a,#06b6d4);
-      padding:10px;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #06b6d4 100%);
+      background-attachment: fixed;
+      background-size: 400% 400%;
+      min-height: 100vh;
+      padding: 20px;
+      animation: gradientShift 15s ease infinite;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
 
     .container {
-      background:white;
-      max-width:580px;
-      margin:auto;
-      padding:2rem;
-      border-radius:16px;
+      background: white;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(40px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
     }
 
     input {
-      width:100%;
-      padding:0.9rem;
-      margin-top:8px;
-      border:2px solid #ccc;
-      border-radius:8px;
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.95rem;
+      color: #0f172a;
+      transition: all 0.3s ease;
+      background: #f8fafc;
+    }
+
+    input:hover {
+      border-color: #94a3b8;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #06b6d4;
+      box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
+      background: white;
+    }
+
+    input::placeholder {
+      color: #a1aecb;
+    }
+
+    input:disabled {
+      background: #f1f5f9;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-row .form-group {
+      margin-bottom: 0;
     }
 
     button {
-      width:100%;
-      padding:1rem;
-      margin-top:1.5rem;
-      background:#2563eb;
-      color:white;
-      border:none;
-      border-radius:10px;
-      cursor:pointer;
+      width: 100%;
+      padding: 13px;
+      margin-top: 1.5rem;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.4);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .result {
-      margin-top:1rem;
-      padding:1rem;
-      border-radius:8px;
-      display:none;
+      margin-top: 1.5rem;
+      padding: 16px;
+      border-radius: 12px;
+      display: none;
+      animation: slideDown 0.3s ease-out;
+      font-weight: 600;
+      border-left: 4px solid;
     }
 
-    .success { background:#d1fae5; color:#065f46; }
-    .error { background:#fee2e2; color:#7f1d1d; }
+    @keyframes slideDown {
+      from {
+        transform: translateY(-10px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .success {
+      background: #d1fae5;
+      color: #065f46;
+      border-left-color: #10b981;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #7f1d1d;
+      border-left-color: #ef4444;
+    }
+
+    .info {
+      background: #e0f2fe;
+      color: #0c4a6e;
+      border-left-color: #0284c7;
+    }
+
+    #smsBtn {
+      display: none;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      margin-top: 1rem;
+    }
+
+    #smsBtn:hover:not(:disabled) {
+      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.4);
+    }
+
+    .calculation-info {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #0c4a6e;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.5rem;
+        margin: 20px auto;
+      }
+
+      h2 {
+        font-size: 1.4rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        padding: 12px;
+      }
+    }
+
+    /* Input validation styles */
+    input.invalid {
+      border-color: #ef4444;
+    }
+
+    input.valid {
+      border-color: #10b981;
+    }
+
+    .error-message {
+      color: #dc2626;
+      font-size: 0.85rem;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
   </style>
 </head>
 
 <body>
 
-<div class="container">
+  <div class="container">
+    <h2>💧 Billing Calculator</h2>
 
-  <h2>💧 Billing Calculator</h2>
+    <form id="form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" placeholder="Customer name" required>
+          <div class="error-message"></div>
+        </div>
 
-  <form id="form">
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" placeholder="+255..." required>
+          <div class="error-message"></div>
+        </div>
+      </div>
 
-    <label>Name</label>
-    <input type="text" id="name" required>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="prev">Previous Reading</label>
+          <input type="number" id="prev" value="0" min="0" step="0.01">
+          <div class="error-message"></div>
+        </div>
 
-    <label>Phone</label>
-    <input type="text" id="phone" required>
+        <div class="form-group">
+          <label for="curr">Current Reading</label>
+          <input type="number" id="curr" placeholder="0" min="0" step="0.01" required>
+          <div class="error-message"></div>
+        </div>
+      </div>
 
-    <label>Previous</label>
-    <input type="number" id="prev" value="0">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="rate">Rate (TZS/unit)</label>
+          <input type="number" id="rate" value="2000" min="0" step="0.01">
+          <div class="error-message"></div>
+        </div>
 
-    <label>Current</label>
-    <input type="number" id="curr" required>
+        <div class="form-group">
+          <label for="fixed">Fixed Charge (TZS)</label>
+          <input type="number" id="fixed" value="0" min="0" step="0.01">
+          <div class="error-message"></div>
+        </div>
+      </div>
 
-    <label>Rate</label>
-    <input type="number" id="rate" value="2000">
+      <div class="calculation-info" id="calcInfo"></div>
 
-    <label>Fixed</label>
-    <input type="number" id="fixed" value="0">
+      <button type="submit" id="submitBtn">Save Bill</button>
+    </form>
 
-    <button type="submit" id="submitBtn">Save Bill</button>
+    <div id="result" class="result"></div>
+    <button id="smsBtn">📱 Send SMS</button>
+  </div>
 
-  </form>
+  <script>
+    let currentRecord = null;
+    let submitTimeout;
 
-  <div id="result" class="result"></div>
-
-  <button id="smsBtn" style="display:none;">📱 Send SMS</button>
-
-</div>
-
-<script>
-let currentRecord = null;
-
-// ================= SUBMIT =================
-document.getElementById('form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const btn = document.getElementById('submitBtn');
-  btn.innerText = "Saving...";
-  btn.disabled = true;
-
-  try {
-    const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const prev = Number(document.getElementById('prev').value) || 0;
-    const curr = Number(document.getElementById('curr').value);
-    const rate = Number(document.getElementById('rate').value);
-    const fixed = Number(document.getElementById('fixed').value) || 0;
-
-    if (!name || !phone) throw new Error("Fill all fields");
-
-    if (curr < prev) {
-      throw new Error("Current must be greater than previous");
-    }
-
-    const usage = curr - prev;
-    const total = usage * rate + fixed;
-
-    currentRecord = {
-      name,
-      phone,
-      prev,
-      curr,
-      usage,
-      rate,
-      fixed,
-      total,
-      date: new Date().toISOString()
-    };
-
-    const res = await fetch('/save-record', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(currentRecord)
+    // Input validation
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('change', validateInput);
+      input.addEventListener('blur', validateInput);
     });
 
-    if (!res.ok) throw new Error("Server error");
+    // Real-time calculation display
+    document.getElementById('curr').addEventListener('input', updateCalculation);
+    document.getElementById('prev').addEventListener('input', updateCalculation);
+    document.getElementById('rate').addEventListener('input', updateCalculation);
+    document.getElementById('fixed').addEventListener('input', updateCalculation);
 
-    showResult(`✅ Saved! Total: TZS ${total.toLocaleString()}`, "success");
+    function updateCalculation() {
+      const prev = parseFloat(document.getElementById('prev').value) || 0;
+      const curr = parseFloat(document.getElementById('curr').value) || 0;
+      const rate = parseFloat(document.getElementById('rate').value) || 2000;
+      const fixed = parseFloat(document.getElementById('fixed').value) || 0;
 
-    document.getElementById('smsBtn').style.display = "block";
+      if (curr >= prev && curr > 0) {
+        const usage = curr - prev;
+        const total = (usage * rate) + fixed;
+        const info = document.getElementById('calcInfo');
+        info.innerHTML = `
+          <strong>Preview:</strong><br>
+          Usage: ${usage.toFixed(2)} units × ${rate.toFixed(0)} = ${(usage * rate).toLocaleString('en-TZ', { maximumFractionDigits: 0 })} TZS<br>
+          Total: <strong>${total.toLocaleString('en-TZ', { maximumFractionDigits: 0 })} TZS</strong>
+        `;
+        info.style.display = 'block';
+      } else {
+        document.getElementById('calcInfo').style.display = 'none';
+      }
+    }
 
-    // reset form
-    document.getElementById('form').reset();
+    function validateInput(e) {
+      const input = e.target;
+      const errorMsg = input.parentElement.querySelector('.error-message');
+      let isValid = true;
+      let message = '';
 
-  } catch (err) {
-    console.error(err);
-    showResult("❌ " + err.message, "error");
-  }
+      if (input.id === 'name') {
+        if (input.value.trim().length < 2) {
+          isValid = false;
+          message = 'Name must be at least 2 characters';
+        }
+      } else if (input.id === 'phone') {
+        if (input.value.trim().length < 6) {
+          isValid = false;
+          message = 'Valid phone number required';
+        }
+      } else if (input.id === 'curr' || input.id === 'prev') {
+        const val = parseFloat(input.value);
+        if (isNaN(val) || val < 0) {
+          isValid = false;
+          message = 'Value must be a positive number';
+        }
+      }
 
-  btn.innerText = "Save Bill";
-  btn.disabled = false;
-});
+      if (isValid) {
+        input.classList.remove('invalid');
+        input.classList.add('valid');
+        if (errorMsg) errorMsg.classList.remove('show');
+      } else {
+        input.classList.add('invalid');
+        input.classList.remove('valid');
+        if (errorMsg && message) {
+          errorMsg.textContent = message;
+          errorMsg.classList.add('show');
+        }
+      }
 
-// ================= RESULT =================
-function showResult(text, type) {
-  const box = document.getElementById('result');
-  box.innerText = text;
-  box.className = "result " + (type === "success" ? "success" : "error");
-  box.style.display = "block";
-}
+      return isValid;
+    }
 
-// ================= SMS =================
-document.getElementById('smsBtn').addEventListener('click', () => {
-  if (!currentRecord) return;
+    // ================= FORM SUBMISSION =================
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-  const msg =
-    `Bill for ${currentRecord.name}\n` +
-    `Usage: ${currentRecord.usage} units\n` +
-    `Total: TZS ${currentRecord.total.toLocaleString()}`;
+      // Validate all inputs
+      let allValid = true;
+      inputs.forEach(input => {
+        if (!validateInput({ target: input })) {
+          allValid = false;
+        }
+      });
 
-  window.location.href =
-    `sms:${currentRecord.phone}?body=${encodeURIComponent(msg)}`;
-});
-</script>
+      if (!allValid) {
+        showResult('❌ Please fix all errors', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      btn.innerText = '';
+      const spinner = document.createElement('span');
+      spinner.className = 'loading-spinner';
+      btn.appendChild(spinner);
+      btn.appendChild(document.createTextNode('Saving...'));
+      btn.disabled = true;
+
+      try {
+        const name = document.getElementById('name').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const prev = parseFloat(document.getElementById('prev').value) || 0;
+        const curr = parseFloat(document.getElementById('curr').value);
+        const rate = parseFloat(document.getElementById('rate').value) || 2000;
+        const fixed = parseFloat(document.getElementById('fixed').value) || 0;
+
+        if (curr < prev) {
+          throw new Error('Current reading must be ≥ previous reading');
+        }
+
+        const usage = curr - prev;
+        const total = (usage * rate) + fixed;
+
+        currentRecord = {
+          name,
+          phone,
+          prev,
+          curr,
+          usage,
+          rate,
+          fixed,
+          total,
+          date: new Date().toISOString()
+        };
+
+        const res = await fetch('/save-record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(currentRecord)
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to save record');
+        }
+
+        showResult(
+          `✅ Bill saved successfully!\nTotal: ${total.toLocaleString('en-TZ', { maximumFractionDigits: 0 })} TZS`,
+          'success'
+        );
+
+        document.getElementById('smsBtn').style.display = 'block';
+        document.getElementById('form').reset();
+        inputs.forEach(i => {
+          i.classList.remove('valid', 'invalid');
+        });
+        document.getElementById('calcInfo').style.display = 'none';
+
+      } catch (err) {
+        console.error(err);
+        showResult('❌ ' + err.message, 'error');
+      }
+
+      btn.innerHTML = 'Save Bill';
+      btn.disabled = false;
+    });
+
+    // ================= RESULT DISPLAY =================
+    function showResult(text, type) {
+      const box = document.getElementById('result');
+      box.innerText = text;
+      box.className = 'result ' + type;
+      box.style.display = 'block';
+    }
+
+    // ================= SMS HANDLER =================
+    document.getElementById('smsBtn').addEventListener('click', () => {
+      if (!currentRecord) return;
+
+      const msg = `Bill for ${currentRecord.name}\nUsage: ${currentRecord.usage.toFixed(2)} units\nTotal: TZS ${currentRecord.total.toLocaleString('en-TZ', { maximumFractionDigits: 0 })}`;
+      window.location.href = `sms:${currentRecord.phone}?body=${encodeURIComponent(msg)}`;
+    });
+  </script>
 
 </body>
 </html>

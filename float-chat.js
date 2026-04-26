@@ -1,8 +1,21 @@
-// Float Chat Widget - Available on ALL Pages
+// Float Chat Widget - Optimized for Performance
 // Include this in every page: <script src="/float-chat.js"></script>
 
 (function() {
   'use strict';
+
+  // Performance optimization: Debounce and throttle
+  const debounce = (func, wait) => {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  };
+
+  // Message cache to avoid duplicate API calls
+  const messageCache = new Map();
+  let isProcessing = false;
 
   // Create float chat widget HTML
   const createFloatChatWidget = () => {
@@ -10,28 +23,28 @@
     widget.className = 'float-chat-widget';
     widget.id = 'floatChatWidget';
     widget.innerHTML = `
-      <div class="float-chat-bubble" id="chatBubble" title="Njia ya Haraka - Fast Support">
+      <div class="float-chat-bubble" id="chatBubble" title="Njia ya Haraka - Fast Support" role="button" tabindex="0" aria-label="Open chat support">
         💬
-        <span class="notification-badge" id="chatBadge" style="display: none;">1</span>
+        <span class="notification-badge" id="chatBadge" style="display: none;" aria-label="1 new message">1</span>
       </div>
-      <div class="float-chat-window" id="chatWindow">
+      <div class="float-chat-window" id="chatWindow" role="dialog" aria-label="Support chat">
         <div class="float-chat-header">
           <span>🤖 Mickey Support</span>
-          <button class="close-btn" onclick="toggleFloatChat()">✕</button>
+          <button class="close-btn" id="closeBtn" aria-label="Close chat">✕</button>
         </div>
-        <div class="float-chat-messages" id="floatMessages">
+        <div class="float-chat-messages" id="floatMessages" role="log" aria-live="polite">
           <div class="float-msg float-bot-msg">
             Habari! 👋 Karibu! Kami kutusaidia kuhusu malipo ya maji.
           </div>
         </div>
         <div class="float-chat-input">
-          <input type="text" id="floatChatInput" placeholder="Andika ujumbe..." onkeypress="handleFloatChatEnter(event)">
-          <button onclick="sendFloatMessage()">↑</button>
+          <input type="text" id="floatChatInput" placeholder="Andika ujumbe..." aria-label="Message input">
+          <button id="sendBtn" aria-label="Send message">↑</button>
         </div>
       </div>
     `;
     
-    // Add CSS styles
+    // Add CSS styles with performance optimizations
     const styles = `
       /* Float Chat Widget - Global */
       .float-chat-widget {
@@ -40,6 +53,7 @@
         right: 30px;
         z-index: 9999;
         font-family: 'Poppins', sans-serif;
+        will-change: transform;
       }
 
       .float-chat-bubble {
@@ -57,11 +71,15 @@
         font-size: 1.8rem;
         border: 2px solid rgba(255, 255, 255, 0.1);
         animation: pulse-chat 2s infinite;
+        user-select: none;
+        -webkit-touch-callout: none;
       }
 
-      .float-chat-bubble:hover {
+      .float-chat-bubble:hover,
+      .float-chat-bubble:focus {
         transform: scale(1.1);
         box-shadow: 0 12px 32px rgba(37, 99, 235, 0.5);
+        outline: none;
       }
 
       @keyframes pulse-chat {
@@ -107,6 +125,8 @@
         flex-direction: column;
         animation: slideUp 0.4s ease;
         overflow: hidden;
+        will-change: transform;
+        backface-visibility: hidden;
       }
 
       .float-chat-window.active {
@@ -127,6 +147,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-shrink: 0;
       }
 
       .float-chat-header .close-btn {
@@ -139,15 +160,20 @@
         cursor: pointer;
         font-size: 1.2rem;
         transition: background 0.2s;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
       }
 
-      .float-chat-header .close-btn:hover {
+      .float-chat-header .close-btn:hover,
+      .float-chat-header .close-btn:focus {
         background: rgba(255, 255, 255, 0.4);
+        outline: none;
       }
 
       .float-chat-messages {
         flex: 1;
         overflow-y: auto;
+        overflow-x: hidden;
         padding: 15px;
         display: flex;
         flex-direction: column;
@@ -159,6 +185,7 @@
         border-top: 1px solid #1e293b;
         display: flex;
         gap: 8px;
+        flex-shrink: 0;
       }
 
       .float-chat-input input {
@@ -170,10 +197,17 @@
         color: white;
         outline: none;
         transition: border-color 0.2s;
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.9rem;
+      }
+
+      .float-chat-input input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
       }
 
       .float-chat-input input:focus {
         border-color: #2563eb;
+        background: rgba(255, 255, 255, 0.08);
       }
 
       .float-chat-input button {
@@ -186,10 +220,19 @@
         cursor: pointer;
         transition: background 0.2s;
         font-weight: 700;
+        font-family: 'Poppins', sans-serif;
+        flex-shrink: 0;
       }
 
-      .float-chat-input button:hover {
+      .float-chat-input button:hover:not(:disabled),
+      .float-chat-input button:focus {
         background: #0284c7;
+        outline: none;
+      }
+
+      .float-chat-input button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
 
       .float-msg {
@@ -198,6 +241,13 @@
         border-radius: 12px;
         font-size: 0.85rem;
         line-height: 1.4;
+        word-wrap: break-word;
+        animation: msgFadeIn 0.3s ease-out;
+      }
+
+      @keyframes msgFadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       .float-bot-msg {
@@ -239,45 +289,88 @@
         background: #1e293b;
         border-radius: 3px;
       }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #334155;
+      }
     `;
 
     const styleEl = document.createElement('style');
     styleEl.textContent = styles;
+    styleEl.media = 'all';
     document.head.appendChild(styleEl);
 
     document.body.appendChild(widget);
+
+    // Attach event listeners with proper cleanup
+    const bubble = document.getElementById('chatBubble');
+    const closeBtn = document.getElementById('closeBtn');
+    const sendBtn = document.getElementById('sendBtn');
+    const input = document.getElementById('floatChatInput');
+
+    bubble.addEventListener('click', window.toggleFloatChat);
+    bubble.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') window.toggleFloatChat();
+    });
+
+    closeBtn.addEventListener('click', window.toggleFloatChat);
+    sendBtn.addEventListener('click', window.sendFloatMessage);
+    input.addEventListener('keypress', window.handleFloatChatEnter);
   };
 
   // Toggle chat window
   window.toggleFloatChat = function() {
     const chatWindow = document.getElementById('chatWindow');
-    const bubble = document.getElementById('chatBubble');
-    chatWindow.classList.toggle('active');
+    chatWindow?.classList.toggle('active');
     
-    // Clear badge when opened
     const badge = document.getElementById('chatBadge');
-    if (badge) badge.style.display = 'none';
+    if (badge && chatWindow?.classList.contains('active')) {
+      badge.style.display = 'none';
+    }
+
+    // Focus input when opening
+    if (chatWindow?.classList.contains('active')) {
+      const input = document.getElementById('floatChatInput');
+      input?.focus();
+    }
   };
 
   // Handle Enter key
   window.handleFloatChatEnter = function(event) {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !event.shiftKey && !isProcessing) {
+      event.preventDefault();
       window.sendFloatMessage();
     }
   };
 
-  // Send message to chat
+  // Send message to chat with optimization
   window.sendFloatMessage = async function() {
+    if (isProcessing) return;
+
     const input = document.getElementById('floatChatInput');
     const messagesDiv = document.getElementById('floatMessages');
+    const sendBtn = document.getElementById('sendBtn');
     const text = input.value.trim();
 
     if (!text) return;
+
+    // Check cache first
+    if (messageCache.has(text)) {
+      const cachedReply = messageCache.get(text);
+      addBotMessage(messagesDiv, cachedReply);
+      input.value = '';
+      return;
+    }
+
+    isProcessing = true;
+    sendBtn.disabled = true;
+    input.disabled = true;
 
     // Add user message
     const userMsg = document.createElement('div');
     userMsg.className = 'float-msg float-user-msg';
     userMsg.textContent = text;
+    userMsg.setAttribute('role', 'article');
     messagesDiv.appendChild(userMsg);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
     input.value = '';
@@ -287,27 +380,63 @@
     thinkingMsg.className = 'float-msg float-bot-msg';
     thinkingMsg.id = 'think-' + Date.now();
     thinkingMsg.textContent = '⏳ Inafikiri...';
+    thinkingMsg.setAttribute('role', 'status');
     messagesDiv.appendChild(thinkingMsg);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
     try {
-      const response = await fetch(`/api/chat?text=${encodeURIComponent(text)}`);
-      const data = await response.json();
-      thinkingMsg.textContent = data.reply || 'Samahani, simu inauma sasa.';
-    } catch (err) {
-      thinkingMsg.textContent = 'Kosa la mtandao. Jaribu tena.';
-    }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      const response = await fetch(`/api/chat?text=${encodeURIComponent(text)}`, {
+        signal: controller.signal,
+        credentials: 'same-origin'
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) throw new Error('API error');
+
+      const data = await response.json();
+      const reply = data.reply || 'Samahani, simu inauma sasa.';
+      
+      // Cache the reply
+      messageCache.set(text, reply);
+      
+      // Keep cache size manageable (max 50 messages)
+      if (messageCache.size > 50) {
+        const firstKey = messageCache.keys().next().value;
+        messageCache.delete(firstKey);
+      }
+
+      thinkingMsg.textContent = reply;
+      thinkingMsg.setAttribute('role', 'article');
+    } catch (err) {
+      console.error('Chat error:', err);
+      thinkingMsg.textContent = 'Kosa la mtandao. Jaribu tena.';
+      thinkingMsg.setAttribute('role', 'alert');
+    } finally {
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      isProcessing = false;
+      sendBtn.disabled = false;
+      input.disabled = false;
+      input.focus();
+    }
   };
 
-  // Add click handler to bubble
-  window.addEventListener('DOMContentLoaded', function() {
+  function addBotMessage(messagesDiv, text) {
+    const msg = document.createElement('div');
+    msg.className = 'float-msg float-bot-msg';
+    msg.textContent = text;
+    msg.setAttribute('role', 'article');
+    messagesDiv.appendChild(msg);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  // Initialize on DOM ready with error handling
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', createFloatChatWidget);
+  } else {
     createFloatChatWidget();
-    
-    const bubble = document.getElementById('chatBubble');
-    if (bubble) {
-      bubble.addEventListener('click', window.toggleFloatChat);
-    }
-  });
+  }
 })();
