@@ -705,6 +705,48 @@
       showNotification('Statistics refreshed', 'success');
     }
 
+    // Test notification
+    function testNotification() {
+      showNotification('🧪 Test Notification - System Working!', 'info', 3000);
+    }
+
+    // Handle notification form submission
+    if (document.getElementById('notificationForm')) {
+      document.getElementById('notificationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('sendBtn');
+        const title = document.getElementById('notificationTitle').value;
+        const body = document.getElementById('notificationBody').value;
+        const url = document.getElementById('notificationUrl').value;
+
+        try {
+          btn.disabled = true;
+          btn.textContent = '📤 Sending...';
+
+          const response = await fetch('/api/send-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, body, url })
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            showNotification('✅ Notification sent to all users', 'success');
+            document.getElementById('notificationForm').reset();
+            document.getElementById('notificationUrl').value = '/records.html';
+          } else {
+            showNotification(data.error || 'Failed to send notification', 'error');
+          }
+        } catch (err) {
+          console.error('Notification error:', err);
+          showNotification('Error sending notification', 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '📤 Send to All Subscribers';
+        }
+      });
+    }
+
     // Notification helper
     function showNotification(message, type = 'info', duration = 4000) {
       // Create notification element
