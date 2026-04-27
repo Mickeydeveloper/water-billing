@@ -478,6 +478,112 @@
         </div>
       </div>
 
+      <!-- Records Management Card -->
+      <div class="card">
+        <h3>📋 Billing Records Management</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">View and edit all billing records</p>
+        <button class="btn btn-secondary" onclick="loadRecordsList()">View All Records</button>
+      </div>
+
+      <!-- Records List Table (Hidden by default) -->
+      <div class="card" id="recordsListCard" style="display: none; grid-column: 1 / -1;">
+        <h3>📋 Billing Records - Edit & Delete</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+          <thead>
+            <tr style="background: var(--background-light); border-bottom: 2px solid var(--border-color);">
+              <th style="padding: 10px; text-align: left;">Name</th>
+              <th style="padding: 10px; text-align: left;">Phone</th>
+              <th style="padding: 10px; text-align: right;">Previous</th>
+              <th style="padding: 10px; text-align: right;">Current</th>
+              <th style="padding: 10px; text-align: right;">Usage</th>
+              <th style="padding: 10px; text-align: right;">Total (TZS)</th>
+              <th style="padding: 10px; text-align: left;">Date</th>
+              <th style="padding: 10px; text-align: center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recordsTableBody">
+            <tr><td colspan="8" style="padding: 20px; text-align: center;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Password Reset Management Card -->
+      <div class="card">
+        <h3>🔑 User Password Management</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">Reset user password and send temporary password via email</p>
+        <button class="btn btn-secondary" onclick="loadPasswordResetUsers()">Reset User Password</button>
+      </div>
+
+      <!-- Password Reset Users List (Hidden by default) -->
+      <div class="card" id="passwordResetUsersCard" style="display: none; grid-column: 1 / -1;">
+        <h3>🔑 Reset User Passwords</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: var(--background-light); border-bottom: 2px solid var(--border-color);">
+              <th style="padding: 12px; text-align: left;">Name</th>
+              <th style="padding: 12px; text-align: left;">Email</th>
+              <th style="padding: 12px; text-align: left;">Provider</th>
+              <th style="padding: 12px; text-align: left;">Last Login</th>
+              <th style="padding: 12px; text-align: center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="passwordResetUsersTableBody">
+            <tr><td colspan="5" style="padding: 20px; text-align: center;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Approve Password Reset Modal -->
+      <div id="approvePasswordResetModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center;">
+        <div class="card" style="max-width: 500px; width: 90%;">
+          <h3 style="margin-top: 0;">🔐 Approve Password Reset</h3>
+          <form id="approvePasswordResetForm">
+            <div class="form-group">
+              <label>Request ID</label>
+              <input type="hidden" id="approveResetRequestId">
+              <div id="approveResetRequestInfo" style="padding: 10px; background: var(--background-light); border-radius: 8px; margin-bottom: 15px;"></div>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn btn-success">✅ Approve & Send Password</button>
+              <button type="button" class="btn btn-secondary" onclick="closeApprovePasswordResetModal()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Edit Record Modal -->
+      <div id="editRecordModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center;">
+        <div class="card" style="max-width: 500px; width: 90%;">
+          <h3 style="margin-top: 0;">✏️ Edit Record</h3>
+          <form id="editRecordForm">
+            <div class="form-group">
+              <label>Name</label>
+              <input type="text" id="editRecordName" required>
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="tel" id="editRecordPhone" required>
+            </div>
+            <div class="form-group">
+              <label>Previous Reading</label>
+              <input type="number" id="editRecordPrev" required step="0.1">
+            </div>
+            <div class="form-group">
+              <label>Current Reading</label>
+              <input type="number" id="editRecordCurr" required step="0.1">
+            </div>
+            <div class="form-group">
+              <label>Total (TZS)</label>
+              <input type="number" id="editRecordTotal" required step="1">
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn btn-success">💾 Save Record</button>
+              <button type="button" class="btn btn-secondary" onclick="closeEditRecordModal()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -895,6 +1001,257 @@
         }
       } catch (e) {
         document.getElementById('recordsBody').innerHTML = '<tr><td colspan="7">Error loading</td></tr>';
+      }
+    }
+
+    // ================== RECORD MANAGEMENT ==================
+    let currentEditingRecordId = null;
+
+    async function loadRecordsList() {
+      const card = document.getElementById('recordsListCard');
+      const isVisible = card.style.display !== 'none';
+      card.style.display = isVisible ? 'none' : 'block';
+      
+      if (!isVisible) {
+        try {
+          const response = await fetch('/api/records/all');
+          const data = await response.json();
+          if (data.success && data.records && Array.isArray(data.records)) {
+            let html = '';
+            data.records.forEach(record => {
+              const createdDate = record.createdAt ? new Date(record.createdAt).toLocaleDateString() : 'N/A';
+              html += `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 10px;">${record.name || 'N/A'}</td>
+                  <td style="padding: 10px;">${record.phone || 'N/A'}</td>
+                  <td style="padding: 10px; text-align: right;">${record.prev || 0}</td>
+                  <td style="padding: 10px; text-align: right;">${record.curr || 0}</td>
+                  <td style="padding: 10px; text-align: right;">${record.usage || 0}</td>
+                  <td style="padding: 10px; text-align: right; font-weight: 600;">${(record.total || 0).toLocaleString()}</td>
+                  <td style="padding: 10px;">${createdDate}</td>
+                  <td style="padding: 10px; text-align: center;">
+                    <button class="btn btn-primary" style="padding: 6px 10px; font-size: 0.8rem; margin-right: 6px;" onclick="editRecord('${record._id}', '${record.name || ''}', '${record.phone || ''}', ${record.prev || 0}, ${record.curr || 0}, ${record.total || 0})">Edit</button>
+                    <button class="btn" style="padding: 6px 10px; font-size: 0.8rem; background: #dc2626; color: white;" onclick="deleteRecord('${record._id}')">Delete</button>
+                  </td>
+                </tr>
+              `;
+            });
+            if (html === '') {
+              html = '<tr><td colspan="8" style="padding: 20px; text-align: center;">No records found</td></tr>';
+            }
+            document.getElementById('recordsTableBody').innerHTML = html;
+          } else {
+            document.getElementById('recordsTableBody').innerHTML = '<tr><td colspan="8" style="padding: 20px; text-align: center;">No data</td></tr>';
+          }
+        } catch (e) {
+          console.error('Error loading records:', e);
+          document.getElementById('recordsTableBody').innerHTML = '<tr><td colspan="8" style="padding: 20px;">Error loading records</td></tr>';
+        }
+      }
+    }
+
+    function editRecord(recordId, name, phone, prev, curr, total) {
+      if (!recordId) {
+        showNotification('Invalid record', 'error');
+        return;
+      }
+      currentEditingRecordId = recordId;
+      document.getElementById('editRecordName').value = name;
+      document.getElementById('editRecordPhone').value = phone;
+      document.getElementById('editRecordPrev').value = prev;
+      document.getElementById('editRecordCurr').value = curr;
+      document.getElementById('editRecordTotal').value = total;
+      document.getElementById('editRecordModal').style.display = 'flex';
+    }
+
+    function closeEditRecordModal() {
+      document.getElementById('editRecordModal').style.display = 'none';
+      currentEditingRecordId = null;
+      document.getElementById('editRecordForm').reset();
+    }
+
+    async function deleteRecord(recordId) {
+      if (!recordId) {
+        showNotification('Invalid record', 'error');
+        return;
+      }
+
+      if (!confirm('Delete this record? This cannot be undone.')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/records/${recordId}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          showNotification('✅ Record deleted', 'success');
+          loadRecordsList();
+          loadStats();
+        } else {
+          showNotification(data.error || 'Failed to delete', 'error');
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        showNotification('Error deleting record', 'error');
+      }
+    }
+
+    // Handle edit record form submission
+    if (document.getElementById('editRecordForm')) {
+      document.getElementById('editRecordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!currentEditingRecordId) {
+          showNotification('No record selected', 'error');
+          return;
+        }
+
+        const name = document.getElementById('editRecordName').value.trim();
+        const phone = document.getElementById('editRecordPhone').value.trim();
+        const prev = parseFloat(document.getElementById('editRecordPrev').value);
+        const curr = parseFloat(document.getElementById('editRecordCurr').value);
+        const total = parseFloat(document.getElementById('editRecordTotal').value);
+
+        if (!name || !phone || isNaN(prev) || isNaN(curr) || isNaN(total)) {
+          showNotification('Please fill all fields correctly', 'error');
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/records/${currentEditingRecordId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, phone, prev, curr, total })
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            showNotification('✅ Record updated', 'success');
+            closeEditRecordModal();
+            loadRecordsList();
+            loadStats();
+          } else {
+            showNotification(data.error || 'Failed to update', 'error');
+          }
+        } catch (err) {
+          console.error('Error:', err);
+          showNotification('Error updating record', 'error');
+        }
+      });
+    }
+
+    // ================== PASSWORD MANAGEMENT ==================
+    async function loadPasswordResetUsers() {
+      const card = document.getElementById('passwordResetUsersCard');
+      const isVisible = card.style.display !== 'none';
+      card.style.display = isVisible ? 'none' : 'block';
+      
+      if (!isVisible) {
+        try {
+          const response = await fetch('/api/users/list');
+          const data = await response.json();
+          if (data.success && data.users && Array.isArray(data.users)) {
+            let html = '';
+            data.users.forEach(user => {
+              const lastLogin = user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never';
+              html += `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 12px;">${user.name || 'N/A'}</td>
+                  <td style="padding: 12px;">${user.email || 'N/A'}</td>
+                  <td style="padding: 12px;">${user.provider || 'N/A'}</td>
+                  <td style="padding: 12px;">${lastLogin}</td>
+                  <td style="padding: 12px; text-align: center;">
+                    <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="resetUserPassword('${user._id}', '${user.name || ''}', '${user.email || ''}')">Reset Password</button>
+                  </td>
+                </tr>
+              `;
+            });
+            if (html === '') {
+              html = '<tr><td colspan="5" style="padding: 20px; text-align: center;">No users found</td></tr>';
+            }
+            document.getElementById('passwordResetUsersTableBody').innerHTML = html;
+          }
+        } catch (e) {
+          console.error('Error loading users:', e);
+          document.getElementById('passwordResetUsersTableBody').innerHTML = '<tr><td colspan="5">Error loading users</td></tr>';
+        }
+      }
+    }
+
+    function resetUserPassword(userId, name, email) {
+      if (!userId) {
+        showNotification('Invalid user', 'error');
+        return;
+      }
+
+      if (!confirm(`Reset password for ${name} (${email})?\n\nA temporary password will be generated and sent to their email.`)) {
+        return;
+      }
+
+      try {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.textContent = 'Resetting...';
+
+        fetch('/api/admin/reset-user-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId })
+        })
+        .then(resp => resp.json())
+        .then(data => {
+          if (data.success) {
+            showNotification(`✅ Password reset email sent to ${email}`, 'success');
+            loadPasswordResetUsers();
+          } else {
+            showNotification(data.error || 'Failed to reset password', 'error');
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          showNotification('Error resetting password', 'error');
+        })
+        .finally(() => {
+          btn.disabled = false;
+          btn.textContent = 'Reset Password';
+        });
+      } catch (err) {
+        console.error('Error:', err);
+        showNotification('Error resetting password', 'error');
+      }
+    }
+
+    function closeApprovePasswordResetModal() {
+      document.getElementById('approvePasswordResetModal').style.display = 'none';
+      document.getElementById('approvePasswordResetForm').reset();
+    }
+
+    // Load statistics
+    async function loadStats() {
+      try {
+        const [usersResp, recordsResp, paymentsResp, resetResp] = await Promise.all([
+          fetch('/api/users/count'),
+          fetch('/api/records/count'),
+          fetch('/api/payments/stats'),
+          fetch('/api/password-reset-requests')
+        ]);
+
+        const users = await usersResp.json();
+        const records = await recordsResp.json();
+        const payments = await paymentsResp.json();
+        const resets = await resetResp.json();
+
+        document.getElementById('totalUsers').textContent = users.count || 0;
+        document.getElementById('totalRecords').textContent = records.count || 0;
+        document.getElementById('totalPayments').textContent = payments.totalPayments || 0;
+        document.getElementById('totalAmount').textContent = (payments.totalAmount || 0).toLocaleString('en-TZ', { style: 'currency', currency: 'TZS' }).replace('TZS', '').trim();
+        document.getElementById('usersCount').textContent = users.count || 0;
+        document.getElementById('resetRequestsCount').textContent = (resets.requests ? resets.requests.length : 0) || 0;
+      } catch (err) {
+        console.error('Error loading stats:', err);
       }
     }
   </script>
