@@ -440,13 +440,19 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="loading-spinner"></span>Signing in...';
         
+        // Set up timeout with AbortController
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         const resp = await fetch('/local-login', {
           method: 'POST',
           credentials: 'same-origin',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ email, password }),
-          timeout: 10000
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         const data = await resp.json();
         if (!resp.ok) {
