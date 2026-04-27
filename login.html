@@ -387,13 +387,94 @@
       </form>
 
       <a class="link" href="signup.html">Create an account</a>
+      <a class="link" onclick="openForgotPasswordModal()" style="cursor: pointer;">Forgot password?</a>
       <a class="link" href="index.html" style="color:var(--muted);">Return to home</a>
     </div>
   </div>
 
   <div id="notify" aria-hidden="true"></div>
 
+  <!-- Forgot Password Modal -->
+  <div id="forgotPasswordModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 400px; width: 90%; margin: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <h2 style="margin: 0 0 12px; font-size: 1.3rem;">Reset Password</h2>
+      <p class="small">Enter your email address and we'll send you a password reset link and notify the admin.</p>
+      
+      <form id="forgotPasswordForm" style="margin-top: 20px;">
+        <div class="form-row">
+          <input type="email" id="forgotEmail" placeholder="your@example.com" required>
+        </div>
+        <button class="primary" type="submit" id="resetBtn" style="margin-bottom: 12px;">Send Reset Link</button>
+        <button class="primary" type="button" onclick="closeForgotPasswordModal()" style="background: #6b7280; margin-bottom: 0;">Cancel</button>
+      </form>
+      
+      <div id="resetMessage" style="margin-top: 12px; padding: 10px; border-radius: 8px; display: none;"></div>
+    </div>
+  </div>
+
   <script>
+    function openForgotPasswordModal() {
+      document.getElementById('forgotPasswordModal').style.display = 'flex';
+    }
+
+    function closeForgotPasswordModal() {
+      document.getElementById('forgotPasswordModal').style.display = 'none';
+      document.getElementById('forgotPasswordForm').reset();
+      document.getElementById('resetMessage').style.display = 'none';
+    }
+
+    // Handle forgot password form
+    document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('resetBtn');
+      const email = document.getElementById('forgotEmail').value.trim();
+      const msgDiv = document.getElementById('resetMessage');
+
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const resp = await fetch('/api/password-reset-request', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        const data = await resp.json();
+
+        if (resp.ok) {
+          msgDiv.style.background = '#dcfce7';
+          msgDiv.style.color = '#166534';
+          msgDiv.style.border = '1px solid #86efac';
+          msgDiv.textContent = '✅ ' + data.message;
+          msgDiv.style.display = 'block';
+          setTimeout(() => closeForgotPasswordModal(), 2000);
+        } else {
+          msgDiv.style.background = '#fee2e2';
+          msgDiv.style.color = '#b91c1c';
+          msgDiv.style.border = '1px solid #fca5a5';
+          msgDiv.textContent = '❌ ' + (data.error || 'Failed to send reset link');
+          msgDiv.style.display = 'block';
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        msgDiv.style.background = '#fee2e2';
+        msgDiv.style.color = '#b91c1c';
+        msgDiv.style.border = '1px solid #fca5a5';
+        msgDiv.textContent = '❌ Network error — please try again';
+        msgDiv.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Reset Link';
+      }
+    });
+  </script>
     // Notification system
     function showNotification(message, type = 'info', duration = 3000) {
       const container = document.getElementById('notify');

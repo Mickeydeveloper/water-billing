@@ -408,22 +408,74 @@
         <button class="btn btn-secondary" onclick="loadUsersList()">View All Users</button>
       </div>
 
+      <!-- Password Reset Requests Card -->
+      <div class="card">
+        <h3>🔐 Password Reset Requests</h3>
+        <div id="resetRequestsCount" style="font-size: 2rem; font-weight: 700; color: var(--warning-color); margin-bottom: 10px;">-</div>
+        <button class="btn btn-secondary" onclick="loadPasswordResetRequests()">View All Requests</button>
+      </div>
+
       <!-- Users List Table (Hidden by default) -->
       <div class="card" id="usersListCard" style="display: none; grid-column: 1 / -1;">
-        <h3>👥 Users List</h3>
+        <h3>👥 Users List - Manage & Delete</h3>
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr style="background: var(--background-light); border-bottom: 2px solid var(--border-color);">
               <th style="padding: 12px; text-align: left;">Name</th>
               <th style="padding: 12px; text-align: left;">Email</th>
-              <th style="padding: 12px; text-align: left;">Phone</th>
               <th style="padding: 12px; text-align: left;">Provider</th>
+              <th style="padding: 12px; text-align: left;">Created</th>
+              <th style="padding: 12px; text-align: center;">Actions</th>
             </tr>
           </thead>
           <tbody id="usersTableBody">
-            <tr><td colspan="4" style="padding: 20px; text-align: center;">Loading...</td></tr>
+            <tr><td colspan="5" style="padding: 20px; text-align: center;">Loading...</td></tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Password Reset Requests Table (Hidden by default) -->
+      <div class="card" id="resetRequestsCard" style="display: none; grid-column: 1 / -1;">
+        <h3>🔐 Password Reset Requests</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: var(--background-light); border-bottom: 2px solid var(--border-color);">
+              <th style="padding: 12px; text-align: left;">User Name</th>
+              <th style="padding: 12px; text-align: left;">Email</th>
+              <th style="padding: 12px; text-align: left;">Requested</th>
+              <th style="padding: 12px; text-align: left;">Expires</th>
+              <th style="padding: 12px; text-align: left;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="resetRequestsTableBody">
+            <tr><td colspan="5" style="padding: 20px; text-align: center;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Modal for Editing User -->
+      <div id="editUserModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center;">
+        <div class="card" style="max-width: 500px; width: 90%;">
+          <h3 style="margin-top: 0;">✏️ Edit User</h3>
+          <form id="editUserForm">
+            <div class="form-group">
+              <label>Name</label>
+              <input type="text" id="editUserName" required>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="editUserEmail" required>
+            </div>
+            <div class="form-group">
+              <label>Provider</label>
+              <input type="text" id="editUserProvider" disabled style="background: #f0f0f0; cursor: not-allowed;">
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn btn-success">💾 Save Changes</button>
+              <button type="button" class="btn btn-secondary" onclick="closeEditUserModal()">Cancel</button>
+            </div>
+          </form>
+        </div>
       </div>
 
     </div>
@@ -445,15 +497,19 @@
         const response = await fetch('/api/me');
         if (response.ok) {
           const data = await response.json();
-          isAuthenticated = true;
-          console.log('Admin authenticated:', data.user.email);
-        } else {
-          // Redirect to login if not authenticated
-          window.location.href = '/login.html?redirect=/admin.html';
+          const adminEmails = ['mickidadyhamza@gmail.com'];
+          if (adminEmails.includes(data.user.email)) {
+            isAuthenticated = true;
+            console.log('✅ Admin authenticated:', data.user.email);
+            return;
+          }
         }
+        // Redirect to login if not authenticated or not admin
+        alert('Access denied. Admin only.');
+        window.location.href = '/login.html';
       } catch (error) {
         console.error('Auth check failed:', error);
-        window.location.href = '/login.html?redirect=/admin.html';
+        window.location.href = '/login.html';
       }
     }
 
@@ -483,6 +539,13 @@
           document.getElementById('totalAmount').textContent = (paymentData.totalAmount || 0).toLocaleString();
         }
 
+        // Load password reset requests count
+        const resetResponse = await fetch('/api/password-reset-requests');
+        if (resetResponse.ok) {
+          const resetData = await resetResponse.json();
+          document.getElementById('resetRequestsCount').textContent = (resetData.requests || []).length;
+        }
+
       } catch (error) {
         console.error('Failed to load stats:', error);
         showNotification('Failed to load statistics', 'error');
@@ -501,19 +564,137 @@
           if (data.success && data.users) {
             let html = '';
             data.users.forEach(user => {
+              const createdDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
               html += `
                 <tr style="border-bottom: 1px solid var(--border-color);">
-                  <td style="padding: 12px;">${user.name}</td>
-                  <td style="padding: 12px;">${user.email}</td>
-                  <td style="padding: 12px;">${user.phone || 'N/A'}</td>
-                  <td style="padding: 12px;">${user.provider}</td>
+                  <td style="padding: 12px;">${user.name || 'N/A'}</td>
+                  <td style="padding: 12px;">${user.email || 'N/A'}</td>
+                  <td style="padding: 12px;">${user.provider || 'N/A'}</td>
+                  <td style="padding: 12px;">${createdDate}</td>
+                  <td style="padding: 12px; text-align: center;">
+                    <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem; margin-right: 6px;" onclick="editUser('${user._id}', '${user.name || ''}', '${user.email || ''}', '${user.provider || ''}')">Edit</button>
+                    <button class="btn" style="padding: 6px 12px; font-size: 0.85rem; background: #dc2626; color: white;" onclick="deleteUser('${user._id}', '${user.email || 'User'}')">Delete</button>
+                  </td>
                 </tr>
               `;
             });
             document.getElementById('usersTableBody').innerHTML = html;
           }
         } catch (e) {
-          document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="4" style="padding: 20px;">Error loading users</td></tr>';
+          console.error('Error loading users:', e);
+          document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="5" style="padding: 20px;">Error loading users</td></tr>';
+        }
+      }
+    }
+
+    // Edit user function
+    let currentEditingUserId = null;
+    function editUser(userId, name, email, provider) {
+      currentEditingUserId = userId;
+      document.getElementById('editUserName').value = name;
+      document.getElementById('editUserEmail').value = email;
+      document.getElementById('editUserProvider').value = provider;
+      showEditUserModal();
+    }
+
+    function closeEditUserModal() {
+      document.getElementById('editUserModal').style.display = 'none';
+      currentEditingUserId = null;
+    }
+
+    // Handle edit user form submission
+    if (document.getElementById('editUserForm')) {
+      document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('editUserName').value;
+        const email = document.getElementById('editUserEmail').value;
+        
+        try {
+          const response = await fetch(`/api/users/${currentEditingUserId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email })
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            showNotification('User updated successfully', 'success');
+            closeEditUserModal();
+            loadUsersList();
+          } else {
+            showNotification(data.error || 'Failed to update user', 'error');
+          }
+        } catch (err) {
+          console.error('Error updating user:', err);
+          showNotification('Error updating user', 'error');
+        }
+      });
+    }
+
+    // Delete user function
+    async function deleteUser(userId, email) {
+      if (!confirm(`Are you sure you want to delete user: ${email}?`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/users/${userId}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          showNotification('User deleted successfully', 'success');
+          loadUsersList();
+        } else {
+          showNotification(data.error || 'Failed to delete user', 'error');
+        }
+      } catch (err) {
+        console.error('Error deleting user:', err);
+        showNotification('Error deleting user', 'error');
+      }
+    }
+
+    // Display modal properly when needed
+    function showEditUserModal() {
+      const modal = document.getElementById('editUserModal');
+      modal.style.display = 'flex';
+    }
+
+    // Load password reset requests
+    async function loadPasswordResetRequests() {
+      const card = document.getElementById('resetRequestsCard');
+      card.style.display = card.style.display === 'none' ? 'block' : 'none';
+      
+      if (card.style.display === 'block') {
+        try {
+          const response = await fetch('/api/password-reset-requests');
+          const data = await response.json();
+          if (data.success && data.requests) {
+            let html = '';
+            data.requests.forEach(req => {
+              const requestedDate = new Date(req.createdAt).toLocaleString();
+              const expiresDate = new Date(req.expiresAt).toLocaleString();
+              const statusColor = req.status === 'pending' ? '#d97706' : req.status === 'completed' ? '#059669' : '#6b7280';
+              html += `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 12px;">${req.userName || 'N/A'}</td>
+                  <td style="padding: 12px;">${req.email}</td>
+                  <td style="padding: 12px;">${requestedDate}</td>
+                  <td style="padding: 12px;">${expiresDate}</td>
+                  <td style="padding: 12px; color: ${statusColor}; font-weight: 600;">${req.status.toUpperCase()}</td>
+                </tr>
+              `;
+            });
+            if (html === '') {
+              html = '<tr><td colspan="5" style="padding: 20px; text-align: center;">No password reset requests</td></tr>';
+            }
+            document.getElementById('resetRequestsTableBody').innerHTML = html;
+          }
+        } catch (e) {
+          console.error('Error loading password reset requests:', e);
+          document.getElementById('resetRequestsTableBody').innerHTML = '<tr><td colspan="5" style="padding: 20px;">Error loading requests</td></tr>';
         }
       }
     }

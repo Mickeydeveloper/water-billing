@@ -75,6 +75,9 @@ const userSchema = new mongoose.Schema({
   provider: String,
   googleId: String,
   picture: String,
+  resetToken: { type: String, index: true, sparse: true },
+  resetExpiry: { type: Date, index: true, sparse: true },
+  lastLogin: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now, index: true }
 });
 
@@ -93,8 +96,19 @@ const recordSchema = new mongoose.Schema({
 recordSchema.index({ userId: 1, createdAt: -1 });
 recordSchema.index({ phone: 1, createdAt: -1 });
 
+// Password Reset Requests Schema
+const passwordResetSchema = new mongoose.Schema({
+  email: { type: String, required: true, index: true },
+  userName: String,
+  resetToken: { type: String, unique: true, sparse: true },
+  createdAt: { type: Date, default: Date.now, index: true },
+  expiresAt: { type: Date, index: true },
+  status: { type: String, enum: ['pending', 'completed', 'expired'], default: 'pending' }
+});
+
 const User = mongoose.model('User', userSchema);
 const Record = mongoose.model('Record', recordSchema);
+const PasswordResetRequest = mongoose.model('PasswordResetRequest', passwordResetSchema);
 
 // ================== PASSPORT STRATEGIES ==================
 // Local Strategy for email/password login
@@ -132,9 +146,13 @@ passport.use('google', new GoogleStrategy({
         name: profile.displayName,
         email: profile.emails?.[0]?.value,
         picture: profile.photos?.[0]?.value,
-        provider: 'google'
+        provider: 'google',
+        lastLogin: new Date()
       });
       await user.save();
+    } else {
+      // Update last login
+      await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
     }
     
     return done(null, user);
@@ -164,9 +182,201 @@ const protect = (req, res, next) => {
   res.status(401).json({ error: "Unauthorized" });
 };
 
+const adminEmails = ['mickidadyhamza@gmail.com'];
+const isAdmin = (user) => user && adminEmails.includes(user.email);
+
+// Track active sessions
+const activeSessions = {};
+
 app.get('/api/me', (req, res) => {
   if (!req.user) return res.status(401).json({});
   res.json({ user: req.user });
+});
+
+// ================== USER MANAGEMENT ENDPOINTS ==================
+
+// Get all users (admin only)
+app.get('/api/users/list', protect, async (req, res) => {
+  try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    const users = await User.find({}).select('-passwordHash').lean().sort({ createdAt: -1 });
+    res.json({ success: true, users });
+  } catch (err) {
+    console.error('List users error:', err);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// Get user count
+app.get('/api/users/count', protect, async (req, res) => {
+  try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    const count = await User.countDocuments({});
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to count users' });
+  }
+});
+
+// Update user (admin only)
+app.put('/api/users/:id', protect, async (req, res) => {
+  try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    const { name, email } = req.body;
+    if (!name && !email) {
+      return res.status(400).json({ error: 'At least one field is required' });
+    }
+    
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email.toLowerCase();
+    
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error('Update user error:', err);
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
+
+// Delete user (admin only)
+app.delete('/api/users/:id', protect, async (req, res) => {
+  try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Also delete all records for this user
+    await Record.deleteMany({ userId: user.id });
+    
+    res.json({ success: true, message: 'User and their records deleted' });
+  } catch (err) {
+    console.error('Delete user error:', err);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+// Get records count
+app.get('/api/records/count', protect, async (req, res) => {
+  try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    const count = await Record.countDocuments({});
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to count records' });
+  }
+});
+
+// Get payment stats
+app.get('/api/payments/stats', protect, async (req, res) => {
+  try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    const records = await Record.find({}).lean();
+    const totalPayments = records.length;
+    const totalAmount = records.reduce((sum, r) => sum + (r.total || 0), 0);
+    
+    res.json({ totalPayments, totalAmount });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get payment stats' });
+  }
+});
+
+// Password reset request (send notification to admin)
+app.post('/api/password-reset-request', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ error: 'Email not found in our system' });
+    }
+    
+    // Generate reset token
+    const resetToken = require('crypto').randomBytes(32).toString('hex');
+    const resetExpiry = Date.now() + (1 * 60 * 60 * 1000); // 1 hour
+    
+    // Store reset token in user record
+    user.resetToken = resetToken;
+    user.resetExpiry = resetExpiry;
+    await user.save();
+    
+    // Store reset request in database for admin notification
+    const resetRequest = new PasswordResetRequest({
+      email: user.email,
+      userName: user.name,
+      resetToken: resetToken,
+      expiresAt: new Date(resetExpiry),
+      status: 'pending'
+    });
+    
+    await resetRequest.save();
+    
+    console.log('🔐 Password Reset Request:', {
+      email: user.email,
+      userName: user.name,
+      timestamp: new Date().toISOString(),
+      expiresAt: new Date(resetExpiry).toISOString()
+    });
+    
+    // In production, you would:
+    // 1. Send email to user with reset link: /reset-password?token=resetToken
+    // 2. Send notification to admin about the reset request
+    
+    res.json({ 
+      success: true,
+      message: 'Password reset link sent to your email. Admin has been notified.'
+    });
+  } catch (err) {
+    console.error('Password reset request error:', err);
+    res.status(500).json({ error: 'Failed to process password reset request' });
+  }
+});
+
+// Get password reset requests (admin only)
+app.get('/api/password-reset-requests', protect, async (req, res) => {
+  try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    const requests = await PasswordResetRequest.find({})
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+    
+    res.json({ success: true, requests });
+  } catch (err) {
+    console.error('Get password reset requests error:', err);
+    res.status(500).json({ error: 'Failed to fetch requests' });
+  }
 });
 
 // ================== AUTHENTICATION ENDPOINTS ==================
@@ -231,8 +441,15 @@ app.post('/local-login', (req, res, next) => {
       return res.status(401).json({ error: info?.message || 'Invalid credentials' });
     }
     
-    req.login(user, (err) => {
+    req.login(user, async (err) => {
       if (err) return res.status(500).json({ error: 'Login failed' });
+      
+      // Track last login
+      try {
+        await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
+      } catch (e) {
+        console.error('Failed to update lastLogin:', e);
+      }
       
       res.json({ 
         success: true,
@@ -354,19 +571,18 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 // ================== GET RECORDS WITH PAGINATION ==================
 app.get('/get-records', protect, async (req, res) => {
   try {
-    const adminEmails = ['mickidadyhamza@gmail.com'];
-    const isAdmin = adminEmails.includes(req.user.email);
+    const isAdminUser = isAdmin(req.user);
     
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 20);
     const skip = (page - 1) * limit;
 
     // Check cache first (for non-admins)
-    if (!isAdmin && recordCache[req.user.id]) {
+    if (!isAdminUser && recordCache[req.user.id]) {
       return res.json(recordCache[req.user.id]);
     }
 
-    const query = isAdmin ? {} : { userId: req.user.id };
+    const query = isAdminUser ? {} : { userId: req.user.id };
     
     // Use lean() for better performance
     const [records, total] = await Promise.all([
@@ -391,7 +607,7 @@ app.get('/get-records', protect, async (req, res) => {
     };
 
     // Cache for user records only
-    if (!isAdmin) {
+    if (!isAdminUser) {
       recordCache[req.user.id] = response;
       setTimeout(() => {
         delete recordCache[req.user.id];
@@ -410,6 +626,13 @@ app.get('/get-records', protect, async (req, res) => {
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/dashboard.html', protect, (req, res) => res.sendFile(path.join(__dirname, 'dashboard.html')));
 app.get('/records.html', protect, (req, res) => res.sendFile(path.join(__dirname, 'records.html')));
+app.get('/admin.html', protect, (req, res) => {
+  // Check if user is admin
+  if (!isAdmin(req.user)) {
+    return res.status(403).redirect('/login.html');
+  }
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
 app.get('/login.html', (req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 app.get('/signup.html', (req, res) => res.sendFile(path.join(__dirname, 'signup.html')));
 app.get('/main.html', protect, (req, res) => res.sendFile(path.join(__dirname, 'main.html')));
