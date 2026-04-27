@@ -197,17 +197,32 @@ passport.serializeUser((user, done) => {
 // Deserialize user
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await User.findById(id);
+    if (!id) {
+      return done(null, false);
+    }
+    const user = await User.findById(id).lean();
+    if (!user) {
+      console.log('⚠️  User not found during deserialization:', id);
+      return done(null, false);
+    }
     done(null, user);
   } catch (err) {
+    console.error('❌ Deserialization error:', err.message);
     done(err);
   }
 });
 
 // ================== AUTH ==================
 const protect = (req, res, next) => {
-  if (req.isAuthenticated()) return next();
-  res.status(401).json({ error: "Unauthorized" });
+  if (!req.isAuthenticated()) {
+    console.log('⚠️  Unauthorized access attempt to protected route:', req.path);
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  if (!req.user) {
+    console.log('⚠️  User session lost on:', req.path);
+    return res.status(401).json({ error: "Session expired" });
+  }
+  next();
 };
 
 const adminEmails = ['mickidadyhamza@gmail.com'];
@@ -217,8 +232,15 @@ const isAdmin = (user) => user && adminEmails.includes(user.email);
 const activeSessions = {};
 
 app.get('/api/me', (req, res) => {
-  if (!req.user) return res.status(401).json({});
-  res.json({ user: req.user });
+  try {
+    if (!req.user) {
+      return res.status(401).json({});
+    }
+    res.json({ user: req.user });
+  } catch (err) {
+    console.error('❌ Error fetching user:', err);
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
 });
 
 // ================== USER MANAGEMENT ENDPOINTS ==================
@@ -586,12 +608,39 @@ app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-app.get('/auth/google/callback',
-  passport.authenticate('google', { 
-    failureRedirect: '/login.html?error=oauth',
-    successRedirect: '/records.html'
-  })
-);
+app.get('/auth/google/callback', (req, res, next) => {
+  passport.authenticate('google', { session: true }, async (err, user, info) => {
+    try {
+      if (err) {
+        console.error('❌ Google auth error:', err);
+        return res.redirect(`/login.html?error=${encodeURIComponent(err.message || 'Authentication failed')}`);
+      }
+
+      if (!user) {
+        console.error('❌ No user returned from Google strategy:', info);
+        return res.redirect('/login.html?error=no-user');
+      }
+
+      req.login(user, async (loginErr) => {
+        if (loginErr) {
+          console.error('❌ Session login error:', loginErr.message);
+          return res.redirect('/login.html?error=session-failed');
+        }
+
+        // Determine redirect based on admin status
+        const adminEmails = ['mickidadyhamza@gmail.com'];
+        const isAdminUser = adminEmails.includes(user.email);
+        const redirectUrl = isAdminUser ? '/admin.html' : '/records.html';
+
+        console.log('✅ Google OAuth successful:', user.email, '→', redirectUrl);
+        res.redirect(redirectUrl);
+      });
+    } catch (error) {
+      console.error('❌ Unexpected error in Google callback:', error);
+      res.redirect('/login.html?error=unexpected-error');
+    }
+  })(req, res, next);
+});
 
 // Logout
 app.get('/logout', (req, res, next) => {
