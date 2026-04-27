@@ -485,8 +485,43 @@
     // Global state
     let isAuthenticated = false;
 
+    // Update navbar on page load
+    function updateNavbar() {
+      const user = localStorage.getItem('user');
+      const navbarUser = document.getElementById('navbarUser');
+      const navbarGuest = document.getElementById('navbarGuest');
+      const navbarUserName = document.getElementById('navbarUserName');
+      if (user) {
+        try {
+          const userData = JSON.parse(user);
+          navbarUserName.textContent = userData.name || userData.email || 'User';
+          navbarUser.style.display = 'flex';
+          navbarGuest.style.display = 'none';
+        } catch(e) {
+          console.error('Error parsing user:', e);
+          navbarGuest.style.display = 'flex';
+          navbarUser.style.display = 'none';
+        }
+      } else {
+        navbarGuest.style.display = 'flex';
+        navbarUser.style.display = 'none';
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('loginTime');
+      fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
+        window.location.href = '/login.html';
+      });
+    }
+
+    window.logout = logout;
+
     // Initialize admin dashboard
     document.addEventListener('DOMContentLoaded', () => {
+      updateNavbar();
       checkAuth();
       loadStats();
     });
@@ -513,55 +548,17 @@
       }
     }
 
-    // Load system statistics
-    async function loadStats() {
-      try {
-        // Load user stats
-        const userResponse = await fetch('/api/users/count');
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          document.getElementById('totalUsers').textContent = userData.count || 0;
-          document.getElementById('usersCount').textContent = userData.count || 0;
-        }
-
-        // Load record stats
-        const recordResponse = await fetch('/api/records/count');
-        if (recordResponse.ok) {
-          const recordData = await recordResponse.json();
-          document.getElementById('totalRecords').textContent = recordData.count || 0;
-        }
-
-        // Load payment stats
-        const paymentResponse = await fetch('/api/payments/stats');
-        if (paymentResponse.ok) {
-          const paymentData = await paymentResponse.json();
-          document.getElementById('totalPayments').textContent = paymentData.totalPayments || 0;
-          document.getElementById('totalAmount').textContent = (paymentData.totalAmount || 0).toLocaleString();
-        }
-
-        // Load password reset requests count
-        const resetResponse = await fetch('/api/password-reset-requests');
-        if (resetResponse.ok) {
-          const resetData = await resetResponse.json();
-          document.getElementById('resetRequestsCount').textContent = (resetData.requests || []).length;
-        }
-
-      } catch (error) {
-        console.error('Failed to load stats:', error);
-        showNotification('Failed to load statistics', 'error');
-      }
-    }
-
     // Load users list
     async function loadUsersList() {
       const card = document.getElementById('usersListCard');
-      card.style.display = card.style.display === 'none' ? 'block' : 'none';
+      const isVisible = card.style.display !== 'none';
+      card.style.display = isVisible ? 'none' : 'block';
       
-      if (card.style.display === 'block') {
+      if (!isVisible) {
         try {
           const response = await fetch('/api/users/list');
           const data = await response.json();
-          if (data.success && data.users) {
+          if (data.success && data.users && Array.isArray(data.users)) {
             let html = '';
             data.users.forEach(user => {
               const createdDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
@@ -578,7 +575,12 @@
                 </tr>
               `;
             });
+            if (html === '') {
+              html = '<tr><td colspan="5" style="padding: 20px; text-align: center;">No users found</td></tr>';
+            }
             document.getElementById('usersTableBody').innerHTML = html;
+          } else {
+            document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center;">No users data</td></tr>';
           }
         } catch (e) {
           console.error('Error loading users:', e);
@@ -590,6 +592,10 @@
     // Edit user function
     let currentEditingUserId = null;
     function editUser(userId, name, email, provider) {
+      if (!userId || !name || !email) {
+        showNotification('Invalid user data', 'error');
+        return;
+      }
       currentEditingUserId = userId;
       document.getElementById('editUserName').value = name;
       document.getElementById('editUserEmail').value = email;
@@ -600,6 +606,9 @@
     function closeEditUserModal() {
       document.getElementById('editUserModal').style.display = 'none';
       currentEditingUserId = null;
+      if (document.getElementById('editUserForm')) {
+        document.getElementById('editUserForm').reset();
+      }
     }
 
     // Handle edit user form submission
@@ -607,9 +616,19 @@
       document.getElementById('editUserForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const name = document.getElementById('editUserName').value;
-        const email = document.getElementById('editUserEmail').value;
+        if (!currentEditingUserId) {
+          showNotification('No user selected', 'error');
+          return;
+        }
+
+        const name = document.getElementById('editUserName').value.trim();
+        const email = document.getElementById('editUserEmail').value.trim();
         
+        if (!name || !email) {
+          showNotification('Name and email are required', 'error');
+          return;
+        }
+
         try {
           const response = await fetch(`/api/users/${currentEditingUserId}`, {
             method: 'PUT',
@@ -619,7 +638,7 @@
 
           const data = await response.json();
           if (response.ok) {
-            showNotification('User updated successfully', 'success');
+            showNotification('✅ User updated successfully', 'success');
             closeEditUserModal();
             loadUsersList();
           } else {
@@ -627,14 +646,19 @@
           }
         } catch (err) {
           console.error('Error updating user:', err);
-          showNotification('Error updating user', 'error');
+          showNotification('Error updating user: ' + err.message, 'error');
         }
       });
     }
 
     // Delete user function
     async function deleteUser(userId, email) {
-      if (!confirm(`Are you sure you want to delete user: ${email}?`)) {
+      if (!userId) {
+        showNotification('Invalid user ID', 'error');
+        return;
+      }
+
+      if (!confirm(`⚠️ Delete user: ${email}?\n\nThis will also delete all their billing records. This cannot be undone.`)) {
         return;
       }
 
@@ -645,14 +669,15 @@
 
         const data = await response.json();
         if (response.ok) {
-          showNotification('User deleted successfully', 'success');
+          showNotification('✅ User deleted successfully', 'success');
           loadUsersList();
+          loadStats();
         } else {
           showNotification(data.error || 'Failed to delete user', 'error');
         }
       } catch (err) {
         console.error('Error deleting user:', err);
-        showNotification('Error deleting user', 'error');
+        showNotification('Error deleting user: ' + err.message, 'error');
       }
     }
 
@@ -665,13 +690,14 @@
     // Load password reset requests
     async function loadPasswordResetRequests() {
       const card = document.getElementById('resetRequestsCard');
-      card.style.display = card.style.display === 'none' ? 'block' : 'none';
+      const isVisible = card.style.display !== 'none';
+      card.style.display = isVisible ? 'none' : 'block';
       
-      if (card.style.display === 'block') {
+      if (!isVisible) {
         try {
           const response = await fetch('/api/password-reset-requests');
           const data = await response.json();
-          if (data.success && data.requests) {
+          if (data.success && data.requests && Array.isArray(data.requests)) {
             let html = '';
             data.requests.forEach(req => {
               const requestedDate = new Date(req.createdAt).toLocaleString();
@@ -691,6 +717,8 @@
               html = '<tr><td colspan="5" style="padding: 20px; text-align: center;">No password reset requests</td></tr>';
             }
             document.getElementById('resetRequestsTableBody').innerHTML = html;
+          } else {
+            document.getElementById('resetRequestsTableBody').innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center;">No requests data</td></tr>';
           }
         } catch (e) {
           console.error('Error loading password reset requests:', e);
@@ -876,43 +904,6 @@
 
   <!-- FOOTER -->
   <footer>
-    <div class="footer-content">
-      <div class="footer-section">
-        <h4>📚 Quick Links</h4>
-        <a href="index.html">Home</a>
-        <a href="main.html">Calculator</a>
-        <a href="records.html">Records</a>
-        <a href="botweb.html">Chat Support</a>
-      </div>
-      <div class="footer-section">
-        <h4>📖 Resources</h4>
-        <a href="API_DOCS.md" target="_blank">API Docs</a>
-        <a href="README_UPDATES.md" target="_blank">Updates</a>
-        <a href="FEATURES_SHOWCASE.md" target="_blank">Features</a>
-      </div>
-      <div class="footer-section">
-        <h4>👤 Account</h4>
-        <a href="login.html">Sign In</a>
-        <a href="signup.html">Create Account</a>
-        <a href="records.html">My Records</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>&copy; 2026 Water Billing System | Built by Mickey Hamza ❤️</p>
-    </div>
-  </footer>
-
-  <script>
-    function updateNavbar() {
-      const user = localStorage.getItem('user');
-      const navbarUser = document.getElementById('navbarUser');
-      const navbarGuest = document.getElementById('navbarGuest');
-      const navbarUserName = document.getElementById('navbarUserName');
-      if (user) {
-        try {
-          const userData = JSON.parse(user);
-          navbarUserName.textContent = userData.name || userData.email || 'User';
-          navbarUser.style.display = 'flex';
           navbarGuest.style.display = 'none';
         } catch(e) {
           navbarGuest.style.display = 'flex';

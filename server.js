@@ -136,27 +136,55 @@ passport.use('google', new GoogleStrategy({
   callbackURL: process.env.GOOGLE_CALLBACK_URL || '/auth/google/callback'
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    // Validate profile data
+    if (!profile.id) {
+      console.error('❌ Google OAuth: Missing profile.id');
+      return done(new Error('Invalid Google profile'));
+    }
+
+    const email = profile.emails?.[0]?.value;
+    if (!email) {
+      console.error('❌ Google OAuth: Missing email in profile');
+      return done(new Error('Email required from Google profile'));
+    }
+
     let user = await User.findOne({ googleId: profile.id });
     
     if (!user) {
+      // Check if email already exists
+      const existingByEmail = await User.findOne({ email: email.toLowerCase() });
+      if (existingByEmail) {
+        console.log('ℹ️  Google OAuth: Linking Google ID to existing email');
+        existingByEmail.googleId = profile.id;
+        existingByEmail.picture = profile.photos?.[0]?.value || existingByEmail.picture;
+        existingByEmail.lastLogin = new Date();
+        await existingByEmail.save();
+        return done(null, existingByEmail);
+      }
+
       // Create new user
       user = new User({
         id: profile.id,
         googleId: profile.id,
-        name: profile.displayName,
-        email: profile.emails?.[0]?.value,
+        name: profile.displayName || 'User',
+        email: email.toLowerCase(),
         picture: profile.photos?.[0]?.value,
         provider: 'google',
         lastLogin: new Date()
       });
+      console.log('✅ Google OAuth: New user created:', email);
       await user.save();
     } else {
       // Update last login
-      await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
+      user.lastLogin = new Date();
+      user.picture = profile.photos?.[0]?.value || user.picture;
+      await user.save();
+      console.log('✅ Google OAuth: Existing user logged in:', email);
     }
     
     return done(null, user);
   } catch (err) {
+    console.error('❌ Google OAuth error:', err.message);
     return done(err);
   }
 }));
@@ -376,6 +404,42 @@ app.get('/api/password-reset-requests', protect, async (req, res) => {
   } catch (err) {
     console.error('Get password reset requests error:', err);
     res.status(500).json({ error: 'Failed to fetch requests' });
+  }
+});
+
+// Send notification to all users (admin only)
+app.post('/api/send-notification', protect, async (req, res) => {
+  try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { title, body, url } = req.body;
+    
+    if (!title || !body) {
+      return res.status(400).json({ error: 'Title and body are required' });
+    }
+
+    // Log notification to console (in production, send via push service)
+    const notification = {
+      title,
+      body,
+      url: url || '/records.html',
+      sentBy: req.user.email,
+      sentAt: new Date().toISOString(),
+      recipientCount: (await User.countDocuments({}))
+    };
+
+    console.log('📬 Notification Sent:', notification);
+
+    res.json({ 
+      success: true, 
+      message: 'Notification sent to all users',
+      notification
+    });
+  } catch (err) {
+    console.error('Send notification error:', err);
+    res.status(500).json({ error: 'Failed to send notification' });
   }
 });
 

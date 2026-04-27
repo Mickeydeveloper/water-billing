@@ -474,7 +474,7 @@
         btn.textContent = 'Send Reset Link';
       }
     });
-  </script>
+
     // Notification system
     function showNotification(message, type = 'info', duration = 3000) {
       const container = document.getElementById('notify');
@@ -514,6 +514,11 @@
       // Validate input
       if (!email || !password) {
         showError('Please enter email and password');
+        return;
+      }
+
+      if (password.length < 6) {
+        showError('Password must be at least 6 characters');
         return;
       }
       
@@ -561,9 +566,13 @@
           }));
           localStorage.setItem('loginTime', new Date().toISOString());
           
-          showNotification('Signed in successfully', 'success', 1200);
-          // Redirect to records page
-          setTimeout(() => { window.location.href = '/records.html'; }, 600);
+          showNotification('✅ Signed in successfully', 'success', 1200);
+          // Redirect to appropriate page
+          setTimeout(() => { 
+            const adminEmails = ['mickidadyhamza@gmail.com'];
+            const isAdmin = adminEmails.includes(meData.user.email);
+            window.location.href = isAdmin ? '/admin.html' : '/records.html';
+          }, 600);
         } else {
           showError('Failed to retrieve user data');
           btn.disabled = false;
@@ -571,7 +580,11 @@
         }
       }catch(err){
         console.error('Error:', err);
-        showError('Network error — please try again');
+        if (err.name === 'AbortError') {
+          showError('Request timeout — please try again');
+        } else {
+          showError('Network error — please try again');
+        }
         btn.disabled = false;
         btn.textContent = 'Sign in';
       }
