@@ -379,6 +379,60 @@ app.get('/api/password-reset-requests', protect, async (req, res) => {
   }
 });
 
+// ================== ADMIN SETUP ==================
+// Setup admin account (one-time or reset)
+app.post('/api/setup-admin', async (req, res) => {
+  try {
+    const adminEmail = 'mickidadyhamza@gmail.com';
+    const adminPassword = 'MICKEY24@';
+    
+    // Check if admin already exists
+    let adminUser = await User.findOne({ email: adminEmail });
+    
+    if (adminUser) {
+      // Update existing admin password
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      adminUser.passwordHash = hashedPassword;
+      adminUser.name = 'Admin';
+      adminUser.provider = 'local';
+      await adminUser.save();
+      
+      console.log('✅ Admin password updated successfully');
+      res.json({ 
+        success: true, 
+        message: 'Admin account updated',
+        email: adminEmail,
+        password: adminPassword
+      });
+    } else {
+      // Create new admin account
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      
+      const newAdmin = new User({
+        id: 'admin_' + Date.now(),
+        name: 'Admin',
+        email: adminEmail,
+        passwordHash: hashedPassword,
+        provider: 'local',
+        createdAt: new Date()
+      });
+      
+      await newAdmin.save();
+      
+      console.log('✅ Admin account created successfully');
+      res.json({ 
+        success: true, 
+        message: 'Admin account created',
+        email: adminEmail,
+        password: adminPassword
+      });
+    }
+  } catch (err) {
+    console.error('Admin setup error:', err);
+    res.status(500).json({ error: 'Failed to setup admin account' });
+  }
+});
+
 // ================== AUTHENTICATION ENDPOINTS ==================
 
 // Sign up with email
