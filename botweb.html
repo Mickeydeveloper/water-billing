@@ -599,13 +599,20 @@
             if (!text) return;
 
             // User Message
-            window.innerHTML += `<div class="msg user-msg">${text}</div>`;
+            const message = window.document.createElement('div');
+            message.className = 'msg user-msg';
+            message.textContent = text;
+            window.appendChild(message);
             input.value = '';
             window.scrollTop = window.scrollHeight;
 
             // Thinking...
             const tempId = 'id' + Date.now();
-            window.innerHTML += `<div class="msg mickey-msg" id="${tempId}">...</div>`;
+            const thinking = window.document.createElement('div');
+            thinking.className = 'msg mickey-msg';
+            thinking.id = tempId;
+            thinking.textContent = '...';
+            window.appendChild(thinking);
             window.scrollTop = window.scrollHeight;
 
             try {
@@ -613,21 +620,31 @@
                 const response = await fetch(`/api/chat?text=${encodeURIComponent(text)}`);
                 const data = await response.json();
                 
-                document.getElementById(tempId).innerText = data.reply;
+                if (data && data.reply) {
+                  document.getElementById(tempId).innerText = data.reply;
+                } else {
+                  document.getElementById(tempId).innerText = "Samahani, simu inauma sasa.";
+                }
             } catch (err) {
-                document.getElementById(tempId).innerText = "Nimeshindwa kuunganisha kwa sasa. Jaribu baadaye.";
+                const elem = document.getElementById(tempId);
+                if (elem) {
+                  elem.innerText = "Nimeshindwa kuunganisha kwa sasa. Jaribu baadaye.";
+                }
             }
             window.scrollTop = window.scrollHeight;
         }
 
         // Live stats counter animation simple
         let startCount = 1.4;
-        setInterval(() => {
-            if (Math.random() > 0.8) {
-                startCount += 0.1;
-                document.getElementById('clients').innerText = startCount.toFixed(1) + 'k';
-            }
-        }, 5000);
+        const clientsElem = document.getElementById('clients');
+        if (clientsElem) {
+          setInterval(() => {
+              if (Math.random() > 0.8) {
+                  startCount += 0.1;
+                  clientsElem.innerText = startCount.toFixed(1) + 'k';
+              }
+          }, 5000);
+        }
 
         // ============ FLOATING CHAT WIDGET ============
         function toggleFloatChat() {
@@ -646,6 +663,9 @@
         async function sendFloatMessage() {
             const input = document.getElementById('floatChatInput');
             const messagesDiv = document.getElementById('floatMessages');
+            
+            if (!input || !messagesDiv) return;
+            
             const text = input.value.trim();
 
             if (!text) return;
@@ -669,7 +689,7 @@
             try {
                 const response = await fetch(`/api/chat?text=${encodeURIComponent(text)}`);
                 const data = await response.json();
-                thinkingMsg.textContent = data.reply || 'Samahani, simu inauma sasa.';
+                thinkingMsg.textContent = (data && data.reply) ? data.reply : 'Samahani, simu inauma sasa.';
             } catch (err) {
                 thinkingMsg.textContent = 'Kosa la mtandao. Jaribu tena.';
             }

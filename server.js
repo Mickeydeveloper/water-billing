@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const session = require('express-session');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
@@ -53,7 +55,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'secret123',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false }
+  cookie: { secure: false, httpOnly: true }
 }));
 
 app.use(passport.initialize());
@@ -71,6 +73,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, index: true, unique: true, sparse: true },
   passwordHash: String,
   provider: String,
+  googleId: String,
+  picture: String,
   createdAt: { type: Date, default: Date.now, index: true }
 });
 
@@ -92,6 +96,68 @@ recordSchema.index({ phone: 1, createdAt: -1 });
 const User = mongoose.model('User', userSchema);
 const Record = mongoose.model('Record', recordSchema);
 
+// ================== PASSPORT STRATEGIES ==================
+// Local Strategy for email/password login
+passport.use('local', new LocalStrategy({
+  usernameField: 'email',
+  passwordField: 'password'
+}, async (email, password, done) => {
+  try {
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return done(null, false, { message: 'User not found' });
+    
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) return done(null, false, { message: 'Invalid password' });
+    
+    return done(null, user);
+  } catch (err) {
+    return done(err);
+  }
+}));
+
+// Google Strategy
+passport.use('google', new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID || 'not-configured',
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'not-configured',
+  callbackURL: process.env.GOOGLE_CALLBACK_URL || '/auth/google/callback'
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    let user = await User.findOne({ googleId: profile.id });
+    
+    if (!user) {
+      // Create new user
+      user = new User({
+        id: profile.id,
+        googleId: profile.id,
+        name: profile.displayName,
+        email: profile.emails?.[0]?.value,
+        picture: profile.photos?.[0]?.value,
+        provider: 'google'
+      });
+      await user.save();
+    }
+    
+    return done(null, user);
+  } catch (err) {
+    return done(err);
+  }
+}));
+
+// Serialize user
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+
+// Deserialize user
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) {
+    done(err);
+  }
+});
+
 // ================== AUTH ==================
 const protect = (req, res, next) => {
   if (req.isAuthenticated()) return next();
@@ -101,6 +167,134 @@ const protect = (req, res, next) => {
 app.get('/api/me', (req, res) => {
   if (!req.user) return res.status(401).json({});
   res.json({ user: req.user });
+});
+
+// ================== AUTHENTICATION ENDPOINTS ==================
+
+// Sign up with email
+app.post('/signup', async (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body;
+    
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required' });
+    }
+    
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    
+    // Check if user exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+    
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Create new user
+    const newUser = new User({
+      id: new Date().getTime().toString(),
+      name,
+      email: email.toLowerCase(),
+      passwordHash: hashedPassword,
+      provider: 'local'
+    });
+    
+    await newUser.save();
+    
+    // Log in the user
+    req.login(newUser, (err) => {
+      if (err) return res.status(500).json({ error: 'Login failed after signup' });
+      res.json({ 
+        success: true,
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email
+        }
+      });
+    });
+  } catch (err) {
+    console.error('Signup error:', err.message);
+    res.status(500).json({ error: 'Failed to create account' });
+  }
+});
+
+// Local email login
+app.post('/local-login', (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if (err) return res.status(500).json({ error: 'Authentication error' });
+    
+    if (!user) {
+      return res.status(401).json({ error: info?.message || 'Invalid credentials' });
+    }
+    
+    req.login(user, (err) => {
+      if (err) return res.status(500).json({ error: 'Login failed' });
+      
+      res.json({ 
+        success: true,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email
+        }
+      });
+    });
+  })(req, res, next);
+});
+
+// Google OAuth routes
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', { 
+    failureRedirect: '/login.html?error=oauth',
+    successRedirect: '/records.html'
+  })
+);
+
+// Logout
+app.get('/logout', (req, res, next) => {
+  req.logout((err) => {
+    if (err) return next(err);
+    res.redirect('/login.html');
+  });
+});
+
+// ================== AI/CHAT API ==================
+// Endpoint for chat messages
+app.get('/api/chat', async (req, res) => {
+  try {
+    const { text } = req.query;
+    
+    if (!text || text.trim().length === 0) {
+      return res.json({ reply: 'Please ask something' });
+    }
+    
+    // Simple response system - you can integrate a real AI/ML service here
+    const lowerText = text.toLowerCase();
+    let reply = 'I can help with billing calculations and water usage tracking. What would you like to know?';
+    
+    if (lowerText.includes('billing') || lowerText.includes('charge')) {
+      reply = 'Water billing is calculated as: (Current Reading - Previous Reading) × Rate + Fixed Charges';
+    } else if (lowerText.includes('usage') || lowerText.includes('consume')) {
+      reply = 'Your water usage is the difference between current and previous meter readings in cubic meters.';
+    } else if (lowerText.includes('help')) {
+      reply = 'I can help you with:\n• Calculating water charges\n• Understanding meter readings\n• Billing information\nWhat do you need?';
+    } else if (lowerText.includes('rate') || lowerText.includes('price')) {
+      reply = 'Water rates vary by region. Please check your account dashboard for your specific rate.';
+    }
+    
+    res.json({ reply });
+  } catch (err) {
+    console.error('Chat error:', err.message);
+    res.json({ reply: 'Service temporarily unavailable' });
+  }
 });
 
 // ================== SAVE RECORD ==================
@@ -219,6 +413,7 @@ app.get('/records.html', protect, (req, res) => res.sendFile(path.join(__dirname
 app.get('/login.html', (req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 app.get('/signup.html', (req, res) => res.sendFile(path.join(__dirname, 'signup.html')));
 app.get('/main.html', protect, (req, res) => res.sendFile(path.join(__dirname, 'main.html')));
+app.get('/botweb.html', (req, res) => res.sendFile(path.join(__dirname, 'botweb.html')));
 
 // ================== HEALTH CHECK ==================
 app.get('/health', (req, res) => {
