@@ -3,170 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mickey Glitch | Quantum Base Dev</title>
+    <title>Mickey Glitch | Hosting & AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #00f5ff;
             --primary-glow: rgba(0, 245, 255, 0.3);
             --accent: #c026d3;
-            --neon: #39ff14;
             --bg: #030305;
             --card-bg: rgba(255, 255, 255, 0.03);
             --border: rgba(255, 255, 255, 0.1);
+            --success: #39ff14;
+            --warning: #ffb800;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg);
-            color: #ffffff;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: #fff; line-height: 1.6; }
 
         /* Background Grid */
         body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: -1;
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px; z-index: -1;
         }
 
-        /* HEADER */
-        .header {
-            position: fixed; top: 0; width: 100%;
-            backdrop-filter: blur(15px);
-            background: rgba(3, 3, 5, 0.8);
-            border-bottom: 1px solid var(--border);
-            padding: 15px 5%;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 2000;
-        }
-
-        .logo { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase; }
+        .header { position: fixed; top: 0; width: 100%; backdrop-filter: blur(15px); background: rgba(3, 3, 5, 0.8); border-bottom: 1px solid var(--border); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; z-index: 2000; }
+        .logo { font-size: 1.2rem; font-weight: 800; text-transform: uppercase; }
         .logo span { color: var(--primary); }
 
-        /* HERO & LAYOUT */
-        .hero { padding: 140px 20px 80px; text-align: center; max-width: 1200px; margin: 0 auto; }
+        .hero { padding: 120px 20px 60px; text-align: center; max-width: 1000px; margin: 0 auto; }
+        .gradient-text { background: linear-gradient(90deg, #fff, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.5rem; font-weight: 800; }
+
+        /* SERVER STATUS CARD */
+        .status-card {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; padding: 25px;
+            margin: 30px auto; max-width: 500px; backdrop-filter: blur(10px); text-align: left;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .dot-active { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .dot-pending { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
         
-        /* AUDIO PLAYER STYLING */
-        .audio-container {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 20px;
-            border-radius: 20px;
-            margin: 40px auto;
-            max-width: 400px;
-            backdrop-filter: blur(10px);
+        .btn-request {
+            width: 100%; background: var(--primary); color: #000; border: none; padding: 12px;
+            border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 15px; transition: 0.3s;
         }
+        .btn-request:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--primary-glow); }
 
-        .audio-container h4 {
-            font-size: 0.8rem;
-            color: var(--primary);
-            margin-bottom: 15px;
-            text-transform: uppercase;
-        }
-
-        input[type="file"] {
-            font-size: 0.8rem;
-            margin-bottom: 15px;
-            color: #94a3b8;
-        }
-
-        audio {
-            width: 100%;
-            height: 40px;
-            filter: invert(100%) hue-rotate(180deg) brightness(1.5);
-        }
-
-        /* CHAT INTERFACE RE-STYLING */
-        .chat-container {
-            max-width: 800px; margin: 40px auto;
-            background: rgba(15, 15, 20, 0.8);
-            border: 1px solid var(--border);
-            border-radius: 30px; overflow: hidden;
-        }
-
-        #chat-window {
-            height: 400px; padding: 25px;
-            overflow-y: auto; display: flex;
-            flex-direction: column; gap: 15px;
-            text-align: left;
-        }
-
-        .msg { max-width: 80%; padding: 12px 18px; border-radius: 18px; font-size: 0.95rem; }
+        /* CHAT SECTION */
+        .chat-container { max-width: 800px; margin: 20px auto; background: rgba(15, 15, 20, 0.8); border: 1px solid var(--border); border-radius: 30px; overflow: hidden; }
+        #chat-window { height: 350px; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 80%; padding: 12px 18px; border-radius: 18px; font-size: 0.9rem; }
         .mickey-msg { background: #1e1e24; align-self: flex-start; border-bottom-left-radius: 2px; }
         .user-msg { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 600; align-self: flex-end; border-bottom-right-radius: 2px; }
-
-        .chat-input-area { padding: 20px; display: flex; gap: 10px; background: rgba(255,255,255,0.02); }
-        .chat-input-area input { flex: 1; background: #000; border: 1px solid var(--border); padding: 15px 20px; border-radius: 15px; color: #fff; outline: none; }
         
-        .send-btn { background: var(--primary); border: none; width: 50px; border-radius: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        .chat-input-area { padding: 15px; display: flex; gap: 10px; background: rgba(255,255,255,0.02); }
+        .chat-input-area input { flex: 1; background: #000; border: 1px solid var(--border); padding: 12px 20px; border-radius: 12px; color: #fff; outline: none; }
+        .send-btn { background: var(--primary); border: none; width: 45px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        /* Rest of your styles... */
-        .gradient-text { background: linear-gradient(90deg, #fff, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .audio-mini { margin-top: 20px; opacity: 0.7; }
     </style>
 </head>
 <body>
 
     <header class="header">
-        <div class="logo">MICKEY<span>GLITCH</span></div>
+        <div class="logo">MICKEY<span>HOSTING</span></div>
+        <div id="user-display" style="font-size: 0.8rem; color: var(--primary);">Checking session...</div>
     </header>
 
     <main class="hero">
-        <h1><span class="gradient-text">Mickey Audio & Chat</span></h1>
-        
-        <div class="audio-container">
-            <h4>Local Media Player</h4>
-            <input type="file" id="audioUpload" accept="audio/*">
-            <audio id="audioPlayer" controls>
-                Your browser does not support the audio element.
-            </audio>
+        <h1 class="gradient-text">Quantum Bot Hosting</h1>
+        <p style="color: #94a3b8; margin-top: 10px;">Host your WhatsApp bots with 99.9% uptime.</p>
+
+        <div class="status-card" id="server-panel">
+            <div class="status-header">
+                <span style="font-weight: 700; text-transform: uppercase; font-size: 0.8rem; color: var(--primary);">Server Dashboard</span>
+                <span id="status-badge" style="font-size: 0.7rem; font-weight: 800;">
+                    <span class="status-dot"></span>OFFLINE
+                </span>
+            </div>
+            <div id="status-desc" style="font-size: 0.85rem; color: #94a3b8;">
+                Huna server iliyopitishwa. Lipia kisha bonyeza request.
+            </div>
+            <button class="btn-request" id="req-btn" onclick="requestHosting()">Request Server Activation</button>
         </div>
 
-        <section class="chat-container" id="chat">
+        <section class="chat-container">
             <div id="chat-window">
-                <div class="msg mickey-msg">Habari! Mimi ni Mickey Glitch AI. Code imerekebishwa, sasa unaweza kutuma ujumbe.</div>
+                <div class="msg mickey-msg">Yo! Karibu Mickey Hosting. Unaweza kuniuliza kuhusu bei au jinsi ya kulipia server.</div>
             </div>
             <div class="chat-input-area">
-                <input type="text" id="userInput" placeholder="Andika ujumbe hapa..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <input type="text" id="userInput" placeholder="Uliza chochote..." onkeypress="if(event.key==='Enter') sendMessage()">
                 <button class="send-btn" onclick="sendMessage()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                 </button>
             </div>
         </section>
+
+        <div class="audio-mini">
+            <input type="file" id="audioUpload" accept="audio/*" style="display: none;">
+            <p onclick="document.getElementById('audioUpload').click()" style="cursor:pointer; font-size: 0.7rem; color: var(--primary);">🎵 Play Local Music</p>
+            <audio id="audioPlayer" controls style="height: 30px; margin-top: 5px;"></audio>
+        </div>
     </main>
 
     <script>
-        // 1. AUDIO PLAYER LOGIC
-        const audioUpload = document.getElementById('audioUpload');
-        const audioPlayer = document.getElementById('audioPlayer');
+        // 1. SESSION & SERVER CHECK
+        async function checkStatus() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                if(!data.user) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                document.getElementById('user-display').innerText = `Logged in: ${data.user.name}`;
+                
+                const badge = document.getElementById('status-badge');
+                const desc = document.getElementById('status-desc');
+                const btn = document.getElementById('req-btn');
 
-        audioUpload.addEventListener('change', function() {
-            const files = this.files;
-            if (files.length > 0) {
-                const url = URL.createObjectURL(files[0]);
-                audioPlayer.src = url;
-                audioPlayer.play();
-            }
-        });
+                // Hapa tunatumia data kutoka server.js uliyoiupdate
+                const sStatus = data.user.serverStatus || 'none';
 
-        // 2. CHAT LOGIC (FIXED)
+                if(sStatus === 'active') {
+                    badge.innerHTML = '<span class="status-dot dot-active"></span>ACTIVE';
+                    badge.style.color = 'var(--success)';
+                    desc.innerText = "Server yako ipo active! Bot yako inafanya kazi.";
+                    btn.style.display = 'none';
+                } else if(sStatus === 'pending') {
+                    badge.innerHTML = '<span class="status-dot dot-pending"></span>PENDING';
+                    badge.style.color = 'var(--warning)';
+                    desc.innerText = "Malipo yanahakikiwa na Admin. Subiri kidogo...";
+                    btn.disabled = true;
+                    btn.innerText = "Waiting for Approval...";
+                }
+            } catch(e) { console.log("Session error"); }
+        }
+
+        async function requestHosting() {
+            if(!confirm("Umeshalipia? Bonyeza OK kutuma ombi kwa Admin.")) return;
+            try {
+                const res = await fetch('/api/server/request', { method: 'POST' });
+                const data = await res.json();
+                alert(data.message || "Request Sent!");
+                checkStatus();
+            } catch(e) { alert("Error sending request"); }
+        }
+
+        // 2. CHAT BOT
         async function sendMessage() {
             const input = document.getElementById('userInput');
-            const chatWindow = document.getElementById('chat-window');
             const text = input.value.trim();
+            if(!text) return;
 
-            if (!text) return;
-
-            // User Message - FIXED: Aliyekuwa anasababisha error ni 'window.document'
+            const chatWindow = document.getElementById('chat-window');
             const userDiv = document.createElement('div');
             userDiv.className = 'msg user-msg';
             userDiv.textContent = text;
@@ -175,25 +168,32 @@
             input.value = '';
             chatWindow.scrollTop = chatWindow.scrollHeight;
 
-            // Thinking...
-            const tempId = 'id' + Date.now();
-            const thinking = document.createElement('div');
-            thinking.className = 'msg mickey-msg';
-            thinking.id = tempId;
-            thinking.textContent = '...';
-            chatWindow.appendChild(thinking);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            const tempId = 'bot-' + Date.now();
+            const botDiv = document.createElement('div');
+            botDiv.className = 'msg mickey-msg';
+            botDiv.id = tempId;
+            botDiv.textContent = '...';
+            chatWindow.appendChild(botDiv);
 
             try {
-                // Kumbuka kubadilisha hii iwe endpoint yako halisi
                 const response = await fetch(`/api/chat?text=${encodeURIComponent(text)}`);
                 const data = await response.json();
-                document.getElementById(tempId).innerText = data.reply || "Nimepokea ujumbe wako!";
-            } catch (err) {
-                document.getElementById(tempId).innerText = "Mickey Bot yupo offline, lakini ujumbe umefika!";
+                document.getElementById(tempId).innerText = data.reply;
+            } catch(e) {
+                document.getElementById(tempId).innerText = "Mickey AI is sleepy. Try again!";
             }
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
+
+        // 3. AUDIO
+        document.getElementById('audioUpload').addEventListener('change', function() {
+            if(this.files[0]) {
+                document.getElementById('audioPlayer').src = URL.createObjectURL(this.files[0]);
+                document.getElementById('audioPlayer').play();
+            }
+        });
+
+        checkStatus();
     </script>
 </body>
 </html>
