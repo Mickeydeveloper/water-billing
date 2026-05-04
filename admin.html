@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="/manifest.json">
   <meta name="description" content="Admin Dashboard - Water Billing System">
   <meta name="author" content="Mickey Hamza">
   <title>Admin Dashboard - Water Billing System</title>
@@ -587,7 +589,12 @@
     </div>
   </div>
 
-  <script>
+  <script src="/admin.js">
+    // Admin logic moved to admin.js
+
+    // Fallback content remains for browsers without script support
+    // Script body below is ignored when admin.js loads
+
     // Global state
     let isAuthenticated = false;
 
@@ -1256,36 +1263,23 @@
     }
   </script>
 
-  <!-- FLOAT CHAT WIDGET -->
   <script src="/float-chat.js"></script>
 
   <!-- FOOTER -->
   <footer>
-          navbarGuest.style.display = 'none';
-        } catch(e) {
-          navbarGuest.style.display = 'flex';
-          navbarUser.style.display = 'none';
-        }
-      } else {
-        navbarGuest.style.display = 'flex';
-        navbarUser.style.display = 'none';
-      }
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', updateNavbar);
-    } else {
-      updateNavbar();
-    }
-    function logout() {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      localStorage.removeItem('loginTime');
-      fetch('/logout', { method: 'GET', credentials: 'same-origin' }).finally(() => {
-        window.location.href = 'login.html';
-      });
-    }
-    window.logout = logout;
-  </script>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Water Billing Admin</h4>
+        <p>Manage users, records, and notifications securely.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <a href="/records.html">Records</a>
+        <a href="/login.html">Login</a>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 Mickey Water Billing</div>
+  </footer>
 </body>
 </html></content>
 <parameter name="filePath">vscode-vfs://github/Mickeydeveloper/water-billing/admin.html

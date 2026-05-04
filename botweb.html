@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#030305">
+    <link rel="manifest" href="/manifest.json">
     <title>Mickey Glitch | Hosting & AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
@@ -69,7 +71,10 @@
 
     <header class="header">
         <div class="logo">MICKEY<span>HOSTING</span></div>
-        <div id="user-display" style="font-size: 0.8rem; color: var(--primary);">Checking session...</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div id="user-display" style="font-size: 0.8rem; color: var(--primary);">Checking session...</div>
+          <button id="installBtn" class="btn-request" style="display:none; width:auto; padding: 10px 18px;">Install App</button>
+        </div>
     </header>
 
     <main class="hero">
@@ -108,92 +113,6 @@
         </div>
     </main>
 
-    <script>
-        // 1. SESSION & SERVER CHECK
-        async function checkStatus() {
-            try {
-                const res = await fetch('/api/me');
-                const data = await res.json();
-                if(!data.user) {
-                    window.location.href = '/login.html';
-                    return;
-                }
-                
-                document.getElementById('user-display').innerText = `Logged in: ${data.user.name}`;
-                
-                const badge = document.getElementById('status-badge');
-                const desc = document.getElementById('status-desc');
-                const btn = document.getElementById('req-btn');
-
-                // Hapa tunatumia data kutoka server.js uliyoiupdate
-                const sStatus = data.user.serverStatus || 'none';
-
-                if(sStatus === 'active') {
-                    badge.innerHTML = '<span class="status-dot dot-active"></span>ACTIVE';
-                    badge.style.color = 'var(--success)';
-                    desc.innerText = "Server yako ipo active! Bot yako inafanya kazi.";
-                    btn.style.display = 'none';
-                } else if(sStatus === 'pending') {
-                    badge.innerHTML = '<span class="status-dot dot-pending"></span>PENDING';
-                    badge.style.color = 'var(--warning)';
-                    desc.innerText = "Malipo yanahakikiwa na Admin. Subiri kidogo...";
-                    btn.disabled = true;
-                    btn.innerText = "Waiting for Approval...";
-                }
-            } catch(e) { console.log("Session error"); }
-        }
-
-        async function requestHosting() {
-            if(!confirm("Umeshalipia? Bonyeza OK kutuma ombi kwa Admin.")) return;
-            try {
-                const res = await fetch('/api/server/request', { method: 'POST' });
-                const data = await res.json();
-                alert(data.message || "Request Sent!");
-                checkStatus();
-            } catch(e) { alert("Error sending request"); }
-        }
-
-        // 2. CHAT BOT
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const text = input.value.trim();
-            if(!text) return;
-
-            const chatWindow = document.getElementById('chat-window');
-            const userDiv = document.createElement('div');
-            userDiv.className = 'msg user-msg';
-            userDiv.textContent = text;
-            chatWindow.appendChild(userDiv);
-            
-            input.value = '';
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-
-            const tempId = 'bot-' + Date.now();
-            const botDiv = document.createElement('div');
-            botDiv.className = 'msg mickey-msg';
-            botDiv.id = tempId;
-            botDiv.textContent = '...';
-            chatWindow.appendChild(botDiv);
-
-            try {
-                const response = await fetch(`/api/chat?text=${encodeURIComponent(text)}`);
-                const data = await response.json();
-                document.getElementById(tempId).innerText = data.reply;
-            } catch(e) {
-                document.getElementById(tempId).innerText = "Mickey AI is sleepy. Try again!";
-            }
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
-
-        // 3. AUDIO
-        document.getElementById('audioUpload').addEventListener('change', function() {
-            if(this.files[0]) {
-                document.getElementById('audioPlayer').src = URL.createObjectURL(this.files[0]);
-                document.getElementById('audioPlayer').play();
-            }
-        });
-
-        checkStatus();
-    </script>
+    <script src="/botweb.js"></script>
 </body>
 </html>
