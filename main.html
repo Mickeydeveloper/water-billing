@@ -274,32 +274,32 @@
 <body>
 
   <div class="container">
-    <h2>💧 Billing Calculator</h2>
+    <h2 data-i18n="billing.title">💧 Billing Calculator</h2>
 
     <form id="form">
       <div class="form-row">
         <div class="form-group">
-          <label for="name">Name</label>
-          <input type="text" id="name" placeholder="Customer name" required>
+          <label for="name" data-i18n="form.name">Name</label>
+          <input type="text" id="name" data-i18n="form.name" placeholder="Customer name" required>
           <div class="error-message"></div>
         </div>
 
         <div class="form-group">
-          <label for="phone">Phone</label>
-          <input type="tel" id="phone" placeholder="+255..." required>
+          <label for="phone" data-i18n="form.phone">Phone</label>
+          <input type="tel" id="phone" data-i18n="form.phone" placeholder="+255..." required>
           <div class="error-message"></div>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="prev">Previous Reading</label>
+          <label for="prev" data-i18n="billing.prev">Previous Reading</label>
           <input type="number" id="prev" value="0" min="0" step="0.01">
           <div class="error-message"></div>
         </div>
 
         <div class="form-group">
-          <label for="curr">Current Reading</label>
+          <label for="curr" data-i18n="billing.curr">Current Reading</label>
           <input type="number" id="curr" placeholder="0" min="0" step="0.01" required>
           <div class="error-message"></div>
         </div>
@@ -307,13 +307,13 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label for="rate">Rate (TZS/unit)</label>
+          <label for="rate" data-i18n="billing.rate">Rate (TZS/unit)</label>
           <input type="number" id="rate" value="2000" min="0" step="0.01">
           <div class="error-message"></div>
         </div>
 
         <div class="form-group">
-          <label for="fixed">Fixed Charge (TZS)</label>
+          <label for="fixed" data-i18n="billing.fixed">Fixed Charge (TZS)</label>
           <input type="number" id="fixed" value="0" min="0" step="0.01">
           <div class="error-message"></div>
         </div>
@@ -321,168 +321,18 @@
 
       <div class="calculation-info" id="calcInfo"></div>
 
-      <button type="submit" id="submitBtn">Save Bill</button>
+      <button type="submit" id="submitBtn" data-i18n="billing.save">Save Bill</button>
     </form>
 
     <div id="result" class="result"></div>
     <button id="smsBtn">📱 Send SMS</button>
   </div>
 
-  <script>
-    let currentRecord = null;
-    let submitTimeout;
+  <script src="translations.js"></script>
+  <script src="records.js"></script>
 
-    // Input validation
-    const inputs = document.querySelectorAll('input');
-    inputs.forEach(input => {
-      input.addEventListener('change', validateInput);
-      input.addEventListener('blur', validateInput);
-    });
-
-    // Real-time calculation display
-    document.getElementById('curr').addEventListener('input', updateCalculation);
-    document.getElementById('prev').addEventListener('input', updateCalculation);
-    document.getElementById('rate').addEventListener('input', updateCalculation);
-    document.getElementById('fixed').addEventListener('input', updateCalculation);
-
-    function updateCalculation() {
-      const prev = parseFloat(document.getElementById('prev').value) || 0;
-      const curr = parseFloat(document.getElementById('curr').value) || 0;
-      const rate = parseFloat(document.getElementById('rate').value) || 2000;
-      const fixed = parseFloat(document.getElementById('fixed').value) || 0;
-
-      if (curr >= prev && curr > 0) {
-        const usage = curr - prev;
-        const total = (usage * rate) + fixed;
-        const info = document.getElementById('calcInfo');
-        info.innerHTML = `
-          <strong>Preview:</strong><br>
-          Usage: ${usage.toFixed(2)} units × ${rate.toFixed(0)} = ${(usage * rate).toLocaleString('en-TZ', { maximumFractionDigits: 0 })} TZS<br>
-          Total: <strong>${total.toLocaleString('en-TZ', { maximumFractionDigits: 0 })} TZS</strong>
-        `;
-        info.style.display = 'block';
-      } else {
-        document.getElementById('calcInfo').style.display = 'none';
-      }
-    }
-
-    function validateInput(e) {
-      const input = e.target;
-      const errorMsg = input.parentElement.querySelector('.error-message');
-      let isValid = true;
-      let message = '';
-
-      if (input.id === 'name') {
-        if (input.value.trim().length < 2) {
-          isValid = false;
-          message = 'Name must be at least 2 characters';
-        }
-      } else if (input.id === 'phone') {
-        if (input.value.trim().length < 6) {
-          isValid = false;
-          message = 'Valid phone number required';
-        }
-      } else if (input.id === 'curr' || input.id === 'prev') {
-        const val = parseFloat(input.value);
-        if (isNaN(val) || val < 0) {
-          isValid = false;
-          message = 'Value must be a positive number';
-        }
-      }
-
-      if (isValid) {
-        input.classList.remove('invalid');
-        input.classList.add('valid');
-        if (errorMsg) errorMsg.classList.remove('show');
-      } else {
-        input.classList.add('invalid');
-        input.classList.remove('valid');
-        if (errorMsg && message) {
-          errorMsg.textContent = message;
-          errorMsg.classList.add('show');
-        }
-      }
-
-      return isValid;
-    }
-
-    // ================= FORM SUBMISSION =================
-    document.getElementById('form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      // Validate all inputs
-      let allValid = true;
-      inputs.forEach(input => {
-        if (!validateInput({ target: input })) {
-          allValid = false;
-        }
-      });
-
-      if (!allValid) {
-        showResult('❌ Please fix all errors', 'error');
-        return;
-      }
-
-      const btn = document.getElementById('submitBtn');
-      btn.innerText = '';
-      const spinner = document.createElement('span');
-      spinner.className = 'loading-spinner';
-      btn.appendChild(spinner);
-      btn.appendChild(document.createTextNode('Saving...'));
-      btn.disabled = true;
-
-      try {
-        const name = document.getElementById('name').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const prev = parseFloat(document.getElementById('prev').value) || 0;
-        const curr = parseFloat(document.getElementById('curr').value);
-        const rate = parseFloat(document.getElementById('rate').value) || 2000;
-        const fixed = parseFloat(document.getElementById('fixed').value) || 0;
-
-        if (curr < prev) {
-          throw new Error('Current reading must be ≥ previous reading');
-        }
-
-        const usage = curr - prev;
-        const total = (usage * rate) + fixed;
-
-        currentRecord = {
-          name,
-          phone,
-          prev,
-          curr,
-          usage,
-          rate,
-          fixed,
-          total,
-          date: new Date().toISOString()
-        };
-
-        const res = await fetch('/save-record', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'same-origin',
-          body: JSON.stringify(currentRecord)
-        });
-
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || 'Failed to save record');
-        }
-
-        showResult(
-          `✅ Bill saved successfully!\nTotal: ${total.toLocaleString('en-TZ', { maximumFractionDigits: 0 })} TZS`,
-          'success'
-        );
-
-        document.getElementById('smsBtn').style.display = 'block';
-        document.getElementById('form').reset();
-        inputs.forEach(i => {
-          i.classList.remove('valid', 'invalid');
-        });
-        document.getElementById('calcInfo').style.display = 'none';
-
-      } catch (err) {
+</body>
+</html>
         console.error(err);
         showResult('❌ ' + err.message, 'error');
       }
