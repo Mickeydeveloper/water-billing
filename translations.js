@@ -76,6 +76,16 @@ const translations = {
     'sms.total': 'Total',
     'sms.paymentRequest': 'Please pay as soon as possible.',
     'sms.noPhone': 'No phone number provided.',
+    smsTitle: "BILL STATEMENT",
+    customer: "Customer",
+    phone: "Phone",
+    prevReading: "Previous Reading",
+    currReading: "Current Reading",
+    usage: "Usage",
+    rate: "Rate",
+    fixedCharge: "Fixed Charge",
+    total: "Total Due",
+    thankYou: "Thank you"
   },
   sw: {
     // Navigation & Common
@@ -153,6 +163,16 @@ const translations = {
     'sms.total': 'Jumla',
     'sms.paymentRequest': 'Tafadhali fanya malipo mapema.',
     'sms.noPhone': 'Namba ya simu haipo.',
+    smsTitle: "TAARIFA YA MALIPO (BILL STATEMENT)",
+    customer: "Mteja (Customer)",
+    phone: "Simu (Phone)",
+    prevReading: "Usomaji wa nyuma (Prev. Reading)",
+    currReading: "Usomaji wa sasa (Curr. Reading)",
+    usage: "Matumizi (Usage)",
+    rate: "Gharama (Rate)",
+    fixedCharge: "Gharama isiyobadilika (Fixed Charge)",
+    total: "Jumla (Total Due)",
+    thankYou: "Asante"
   }
 };
 

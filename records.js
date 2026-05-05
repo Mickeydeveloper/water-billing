@@ -12,16 +12,27 @@ const RecordsApp = (() => {
   }
 
   function createSmsBody(record, lang = 'sw') {
-    const greeting = getSmsTranslation(lang, 'sms.greeting');
-    const usageLabel = getSmsTranslation(lang, 'sms.usage');
-    const totalLabel = getSmsTranslation(lang, 'sms.total');
-    const paymentRequest = getSmsTranslation(lang, 'sms.paymentRequest');
+    const t = (key) => getSmsTranslation(lang, key);
 
-    const name = record.name || '';
-    const usage = Number(record.usage || 0).toFixed(2);
-    const total = Number(record.total || 0).toLocaleString('en-TZ', { maximumFractionDigits: 0 });
+    return `${t('smsTitle')}
 
-    return `${greeting} ${name}, ${usageLabel}: ${usage} m³, ${totalLabel}: TZS ${total}. ${paymentRequest}`;
+${t('customer')}: ${record.name || record.phone}
+
+${t('phone')}: ${record.phone}
+
+${t('prevReading')}: ${record.prev} units
+
+${t('currReading')}: ${record.curr} units
+
+${t('usage')}: ${record.usage} units
+
+${t('rate')}: TZS ${record.rate}/unit
+
+${t('fixedCharge')}: TZS ${record.fixedCharge}
+
+${t('total')}: TZS ${record.total}
+
+${t('thankYou')}!`;
   }
 
   function showResult(message, type = 'success') {
