@@ -137,6 +137,7 @@
   </div>
 </div>
 
+<script src="translations.js"></script>
 <script>
 let allRecords = [];
 let isAdmin = false;
@@ -241,9 +242,9 @@ function payNow(id) {
 }
 
 function sendSMS(phone, name, total) {
-    if(!phone) return alert("Namba ya simu haipo!");
-    const msg = `Habari ${name}, Ankara yako ya maji ni TZS ${Number(total).toLocaleString()}. Tafadhali fanya malipo mapema.`;
-    window.location.href = `sms:${phone}?body=${encodeURIComponent(msg)}`;
+    if (!phone) return alert(t('sms.noPhone') || 'Namba ya simu haipo!');
+    const message = `${t('sms.greeting')} ${name}, ${t('sms.usage')}: ${Number(total || 0).toFixed(2)} m³, ${t('sms.total')}: TZS ${Number(total || 0).toLocaleString()}. ${t('sms.paymentRequest')}`;
+    window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
 }
 
 async function deleteRecord(id) {

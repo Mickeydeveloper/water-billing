@@ -333,30 +333,3 @@
 
 </body>
 </html>
-        console.error(err);
-        showResult('❌ ' + err.message, 'error');
-      }
-
-      btn.innerHTML = 'Save Bill';
-      btn.disabled = false;
-    });
-
-    // ================= RESULT DISPLAY =================
-    function showResult(text, type) {
-      const box = document.getElementById('result');
-      box.innerText = text;
-      box.className = 'result ' + type;
-      box.style.display = 'block';
-    }
-
-    // ================= SMS HANDLER =================
-    document.getElementById('smsBtn').addEventListener('click', () => {
-      if (!currentRecord) return;
-
-      const msg = `Bill for ${currentRecord.name}\nUsage: ${currentRecord.usage.toFixed(2)} units\nTotal: TZS ${currentRecord.total.toLocaleString('en-TZ', { maximumFractionDigits: 0 })}`;
-      window.location.href = `sms:${currentRecord.phone}?body=${encodeURIComponent(msg)}`;
-    });
-  </script>
-
-</body>
-</html>

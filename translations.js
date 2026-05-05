@@ -71,6 +71,11 @@ const translations = {
     'payment.bank': 'Bank Transfer',
     'payment.save': 'Record Payment',
     'payment.amount': 'Amount (TZS)',
+    'sms.greeting': 'Hello',
+    'sms.usage': 'Usage',
+    'sms.total': 'Total',
+    'sms.paymentRequest': 'Please pay as soon as possible.',
+    'sms.noPhone': 'No phone number provided.',
   },
   sw: {
     // Navigation & Common
@@ -143,6 +148,11 @@ const translations = {
     'payment.bank': 'Uhamisho wa Benki',
     'payment.save': 'Hifadhi Malipo',
     'payment.amount': 'Kiasi (TZS)',
+    'sms.greeting': 'Habari',
+    'sms.usage': 'Matumizi',
+    'sms.total': 'Jumla',
+    'sms.paymentRequest': 'Tafadhali fanya malipo mapema.',
+    'sms.noPhone': 'Namba ya simu haipo.',
   }
 };
 
