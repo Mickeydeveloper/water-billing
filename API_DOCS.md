@@ -194,6 +194,25 @@ Response:
 }
 ```
 
+### POST `/api/zenopay/checkout`
+Create a Zenopay checkout session for online payments
+```json
+Request:
+{
+  "recordId": "record-456",
+  "amount": 77500,
+  "currency": "TZS",
+  "customerName": "John Doe",
+  "customerEmail": "john@example.com",
+  "customerPhone": "+255712345678"
+}
+
+Response:
+{
+  "checkoutUrl": "https://checkout.zenopay.com/session/abc123"
+}
+```
+
 ### GET `/get-payments`
 Get user's payment history (requires authentication)
 ```json

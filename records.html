@@ -237,8 +237,50 @@ function renderTable() {
 }
 
 // 4. Kazi za Button
-function payNow(id) {
-  alert("Payment system (M-Pesa/Tigo) integration inakuja hivi karibuni mwanangu!");
+async function payNow(id) {
+  const record = allRecords.find(r => (r._id || r.id) === id);
+  if (!record) {
+    return alert('Rekodi haipatikani. Jaribu tena.');
+  }
+
+  const amount = Number(record.total || record.amount || 0);
+  if (amount <= 0) {
+    return alert('Kiasi cha malipo lazima kiwe zaidi ya sifuri.');
+  }
+
+  try {
+    const response = await fetch('/api/zenopay/checkout', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        recordId: id,
+        amount,
+        currency: 'TZS',
+        customerName: record.name || '',
+        customerEmail: record.email || '',
+        customerPhone: record.phone || ''
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('Zenopay checkout failed:', data);
+      return alert(data.error || 'Imeshindikana kuanzisha malipo ya Zenopay.');
+    }
+
+    if (data.checkoutUrl) {
+      window.location.href = data.checkoutUrl;
+    } else {
+      console.error('Zenopay response missing checkoutUrl:', data);
+      alert('Hakuna URL ya malipo iliyopatikana. Angalia server log.');
+    }
+  } catch (err) {
+    console.error('Zenopay request error:', err);
+    alert('Tatizo la mtandao wakati wa kuanzisha malipo ya Zenopay.');
+  }
 }
 
 function sendSMS(phone, name, total) {
