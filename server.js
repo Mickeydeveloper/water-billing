@@ -405,7 +405,7 @@ app.get('/api/payments/stats', protect, async (req, res) => {
   }
 });
 
-// Create a Zenopay payment checkout session
+// Zenopay checkout session
 app.post('/api/zenopay/checkout', protect, async (req, res) => {
   try {
     const { recordId, amount, currency = 'TZS', customerName, customerEmail, customerPhone } = req.body;
@@ -418,10 +418,13 @@ app.post('/api/zenopay/checkout', protect, async (req, res) => {
       return res.status(400).json({ error: 'recordId and amount are required' });
     }
 
-    const zenopayBaseUrl = process.env.ZENOPAY_API_URL || 'https://api.zenopay.com';
-    const zenopayCheckoutPath = process.env.ZENOPAY_CHECKOUT_PATH || '/checkout/sessions';
-    const callbackUrl = `${process.env.APP_URL || 'http://localhost:3000'}/records.html`;
+    const rawBaseUrl = (process.env.ZENOPAY_API_URL || 'https://api.zenoapi.com').trim().replace(/=+$/, '');
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '');
+    const checkoutPath = (process.env.ZENOPAY_CHECKOUT_PATH || '/checkout/sessions').trim();
+    const normalizedPath = checkoutPath.startsWith('/') ? checkoutPath : `/${checkoutPath}`;
+    const checkoutUrl = `${baseUrl}${normalizedPath}`;
 
+    const callbackUrl = `${process.env.APP_URL || 'http://localhost:3000'}/records.html`;
     const payload = {
       amount,
       currency,
@@ -440,20 +443,20 @@ app.post('/api/zenopay/checkout', protect, async (req, res) => {
       }
     };
 
-    const response = await axios.post(`${zenopayBaseUrl}${zenopayCheckoutPath}`, payload, {
+    const response = await axios.post(checkoutUrl, payload, {
       headers: {
         Authorization: `Bearer ${process.env.ZENOPAY_API_KEY}`,
         'Content-Type': 'application/json'
       }
     });
 
-    const checkoutUrl = response.data.checkoutUrl || response.data.redirectUrl || response.data.url || response.data.paymentLink || response.data.data?.checkout_url || response.data.data?.redirect_url || response.data.data?.url;
-
-    if (!checkoutUrl) {
-      return res.status(502).json({ error: 'Unexpected Zenopay response', details: response.data });
+    const data = response.data || {};
+    const redirectUrl = data.checkoutUrl || data.redirectUrl || data.url || data.paymentLink || data.data?.checkout_url || data.data?.redirect_url || data.data?.url;
+    if (!redirectUrl) {
+      return res.status(502).json({ error: 'Unexpected Zenopay response', details: data });
     }
 
-    res.json({ checkoutUrl });
+    res.json({ checkoutUrl: redirectUrl });
   } catch (err) {
     console.error('Zenopay checkout error:', err.response?.data || err.message || err);
     res.status(500).json({ error: 'Failed to create Zenopay checkout session', details: err.response?.data || err.message });
