@@ -679,37 +679,115 @@
         let currentChannel = 0;
         let isMuted = false;
         let statsInterval = null;
+        let sessionId = generateSessionId();
+        let userInfo = null;
+
+        // Generate unique session ID
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
             initializePlayer();
             initializePlaylist();
             setupEventListeners();
         });
 
+        // Load User Info
+        async function loadUserInfo() {
+            try {
+                const res = await fetch('/api/me', { credentials: 'same-origin' });
+                if (res.ok) {
+                    const data = await res.json();
+                    userInfo = data.user;
+                    console.log('👤 User loaded:', userInfo?.email);
+                }
+            } catch (err) {
+                console.warn('User info not available:', err.message);
+            }
+        }
+
         // Initialize DASH Player
         function initializePlayer() {
-            const video = document.getElementById('videoPlayer');
-            mediaPlayer = dashjs.MediaPlayer().create();
-            mediaPlayer.initialize(video, playerConfig.player.manifest_url, playerConfig.player.ui.autoplay);
+            try {
+                const video = document.getElementById('videoPlayer');
+                if (!video) {
+                    throw new Error('Video element not found');
+                }
 
-            // Setup DRM if enabled
-            if (playerConfig.player.drm.enabled) {
-                setupDRM();
+                mediaPlayer = dashjs.MediaPlayer().create();
+                if (!mediaPlayer) {
+                    throw new Error('Failed to create DASH player');
+                }
+
+                mediaPlayer.initialize(video, playerConfig.player.manifest_url, playerConfig.player.ui.autoplay);
+
+                // Setup DRM if enabled
+                if (playerConfig.player.drm.enabled) {
+                    try {
+                        setupDRM();
+                        console.log('✅ DRM configured');
+                    } catch (drmErr) {
+                        console.error('❌ DRM setup error:', drmErr);
+                        saveAnalytics('drm_error', {
+                            error: drmErr.message,
+                            severity: 'warning'
+                        });
+                    }
+                }
+
+                // Event Listeners
+                mediaPlayer.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, onStreamInitialized);
+                mediaPlayer.on(dashjs.MediaPlayer.events.ERROR, onPlayerError);
+                mediaPlayer.on(dashjs.MediaPlayer.events.QUALITY_CHANGE_REQUESTED, onQualityChange);
+                mediaPlayer.on(dashjs.MediaPlayer.events.BITRATE_LIST_UPDATED, onBitrateListUpdated);
+
+                video.addEventListener('play', () => {
+                    updatePlayButton();
+                    saveAnalytics('play_event', { channel: channels[currentChannel].name });
+                });
+
+                video.addEventListener('pause', () => {
+                    updatePlayButton();
+                    saveAnalytics('pause_event', { channel: channels[currentChannel].name });
+                });
+
+                video.addEventListener('ended', () => {
+                    saveAnalytics('video_ended', { channel: channels[currentChannel].name });
+                    playNextChannel();
+                });
+
+                video.addEventListener('error', (e) => {
+                    console.error('❌ Video error:', e);
+                    const errorMsg = video.error ? `Error code: ${video.error.code}` : 'Unknown video error';
+                    saveAnalytics('video_error', {
+                        error: errorMsg,
+                        channel: channels[currentChannel].name,
+                        severity: 'error'
+                    });
+                    showError(errorMsg);
+                });
+
+                video.addEventListener('timeupdate', updateProgress);
+
+                loadChannel(0);
+                
+                // Save session start
+                saveAnalytics('session_start', {
+                    userAgent: navigator.userAgent,
+                    url: window.location.href
+                });
+
+            } catch (err) {
+                console.error('❌ Player initialization error:', err);
+                saveAnalytics('player_init_error', {
+                    error: err.message,
+                    severity: 'critical'
+                });
+                showError('Failed to initialize player: ' + err.message);
             }
-
-            // Event Listeners
-            mediaPlayer.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, onStreamInitialized);
-            mediaPlayer.on(dashjs.MediaPlayer.events.ERROR, onPlayerError);
-            mediaPlayer.on(dashjs.MediaPlayer.events.QUALITY_CHANGE_REQUESTED, onQualityChange);
-            mediaPlayer.on(dashjs.MediaPlayer.events.BITRATE_LIST_UPDATED, onBitrateListUpdated);
-
-            video.addEventListener('timeupdate', updateProgress);
-            video.addEventListener('play', () => updatePlayButton());
-            video.addEventListener('pause', () => updatePlayButton());
-            video.addEventListener('ended', playNextChannel);
-
-            loadChannel(0);
         }
 
         // Setup DRM
@@ -728,31 +806,56 @@
 
         // Load Channel
         function loadChannel(index) {
-            if (index < 0 || index >= channels.length) return;
+            try {
+                if (index < 0 || index >= channels.length) {
+                    throw new Error('Invalid channel index: ' + index);
+                }
 
-            currentChannel = index;
-            const channel = channels[index];
+                currentChannel = index;
+                const channel = channels[index];
 
-            // Update UI
-            document.getElementById('channelName').textContent = channel.name;
-            document.getElementById('channelCategory').textContent = channel.category;
-            document.getElementById('overlayTitle').textContent = channel.name;
+                // Update UI
+                document.getElementById('channelName').textContent = channel.name;
+                document.getElementById('channelCategory').textContent = channel.category;
+                document.getElementById('overlayTitle').textContent = channel.name;
 
-            // Set poster
-            const video = document.getElementById('videoPlayer');
-            video.poster = channel.poster;
+                // Set poster
+                const video = document.getElementById('videoPlayer');
+                video.poster = channel.poster;
 
-            // Load stream
-            mediaPlayer.attachSource(channel.manifest_url);
+                // Load stream
+                try {
+                    mediaPlayer.attachSource(channel.manifest_url);
+                    console.log('✅ Stream loaded:', channel.name);
+                } catch (streamErr) {
+                    console.error('❌ Stream loading error:', streamErr);
+                    saveAnalytics('stream_load_error', {
+                        channel: channel.name,
+                        url: channel.manifest_url,
+                        error: streamErr.message,
+                        severity: 'error'
+                    });
+                    showError('Failed to load stream: ' + streamErr.message);
+                }
 
-            // Update analytics
-            trackEvent('channel_change', {
-                channel: channel.name,
-                category: channel.category
-            });
+                // Update analytics
+                saveAnalytics('channel_change', {
+                    channel: channel.name,
+                    category: channel.category,
+                    channelId: channel.id
+                });
 
-            // Update playlist UI
-            updatePlaylistUI();
+                // Update playlist UI
+                updatePlaylistUI();
+            } catch (err) {
+                console.error('❌ Load channel error:', err);
+                saveAnalytics('load_channel_error', {
+                    error: err.message,
+                    index: index,
+                    severity: 'error'
+                });
+                showError('Failed to load channel: ' + err.message);
+            }
         }
 
         // Initialize Playlist
@@ -779,139 +882,339 @@
 
         // Setup Event Listeners
         function setupEventListeners() {
-            const video = document.getElementById('videoPlayer');
-            
-            video.addEventListener('play', () => {
-                showLoadingSpinner(false);
-            });
-
-            video.addEventListener('loadstart', () => {
-                showLoadingSpinner(true);
-            });
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                switch(e.code) {
-                    case 'Space':
-                        e.preventDefault();
-                        togglePlay();
-                        break;
-                    case 'ArrowRight':
-                        video.currentTime += 10;
-                        break;
-                    case 'ArrowLeft':
-                        video.currentTime -= 10;
-                        break;
-                    case 'KeyF':
-                        toggleFullscreen();
-                        break;
-                    case 'KeyM':
-                        toggleMute();
-                        break;
-                    case 'KeyN':
-                        playNextChannel();
-                        break;
+            try {
+                const video = document.getElementById('videoPlayer');
+                if (!video) {
+                    throw new Error('Video element not found for event listeners');
                 }
-            });
+                
+                video.addEventListener('play', () => {
+                    try {
+                        showLoadingSpinner(false);
+                    } catch (err) {
+                        console.error('❌ Play event handler error:', err);
+                    }
+                });
 
-            // Quality dropdown click outside
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.quality-menu')) {
-                    document.getElementById('qualityMenu').classList.remove('active');
+                video.addEventListener('loadstart', () => {
+                    try {
+                        showLoadingSpinner(true);
+                    } catch (err) {
+                        console.error('❌ Loadstart handler error:', err);
+                    }
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    try {
+                        switch(e.code) {
+                            case 'Space':
+                                e.preventDefault();
+                                togglePlay();
+                                saveAnalytics('keyboard_shortcut', { key: 'Space' });
+                                break;
+                            case 'ArrowRight':
+                                video.currentTime += 10;
+                                saveAnalytics('keyboard_shortcut', { key: 'ArrowRight', newTime: video.currentTime });
+                                break;
+                            case 'ArrowLeft':
+                                video.currentTime -= 10;
+                                saveAnalytics('keyboard_shortcut', { key: 'ArrowLeft', newTime: video.currentTime });
+                                break;
+                            case 'KeyF':
+                                toggleFullscreen();
+                                saveAnalytics('keyboard_shortcut', { key: 'KeyF' });
+                                break;
+                            case 'KeyM':
+                                toggleMute();
+                                saveAnalytics('keyboard_shortcut', { key: 'KeyM' });
+                                break;
+                            case 'KeyN':
+                                playNextChannel();
+                                saveAnalytics('keyboard_shortcut', { key: 'KeyN' });
+                                break;
+                        }
+                    } catch (err) {
+                        console.error('❌ Keyboard shortcut error:', err);
+                        saveAnalytics('keyboard_shortcut_error', {
+                            error: err.message,
+                            key: e.code,
+                            severity: 'warning'
+                        });
+                    }
+                });
+
+                // Quality dropdown click outside
+                document.addEventListener('click', (e) => {
+                    try {
+                        if (!e.target.closest('.quality-menu')) {
+                            const menu = document.getElementById('qualityMenu');
+                            if (menu) {
+                                menu.classList.remove('active');
+                            }
+                        }
+                    } catch (err) {
+                        console.error('❌ Click handler error:', err);
+                    }
+                });
+
+                // Progress bar seek
+                const progressBar = document.getElementById('progressBar');
+                if (progressBar) {
+                    progressBar.addEventListener('click', (e) => {
+                        try {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const percent = (e.clientX - rect.left) / rect.width;
+                            video.currentTime = percent * video.duration;
+                            saveAnalytics('seek', {
+                                newTime: video.currentTime,
+                                duration: video.duration,
+                                percent: (percent * 100).toFixed(2)
+                            });
+                        } catch (err) {
+                            console.error('❌ Seek error:', err);
+                            saveAnalytics('seek_error', {
+                                error: err.message,
+                                severity: 'warning'
+                            });
+                        }
+                    });
                 }
-            });
 
-            // Progress bar seek
-            document.getElementById('progressBar').addEventListener('click', (e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const percent = (e.clientX - rect.left) / rect.width;
-                video.currentTime = percent * video.duration;
-            });
-
-            // Window resize - update stats
-            window.addEventListener('resize', () => {
-                updateStats();
-            });
+                // Window resize - update stats
+                window.addEventListener('resize', () => {
+                    try {
+                        updateStats();
+                    } catch (err) {
+                        console.error('❌ Resize handler error:', err);
+                    }
+                });
+            } catch (err) {
+                console.error('❌ Setup event listeners error:', err);
+                saveAnalytics('setup_listeners_error', {
+                    error: err.message,
+                    severity: 'critical'
+                });
+            }
         }
 
         // Player Controls
         function togglePlay() {
-            const video = document.getElementById('videoPlayer');
-            if (video.paused) {
-                video.play();
-            } else {
-                video.pause();
+            try {
+                const video = document.getElementById('videoPlayer');
+                if (!video) {
+                    throw new Error('Video element not found');
+                }
+
+                if (video.paused) {
+                    video.play().catch(err => {
+                        console.error('❌ Play error:', err);
+                        saveAnalytics('play_error', {
+                            error: err.message,
+                            severity: 'error'
+                        });
+                        showError('Play failed: ' + err.message);
+                    });
+                } else {
+                    video.pause();
+                }
+            } catch (err) {
+                console.error('❌ Toggle play error:', err);
+                saveAnalytics('toggle_play_error', {
+                    error: err.message,
+                    severity: 'warning'
+                });
             }
         }
 
         function updatePlayButton() {
-            const btn = document.getElementById('playBtn');
-            const video = document.getElementById('videoPlayer');
-            btn.textContent = video.paused ? '▶' : '⏸';
+            try {
+                const btn = document.getElementById('playBtn');
+                const video = document.getElementById('videoPlayer');
+                if (btn && video) {
+                    btn.textContent = video.paused ? '▶' : '⏸';
+                }
+            } catch (err) {
+                console.error('❌ Update play button error:', err);
+            }
         }
 
         function toggleMute() {
-            const video = document.getElementById('videoPlayer');
-            const btn = document.getElementById('volumeBtn');
-            const slider = document.getElementById('volumeSlider');
+            try {
+                const video = document.getElementById('videoPlayer');
+                const btn = document.getElementById('volumeBtn');
+                const slider = document.getElementById('volumeSlider');
 
-            isMuted = !isMuted;
-            video.muted = isMuted;
-            btn.textContent = isMuted ? '🔇' : '🔊';
+                if (!video || !btn || !slider) {
+                    throw new Error('Required elements not found');
+                }
 
-            if (isMuted) {
-                slider.style.opacity = '0.5';
-            } else {
-                slider.style.opacity = '1';
+                isMuted = !isMuted;
+                video.muted = isMuted;
+                btn.textContent = isMuted ? '🔇' : '🔊';
+                slider.style.opacity = isMuted ? '0.5' : '1';
+
+                saveAnalytics('mute_toggle', {
+                    muted: isMuted
+                });
+            } catch (err) {
+                console.error('❌ Toggle mute error:', err);
+                saveAnalytics('mute_error', {
+                    error: err.message,
+                    severity: 'warning'
+                });
             }
         }
 
         function setVolume(value) {
-            const video = document.getElementById('videoPlayer');
-            video.volume = value / 100;
-            isMuted = value == 0;
+            try {
+                const video = document.getElementById('videoPlayer');
+                if (!video) {
+                    throw new Error('Video element not found');
+                }
+
+                const volumeValue = Math.max(0, Math.min(100, parseInt(value)));
+                video.volume = volumeValue / 100;
+                isMuted = volumeValue == 0;
+
+                saveAnalytics('volume_change', {
+                    volume: volumeValue
+                });
+            } catch (err) {
+                console.error('❌ Set volume error:', err);
+                saveAnalytics('volume_error', {
+                    error: err.message,
+                    severity: 'warning'
+                });
+            }
         }
 
         function togglePIP() {
-            const video = document.getElementById('videoPlayer');
-            if (document.pictureInPictureElement) {
-                document.exitPictureInPicture();
-            } else {
-                video.requestPictureInPicture().catch(err => console.error(err));
+            try {
+                const video = document.getElementById('videoPlayer');
+                if (!video) {
+                    throw new Error('Video element not found');
+                }
+
+                if (document.pictureInPictureElement) {
+                    document.exitPictureInPicture().catch(err => {
+                        console.error('❌ Exit PIP error:', err);
+                        saveAnalytics('pip_exit_error', {
+                            error: err.message,
+                            severity: 'warning'
+                        });
+                    });
+                    saveAnalytics('pip_disabled', {});
+                } else {
+                    video.requestPictureInPicture().catch(err => {
+                        console.error('❌ PIP error:', err);
+                        saveAnalytics('pip_error', {
+                            error: err.message,
+                            severity: 'warning'
+                        });
+                        showError('Picture-in-Picture not supported');
+                    });
+                    saveAnalytics('pip_enabled', {});
+                }
+            } catch (err) {
+                console.error('❌ Toggle PIP error:', err);
+                saveAnalytics('pip_toggle_error', {
+                    error: err.message,
+                    severity: 'warning'
+                });
             }
         }
 
         function toggleFullscreen() {
-            const container = document.getElementById('playerContainer');
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-                container.classList.remove('fullscreen');
-            } else {
-                container.requestFullscreen().catch(err => {
-                    console.error('Fullscreen error:', err);
+            try {
+                const container = document.getElementById('playerContainer');
+                if (!container) {
+                    throw new Error('Player container not found');
+                }
+
+                if (document.fullscreenElement) {
+                    document.exitFullscreen().catch(err => {
+                        console.error('❌ Exit fullscreen error:', err);
+                        saveAnalytics('fullscreen_exit_error', {
+                            error: err.message,
+                            severity: 'warning'
+                        });
+                    });
+                    container.classList.remove('fullscreen');
+                    saveAnalytics('fullscreen_disabled', {});
+                } else {
+                    container.requestFullscreen().catch(err => {
+                        console.error('❌ Fullscreen error:', err);
+                        saveAnalytics('fullscreen_error', {
+                            error: err.message,
+                            severity: 'warning'
+                        });
+                        showError('Fullscreen not supported');
+                    });
+                    container.classList.add('fullscreen');
+                    saveAnalytics('fullscreen_enabled', {});
+                }
+            } catch (err) {
+                console.error('❌ Toggle fullscreen error:', err);
+                saveAnalytics('fullscreen_toggle_error', {
+                    error: err.message,
+                    severity: 'warning'
                 });
-                container.classList.add('fullscreen');
             }
         }
 
         function toggleQualityMenu() {
-            document.getElementById('qualityMenu').classList.toggle('active');
+            try {
+                const menu = document.getElementById('qualityMenu');
+                if (!menu) {
+                    throw new Error('Quality menu not found');
+                }
+                menu.classList.toggle('active');
+            } catch (err) {
+                console.error('❌ Toggle quality menu error:', err);
+                saveAnalytics('quality_menu_error', {
+                    error: err.message,
+                    severity: 'warning'
+                });
+            }
         }
 
         // Quality Selection
         function setQuality(index) {
-            if (mediaPlayer) {
-                const bitrateList = mediaPlayer.getBitrateList('video');
-                if (bitrateList && bitrateList[index]) {
-                    mediaPlayer.updatePortalSize(bitrateList[index].width, bitrateList[index].height);
-                    mediaPlayer.setQualityFor('video', index);
-                    
-                    document.querySelectorAll('.quality-option').forEach((el, i) => {
-                        el.classList.toggle('selected', i === index);
-                    });
-                    
-                    document.getElementById('qualityBadge').textContent = `${bitrateList[index].width}p`;
+            try {
+                if (!mediaPlayer) {
+                    throw new Error('Media player not initialized');
                 }
+
+                const bitrateList = mediaPlayer.getBitrateList('video');
+                if (!bitrateList || !bitrateList[index]) {
+                    throw new Error('Invalid quality index: ' + index);
+                }
+
+                const current = bitrateList[index];
+                mediaPlayer.updatePortalSize(current.width, current.height);
+                mediaPlayer.setQualityFor('video', index);
+                
+                document.querySelectorAll('.quality-option').forEach((el, i) => {
+                    el.classList.toggle('selected', i === index);
+                });
+                
+                document.getElementById('qualityBadge').textContent = `${current.width}p`;
+                
+                console.log('✅ Quality set to:', current.width + 'x' + current.height);
+                
+                saveAnalytics('quality_selected', {
+                    resolution: `${current.width}x${current.height}`,
+                    bitrate: (current.bitrate / 1000).toFixed(2) + ' Mbps'
+                });
+            } catch (err) {
+                console.error('❌ Set quality error:', err);
+                saveAnalytics('set_quality_error', {
+                    error: err.message,
+                    index: index,
+                    severity: 'warning'
+                });
+                showError('Quality change failed: ' + err.message);
             }
         }
 
@@ -984,50 +1287,138 @@
 
         // Event Handlers
         function onStreamInitialized() {
-            console.log('Stream initialized');
-            showLoadingSpinner(false);
-            updateQualityOptions();
+            try {
+                console.log('✅ Stream initialized');
+                showLoadingSpinner(false);
+                updateQualityOptions();
+                saveAnalytics('stream_initialized', {
+                    channel: channels[currentChannel].name
+                });
+            } catch (err) {
+                console.error('❌ Stream init handler error:', err);
+                saveAnalytics('stream_init_error', {
+                    error: err.message,
+                    severity: 'error'
+                });
+            }
         }
 
         function onPlayerError(error) {
-            console.error('Player error:', error);
-            showError(error.error?.message || 'Playback error occurred');
+            try {
+                console.error('❌ Player error:', error);
+                const errorMessage = error.error?.message || error.message || 'Unknown playback error';
+                
+                showError(errorMessage);
+                
+                saveAnalytics('player_error', {
+                    error: errorMessage,
+                    errorCode: error.error?.code,
+                    channel: channels[currentChannel].name,
+                    severity: 'error'
+                });
+            } catch (err) {
+                console.error('❌ Error handler error:', err);
+                saveAnalytics('error_handler_error', {
+                    error: err.message,
+                    severity: 'critical'
+                });
+            }
         }
 
         function onQualityChange() {
-            updateStats();
+            try {
+                updateStats();
+                const video = document.getElementById('videoPlayer');
+                if (mediaPlayer) {
+                    const bitrateList = mediaPlayer.getBitrateList('video');
+                    const currentIndex = mediaPlayer.getQualityFor('video');
+                    if (bitrateList && currentIndex >= 0) {
+                        const current = bitrateList[currentIndex];
+                        saveAnalytics('quality_change', {
+                            resolution: `${current.width}x${current.height}`,
+                            bitrate: (current.bitrate / 1000).toFixed(2) + ' Mbps',
+                            channel: channels[currentChannel].name
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error('❌ Quality change handler error:', err);
+                saveAnalytics('quality_change_error', {
+                    error: err.message,
+                    severity: 'warning'
+                });
+            }
         }
 
         function onBitrateListUpdated() {
-            updateQualityOptions();
+            try {
+                updateQualityOptions();
+            } catch (err) {
+                console.error('❌ Bitrate list error:', err);
+                saveAnalytics('bitrate_list_error', {
+                    error: err.message,
+                    severity: 'warning'
+                });
+            }
         }
 
         function updateQualityOptions() {
-            if (!mediaPlayer) return;
+            try {
+                if (!mediaPlayer) return;
 
-            const bitrateList = mediaPlayer.getBitrateList('video');
-            const dropdown = document.getElementById('qualityDropdown');
-            dropdown.innerHTML = '';
+                const bitrateList = mediaPlayer.getBitrateList('video');
+                const dropdown = document.getElementById('qualityDropdown');
+                if (!dropdown) return;
+                
+                dropdown.innerHTML = '';
 
-            if (bitrateList) {
-                bitrateList.forEach((bitrate, index) => {
-                    const option = document.createElement('div');
-                    option.className = 'quality-option' + (index === mediaPlayer.getQualityFor('video') ? ' selected' : '');
-                    option.textContent = `${bitrate.width}x${bitrate.height} (${(bitrate.bitrate / 1000).toFixed(0)} Mbps)`;
-                    option.onclick = () => setQuality(index);
-                    dropdown.appendChild(option);
+                if (bitrateList) {
+                    bitrateList.forEach((bitrate, index) => {
+                        const option = document.createElement('div');
+                        option.className = 'quality-option' + (index === mediaPlayer.getQualityFor('video') ? ' selected' : '');
+                        option.textContent = `${bitrate.width}x${bitrate.height} (${(bitrate.bitrate / 1000).toFixed(0)} Mbps)`;
+                        option.onclick = () => {
+                            try {
+                                setQuality(index);
+                            } catch (err) {
+                                console.error('❌ Quality select error:', err);
+                                saveAnalytics('quality_select_error', {
+                                    error: err.message,
+                                    severity: 'warning'
+                                });
+                            }
+                        };
+                        dropdown.appendChild(option);
+                    });
+
+                    // Add auto option
+                    const autoOption = document.createElement('div');
+                    autoOption.className = 'quality-option';
+                    autoOption.textContent = 'Auto (Adaptive)';
+                    autoOption.onclick = () => {
+                        try {
+                            mediaPlayer.updatePortalSize(window.innerWidth, window.innerHeight);
+                            document.querySelectorAll('.quality-option').forEach(el => el.classList.remove('selected'));
+                            document.getElementById('qualityBadge').textContent = 'Auto';
+                            saveAnalytics('adaptive_quality', {
+                                resolution: window.innerWidth + 'x' + window.innerHeight
+                            });
+                        } catch (err) {
+                            console.error('❌ Adaptive quality error:', err);
+                            saveAnalytics('adaptive_quality_error', {
+                                error: err.message,
+                                severity: 'warning'
+                            });
+                        }
+                    };
+                    dropdown.appendChild(autoOption);
+                }
+            } catch (err) {
+                console.error('❌ Update quality options error:', err);
+                saveAnalytics('quality_options_error', {
+                    error: err.message,
+                    severity: 'warning'
                 });
-
-                // Add auto option
-                const autoOption = document.createElement('div');
-                autoOption.className = 'quality-option';
-                autoOption.textContent = 'Auto (Adaptive)';
-                autoOption.onclick = () => {
-                    mediaPlayer.updatePortalSize(window.innerWidth, window.innerHeight);
-                    document.querySelectorAll('.quality-option').forEach(el => el.classList.remove('selected'));
-                    document.getElementById('qualityBadge').textContent = 'Auto';
-                };
-                dropdown.appendChild(autoOption);
             }
         }
 
@@ -1046,22 +1437,61 @@
             setTimeout(() => errorDiv.classList.remove('show'), 5000);
         }
 
-        // Analytics
-        function trackEvent(eventName, data = {}) {
-            if (!playerConfig.player.analytics.enabled) return;
+        // Save Analytics to Database
+        async function saveAnalytics(eventName, data = {}) {
+            try {
+                if (!playerConfig.player.analytics.enabled) {
+                    console.log('Analytics disabled');
+                    return;
+                }
 
-            const event = {
-                timestamp: new Date().toISOString(),
-                event: eventName,
-                channel: playerConfig.player.analytics.channel,
-                category: playerConfig.player.analytics.category,
-                ...data
-            };
+                const analyticsEvent = {
+                    sessionId: sessionId,
+                    timestamp: new Date().toISOString(),
+                    event: eventName,
+                    channel: playerConfig.player.analytics.channel,
+                    category: playerConfig.player.analytics.category,
+                    userId: userInfo?.id,
+                    userEmail: userInfo?.email,
+                    ...data
+                };
 
-            console.log('📊 Analytics Event:', event);
+                console.log('📊 Analytics Event:', analyticsEvent);
 
-            // Send to server if needed
-            // fetch('/api/analytics', { method: 'POST', body: JSON.stringify(event) });
+                // Send to server
+                const response = await fetch('/api/stream/analytics/event', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(analyticsEvent)
+                });
+
+                if (!response.ok) {
+                    console.warn('⚠️  Analytics save failed:', response.status);
+                    return;
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    console.log('✅ Analytics saved:', eventName);
+                } else {
+                    console.warn('⚠️  Analytics error:', result.error);
+                }
+            } catch (err) {
+                // Log error but don't crash player
+                console.error('❌ Analytics save error:', err.message);
+                // Optionally save error locally
+                try {
+                    localStorage.setItem('last_analytics_error', JSON.stringify({
+                        event: eventName,
+                        error: err.message,
+                        timestamp: new Date().toISOString()
+                    }));
+                } catch (storageErr) {
+                    console.warn('Local storage error:', storageErr);
+                }
+            }
         }
     </script>
 </body>

@@ -156,9 +156,31 @@ const passwordResetSchema = new mongoose.Schema({
   approvedAt: Date
 });
 
+// Stream Analytics Schema
+const streamAnalyticsSchema = new mongoose.Schema({
+  sessionId: { type: String, required: true, index: true },
+  userId: { type: String, sparse: true, index: true },
+  userEmail: { type: String, sparse: true, index: true },
+  timestamp: { type: Date, default: Date.now, index: true },
+  event: { type: String, required: true, index: true },
+  channel: { type: String, index: true },
+  category: String,
+  severity: { type: String, enum: ['info', 'warning', 'error', 'critical'], default: 'info' },
+  data: mongoose.Schema.Types.Mixed,
+  userAgent: String,
+  createdAt: { type: Date, default: Date.now, index: true, expires: 2592000 } // Auto-delete after 30 days
+});
+
+// Create compound indexes for analytics
+streamAnalyticsSchema.index({ sessionId: 1, timestamp: -1 });
+streamAnalyticsSchema.index({ userId: 1, timestamp: -1 });
+streamAnalyticsSchema.index({ channel: 1, timestamp: -1 });
+streamAnalyticsSchema.index({ event: 1, timestamp: -1 });
+
 const User = mongoose.model('User', userSchema);
 const Record = mongoose.model('Record', recordSchema);
 const PasswordResetRequest = mongoose.model('PasswordResetRequest', passwordResetSchema);
+const StreamAnalytics = mongoose.model('StreamAnalytics', streamAnalyticsSchema);
 
 // ================== PASSPORT STRATEGIES ==================
 // Local Strategy for email/password login
@@ -1197,6 +1219,234 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
+});
+
+// ================== STREAM ANALYTICS ==================
+
+// Save analytics event
+app.post('/api/stream/analytics/event', async (req, res) => {
+  try {
+    const { sessionId, timestamp, event, channel, category, userId, userEmail, severity, ...data } = req.body;
+
+    if (!sessionId || !event) {
+      return res.status(400).json({ error: 'sessionId and event are required' });
+    }
+
+    const analyticsEvent = new StreamAnalytics({
+      sessionId,
+      userId: userId || null,
+      userEmail: userEmail || null,
+      timestamp: timestamp ? new Date(timestamp) : new Date(),
+      event,
+      channel: channel || 'unknown',
+      category: category || 'unknown',
+      severity: severity || 'info',
+      data: data,
+      userAgent: req.get('user-agent')
+    });
+
+    await analyticsEvent.save();
+    console.log('📊 Analytics Event Saved:', {
+      event,
+      sessionId,
+      channel,
+      timestamp: analyticsEvent.timestamp.toISOString()
+    });
+
+    res.json({ 
+      success: true, 
+      message: 'Analytics event saved',
+      eventId: analyticsEvent._id
+    });
+  } catch (err) {
+    console.error('❌ Analytics save error:', err.message);
+    res.status(500).json({ error: 'Failed to save analytics event' });
+  }
+});
+
+// Get analytics for a session
+app.get('/api/stream/analytics/session/:sessionId', protect, async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+
+    if (!sessionId) {
+      return res.status(400).json({ error: 'sessionId is required' });
+    }
+
+    const events = await StreamAnalytics.find({ sessionId })
+      .sort({ timestamp: -1 })
+      .lean();
+
+    const summary = {
+      sessionId,
+      totalEvents: events.length,
+      eventTypes: [...new Set(events.map(e => e.event))],
+      firstEvent: events[events.length - 1]?.timestamp,
+      lastEvent: events[0]?.timestamp,
+      channel: events[0]?.channel,
+      category: events[0]?.category,
+      errors: events.filter(e => e.severity === 'error' || e.severity === 'critical').length
+    };
+
+    res.json({ 
+      success: true, 
+      summary,
+      events
+    });
+  } catch (err) {
+    console.error('❌ Get session analytics error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch session analytics' });
+  }
+});
+
+// Get analytics for a channel
+app.get('/api/stream/analytics/channel/:channel', protect, async (req, res) => {
+  try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { channel } = req.params;
+    const days = Math.min(30, parseInt(req.query.days) || 7);
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const events = await StreamAnalytics.find({
+      channel,
+      timestamp: { $gte: startDate }
+    }).lean();
+
+    const eventCounts = {};
+    const errorCounts = {};
+    let totalSessions = 0;
+    let totalPlaytime = 0;
+
+    events.forEach(e => {
+      eventCounts[e.event] = (eventCounts[e.event] || 0) + 1;
+      if (e.severity === 'error' || e.severity === 'critical') {
+        errorCounts[e.event] = (errorCounts[e.event] || 0) + 1;
+      }
+    });
+
+    const sessions = new Set(events.map(e => e.sessionId));
+    totalSessions = sessions.size;
+
+    const analytics = {
+      channel,
+      period: `Last ${days} days`,
+      startDate,
+      endDate: new Date(),
+      totalEvents: events.length,
+      totalSessions,
+      eventTypes: Object.keys(eventCounts).length,
+      eventCounts,
+      errorCounts,
+      totalErrors: Object.values(errorCounts).reduce((a, b) => a + b, 0),
+      avgEventsPerSession: totalSessions > 0 ? Math.round(events.length / totalSessions) : 0
+    };
+
+    res.json({ 
+      success: true, 
+      analytics
+    });
+  } catch (err) {
+    console.error('❌ Get channel analytics error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch channel analytics' });
+  }
+});
+
+// Get user analytics
+app.get('/api/stream/analytics/user/:userId', protect, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Allow users to see their own data, or admins to see any data
+    if (req.user.id !== userId && !isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const events = await StreamAnalytics.find({ userId })
+      .sort({ timestamp: -1 })
+      .limit(1000)
+      .lean();
+
+    const sessions = {};
+    events.forEach(e => {
+      if (!sessions[e.sessionId]) {
+        sessions[e.sessionId] = {
+          sessionId: e.sessionId,
+          channel: e.channel,
+          firstEvent: e.timestamp,
+          lastEvent: e.timestamp,
+          events: 0,
+          errors: 0
+        };
+      }
+      sessions[e.sessionId].events++;
+      sessions[e.sessionId].lastEvent = e.timestamp;
+      if (e.severity === 'error' || e.severity === 'critical') {
+        sessions[e.sessionId].errors++;
+      }
+    });
+
+    res.json({ 
+      success: true, 
+      userId,
+      totalEvents: events.length,
+      sessions: Object.values(sessions),
+      recentEvents: events.slice(0, 50)
+    });
+  } catch (err) {
+    console.error('❌ Get user analytics error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch user analytics' });
+  }
+});
+
+// Get error logs (admin only)
+app.get('/api/stream/analytics/errors', protect, async (req, res) => {
+  try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const days = Math.min(30, parseInt(req.query.days) || 7);
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const errors = await StreamAnalytics.find({
+      severity: { $in: ['error', 'critical'] },
+      timestamp: { $gte: startDate }
+    })
+      .sort({ timestamp: -1 })
+      .limit(500)
+      .lean();
+
+    const errorSummary = {};
+    errors.forEach(e => {
+      const key = `${e.event}-${e.channel}`;
+      if (!errorSummary[key]) {
+        errorSummary[key] = {
+          event: e.event,
+          channel: e.channel,
+          severity: e.severity,
+          count: 0,
+          lastOccurrence: e.timestamp
+        };
+      }
+      errorSummary[key].count++;
+      errorSummary[key].lastOccurrence = e.timestamp;
+    });
+
+    res.json({ 
+      success: true, 
+      period: `Last ${days} days`,
+      totalErrors: errors.length,
+      uniqueErrors: Object.keys(errorSummary).length,
+      errorSummary: Object.values(errorSummary),
+      recentErrors: errors.slice(0, 50)
+    });
+  } catch (err) {
+    console.error('❌ Get errors error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch error logs' });
+  }
 });
 
 // ================== ERROR HANDLER ==================
