@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#2563eb">
   <link rel="manifest" href="/manifest.json">
-  <meta name="description" content="Admin Dashboard - Water Billing System">
+  <meta name="description" content="Pterodactyl-style admin dashboard for bot hosting and server control">
   <meta name="author" content="Mickey Hamza">
-  <title>Admin Dashboard - Water Billing System</title>
+  <title>Pterodactyl Admin Panel</title>
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/728/728093.png" type="image/png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
   <script src="/translations.js"></script>
@@ -299,12 +299,12 @@
 <body>
   <!-- NAVIGATION -->
   <nav class="navbar">
-    <a href="index.html" class="navbar-logo">💧 Water Billing</a>
+    <a href="index.html" class="navbar-logo">🦖 Pterodactyl Panel</a>
     <ul class="navbar-links">
       <li><a href="index.html">Home</a></li>
-      <li><a href="main.html">Calculator</a></li>
-      <li><a href="records.html">Records</a></li>
-      <li><a href="botweb.html">Chat</a></li>
+      <li><a href="records.html">Servers</a></li>
+      <li><a href="botweb.html">Support</a></li>
+      <li><a href="signup.html">Register</a></li>
     </ul>
     <div class="navbar-user" id="navbarUser" style="display:none;">
       <span id="navbarUserName">User</span>
@@ -318,14 +318,14 @@
 
   <div class="container">
     <div class="header">
-      <h1>🛠️ Admin Dashboard</h1>
-      <p>Manage Water Billing System - Send Bulk Notifications</p>
+      <h1>🛠️ Pterodactyl Admin Dashboard</h1>
+      <p>Manage your bot hosting panel, server pairs, and user permissions.</p>
     </div>
 
     <div class="dashboard-grid">
       <!-- Statistics Card -->
       <div class="card">
-        <h3>📊 System Statistics</h3>
+        <h3>📊 System Overview</h3>
         <div class="stats-grid">
           <div class="stat-item">
             <span class="stat-number" id="totalUsers">-</span>
@@ -333,7 +333,7 @@
           </div>
           <div class="stat-item">
             <span class="stat-number" id="totalRecords">-</span>
-            <div class="stat-label">Billing Records</div>
+            <div class="stat-label">Active Servers</div>
           </div>
         </div>
         <div class="actions">
@@ -344,10 +344,10 @@
 
       <!-- Bulk Notification Card -->
       <div class="card">
-        <h3>📢 Send Bulk Notification</h3>
+        <h3>📢 Panel Alerts / Broadcast</h3>
         <form id="notificationForm">
           <div class="form-group">
-            <label for="notificationTitle">Notification Title *</label>
+            <label for="notificationTitle">Alert Title *</label>
             <input
               type="text"
               id="notificationTitle"
@@ -358,7 +358,7 @@
           </div>
 
           <div class="form-group">
-            <label for="notificationBody">Notification Message *</label>
+            <label for="notificationBody">Broadcast Message *</label>
             <textarea
               id="notificationBody"
               placeholder="e.g., Your water bill for this month is now available. Please check your account for details."
@@ -379,7 +379,7 @@
 
           <div class="actions">
             <button type="submit" class="btn btn-success" id="sendBtn">
-              📤 Send to All Subscribers
+              📤 Send to All Active Users
             </button>
             <button type="button" class="btn btn-primary" onclick="testNotification()">
               🧪 Send Test Notification
@@ -390,7 +390,7 @@
 
       <!-- Payments Card -->
       <div class="card">
-        <h3>💳 Payment Statistics</h3>
+        <h3>💳 Billing & Payments</h3>
         <div class="stats-grid">
           <div class="stat-item">
             <span class="stat-number" id="totalPayments">-</span>
@@ -398,7 +398,7 @@
           </div>
           <div class="stat-item">
             <span class="stat-number" id="totalAmount">-</span>
-            <div class="stat-label">Total (TZS)</div>
+            <div class="stat-label">Total Revenue</div>
           </div>
         </div>
       </div>
@@ -483,13 +483,13 @@
       <!-- Records Management Card -->
       <div class="card">
         <h3>📋 Billing Records Management</h3>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">View and edit all billing records</p>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">View and edit all server allocations and pairings</p>
         <button class="btn btn-secondary" onclick="loadRecordsList()">View All Records</button>
       </div>
 
       <!-- Records List Table (Hidden by default) -->
       <div class="card" id="recordsListCard" style="display: none; grid-column: 1 / -1;">
-        <h3>📋 Billing Records - Edit & Delete</h3>
+        <h3>📋 Server Records - Edit & Delete</h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
           <thead>
             <tr style="background: var(--background-light); border-bottom: 2px solid var(--border-color);">
@@ -1230,8 +1230,8 @@
   <footer>
     <div class="footer-content">
       <div class="footer-section">
-        <h4>Water Billing Admin</h4>
-        <p>Manage users, records, and notifications securely.</p>
+        <h4>Pterodactyl Admin</h4>
+        <p>Manage users, servers, and broadcasting securely.</p>
       </div>
       <div class="footer-section">
         <h4>Quick Links</h4>
@@ -1239,7 +1239,7 @@
         <a href="/login.html">Login</a>
       </div>
     </div>
-    <div class="footer-bottom">© 2026 Mickey Water Billing</div>
+    <div class="footer-bottom">© 2026 Mickey Pterodactyl Panel</div>
   </footer>
 </body>
 </html></content>
